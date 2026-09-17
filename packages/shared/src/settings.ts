@@ -165,19 +165,6 @@ export const Links = z.object({
   ),
 });
 
-export const MeetingOverrides = z.object({
-  overrides: z.array(
-    z.object({
-      date: z.iso.date(),
-      status: z.enum(["cancelled", "moved"]),
-      moved_to: z.iso.date().or(z.literal("")).default(""),
-      time: s.default(""),
-      location: s.default(""),
-      note: s.default(""),
-    }),
-  ),
-});
-
 export const Pool = z.object({
   season: z.object({
     year: z.number().int(),
@@ -251,7 +238,6 @@ export const SETTINGS = {
   problems: Problems,
   trash: Trash,
   links: Links,
-  "meeting-overrides": MeetingOverrides,
   pool: Pool,
   "recreation-center": RecreationCenter,
   "rv-lot": RvLot,

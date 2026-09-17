@@ -25,27 +25,6 @@ describe("occurrences", () => {
       occurrences(thirdTuesday, "2026-12-01", 2).map((o) => o.date),
     ).toEqual(["2026-12-15", "2027-01-19"]);
   });
-  it("drops cancelled meetings and moves moved ones", () => {
-    const got = occurrences(thirdTuesday, "2026-10-01", 3, [
-      { date: "2026-11-17", status: "cancelled" },
-      {
-        date: "2026-12-15",
-        status: "moved",
-        moved_to: "2026-12-08",
-        note: "Holiday",
-      },
-    ]);
-    expect(got).toEqual([
-      { date: "2026-10-20", originalDate: "2026-10-20" },
-      {
-        date: "2026-12-08",
-        originalDate: "2026-12-15",
-        note: "Holiday",
-        time: undefined,
-        location: undefined,
-      },
-    ]);
-  });
 });
 
 describe("todayInNewYork", () => {

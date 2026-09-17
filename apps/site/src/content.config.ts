@@ -111,25 +111,25 @@ const documents = defineCollection({
   }),
 });
 
-/** Meetings with a published agenda. Minutes are never here: they live in PayHOA. */
+/**
+ * Every meeting the board has on the books, with or without an agenda yet: the
+ * schedule the site shows is these records, and each one needs a page for the
+ * upcoming list to link to. Minutes are never here; they live in PayHOA.
+ */
 const meetings = defineCollection({
-  loader: fromSnapshot(
-    "meetings",
-    snapshot.meetings.filter((m) => m.agenda),
-    (m) => ({
-      id: m.id,
-      data: {
-        date: m.date,
-        type: m.type,
-        time: m.time,
-        location: m.location,
-        status: m.status,
-        agenda: m.agenda?.items ?? [],
-        notes: m.agenda?.notes ?? "",
-        agenda_published: m.agenda_published_at,
-      },
-    }),
-  ),
+  loader: fromSnapshot("meetings", snapshot.meetings, (m) => ({
+    id: m.id,
+    data: {
+      date: m.date,
+      type: m.type,
+      time: m.time,
+      location: m.location,
+      status: m.status,
+      agenda: m.agenda?.items ?? [],
+      notes: m.agenda?.notes ?? "",
+      agenda_published: m.agenda_published_at,
+    },
+  })),
   schema: z.object({
     date: z.string(),
     type: z.enum(["board", "annual", "special", "pool-rec"]),
