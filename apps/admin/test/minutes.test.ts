@@ -26,19 +26,23 @@ const body = (discussion: string) => ({
 });
 
 let secretary: string, director: string, reviewer: string, meeting: string;
+let meetingsMade = 0;
 
 beforeEach(async () => {
   secretary = await makeUser(["secretary"], "Secretary");
   director = await makeUser(["board"], "Director");
   reviewer = await makeUser(["reviewer"], "Counsel");
-  const date = `2026-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`;
-  meeting = `${date}-special-${crypto.randomUUID().slice(0, 4)}`;
+  // A different day for every test, so two tests never ask for the same
+  // meeting: a duplicate would be refused and leave the test without one.
+  const day = new Date(Date.UTC(2026, 0, 1 + meetingsMade++));
+  const date = day.toISOString().slice(0, 10);
   const created = await call(secretary, "POST", "/api/meetings", {
     type: "special",
     date,
     time: "7:00 pm",
     location: "Recreation Center",
   });
+  expect(created.status, `could not create the meeting for ${date}`).toBe(201);
   meeting = created.json.id;
 });
 
