@@ -16,6 +16,9 @@
       "esbuild",
       "sharp",
       "workerd"
-    ]
+    ],
+    "overrides": {
+      "sharp": "0.35.4"
+    }
   }
 }
