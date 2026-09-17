@@ -61,72 +61,12 @@ h1 {
   color: var(--ink-muted);
 }
 
-/* Forms */
-.field {
-  display: grid;
-  gap: var(--space-1);
-  margin-bottom: var(--space-3);
-}
-
-.field label,
-.field legend {
-  font-weight: 700;
-}
-
-.field .hint {
-  font-size: var(--step--1);
-  color: var(--ink-muted);
-}
-
-input[type="text"],
-input[type="email"],
-input[type="date"],
-input[type="number"],
-select,
-textarea {
-  font: inherit;
-  color: var(--ink);
-  background: var(--surface);
-  border: 2px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.5rem 0.65rem;
-  width: 100%;
-  max-width: 100%;
-}
-
-input[type="number"] {
-  max-width: 6rem;
-}
-
-textarea {
-  min-height: 6rem;
-  resize: vertical;
-}
-
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  border-color: var(--plan);
-  outline-offset: 1px;
-}
-
 fieldset {
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   padding: var(--space-3) var(--space-4);
   margin: 0 0 var(--space-4);
   min-width: 0;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  align-items: end;
-}
-
-.row > .field {
-  flex: 1 1 12rem;
 }
 
 .actions {
@@ -341,7 +281,8 @@ button[disabled] {
 }
 
 .choice input {
-  margin-top: 0.3rem;
+  /* Nudged to sit on the first line of its label, now that it is 24px tall. */
+  margin-top: 0.1rem;
 }
 
 .choice label {
@@ -349,8 +290,8 @@ button[disabled] {
 }
 
 /* Vote tallies: three short number boxes sit side by side at every width. */
-.row--counts > .field {
-  flex: 0 1 6.5rem;
+.row--counts {
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, max-content));
 }
 
 /*
@@ -549,16 +490,34 @@ button[disabled] {
   gap: var(--space-3);
 }
 
+/*
+ * The profile link is a person, not the word "You": at this size the word read
+ * as a stray navigation item rather than an account. The label is still there
+ * for screen readers and as a tooltip, and the target stays above the 24px
+ * WCAG minimum in both directions.
+ */
 .admin-you a {
-  /* The same size as the navigation links beside it: at the inherited body
-   * size this link alone stood 48px tall and set the header's height. */
-  font-size: 1rem;
-  line-height: 1.2;
-  font-weight: 600;
-  text-decoration: none;
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
   color: var(--ink);
-  border-bottom: 3px solid transparent;
-  padding-block: var(--space-2);
+  text-decoration: none;
+}
+
+.admin-you a svg {
+  inline-size: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.admin-you a:hover,
+.admin-you a[aria-current="page"] {
+  background: var(--pool);
+  color: var(--plan-strong);
 }
 
 .admin-you a[aria-current="page"],
