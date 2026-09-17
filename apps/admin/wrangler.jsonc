@@ -32,7 +32,7 @@
   // deletion. One of the five free cron triggers.
   "triggers": { "crons": ["0 10 * * *"] },
   "vars": {
-    "BETTER_AUTH_URL": "http://localhost:8787",
+    "BETTER_AUTH_URL": "https://dhoa-admin.discoveryhomeownersassociation.workers.dev",
   },
   // Secrets, set with `wrangler secret put` (or .dev.vars locally):
   //   BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BOOTSTRAP_TOKEN,

@@ -37,13 +37,33 @@ from `apps/admin-ui` and the API under `/api/` from `apps/admin`. Data lives in 
 Developer sign-in exists only when `DEV_SIGN_IN=true` **and** the app runs over plain http. It
 cannot be turned on in production, which is served over https.
 
-## First deployment (not done yet)
+## Content: seed, snapshot, rebuild
+
+- `just seed-local` fills the local database with the site's starting content (idempotent).
+- `just snapshot` saves what the admin app currently publishes into `apps/site/content/` and
+  `apps/site/public/documents/`. Commit the result; the site builds from it.
+- The Site workflow rebuilds every morning at 10:15 UTC and whenever the Worker sends a
+  `repository_dispatch` (only after a GitHub App is configured; see below). Set the repository
+  variable `SITE_CONTENT_URL` to the Worker's address (for example
+  `https://dhoa-admin.discoveryhomeownersassociation.workers.dev`) so the workflow fetches the
+  latest content instead of using the committed snapshot.
+
+### The GitHub App that asks for rebuilds (optional)
+
+Create a GitHub App owned by the organization with only **Contents: Read and write** on this
+repository, install it on the repository, and set these Worker secrets: `GITHUB_APP_ID`,
+`GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY` (the PEM file's contents). Until then the
+daily build picks up changes.
+
+## First deployment
 
 Everything here stays on the Workers Free plan.
 
-1. **Create the database.** Run `pnpm exec wrangler d1 create dhoa` in `apps/admin`. Put the
-   printed `database_id` in `wrangler.jsonc`.
-2. **Apply migrations:** `pnpm exec wrangler d1 migrations apply dhoa --remote`.
+1. **The database and file store exist.** D1 `dhoa` and KV namespace `FILES` were created on
+   2026-09-17; their ids are in `wrangler.jsonc`.
+2. **Apply migrations and seed:** in `apps/admin`, `pnpm exec wrangler d1 migrations apply dhoa
+--remote`, `node scripts/seed.ts`, `pnpm exec wrangler d1 execute dhoa --remote --file
+seed/seed.sql`, then `bash seed/kv.sh --remote`.
 3. **Create the Google OAuth client.** Use a Google Cloud project owned by the association's
    Google account (APIs & Services, then Credentials, then OAuth client ID, type **Web
    application**).
@@ -57,8 +77,9 @@ Everything here stays on the Workers Free plan.
    - Run `pnpm exec wrangler secret put` for each of `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`,
      `GOOGLE_CLIENT_SECRET` and `BOOTSTRAP_TOKEN`.
    - **Never set `DEV_SIGN_IN` in production.**
-5. **Deploy:** `pnpm --filter @dhoa/admin-ui build`, then `pnpm exec wrangler deploy` in
-   `apps/admin`.
+5. **Deploy:** the Deploy admin workflow does this on every push to `main`. It needs the
+   repository secret `CLOUDFLARE_API_TOKEN` and the variable `CLOUDFLARE_ACCOUNT_ID`. By hand:
+   `pnpm --filter @dhoa/admin-ui build`, then `pnpm exec wrangler deploy` in `apps/admin`.
 6. **Create the first administrator.** Call `/api/bootstrap` as shown above against the
    `workers.dev` address. Then run `wrangler secret delete BOOTSTRAP_TOKEN`. Once an administrator
    exists the endpoint refuses anyway, and deleting the secret removes it entirely.
@@ -89,7 +110,6 @@ Worker. Update `BETTER_AUTH_URL` and add the new origin and redirect URI to the 
 
 ## What is not built yet
 
-- Publishing an agenda marks it published in the database. It does not yet update the public
-  website; that needs a GitHub App to commit the agenda to the site.
 - Emailed one-time sign-in codes, for people without a Google account.
-- Editing public site content (news, events, documents) from the admin app.
+- The Sender.net newsletter.
+- Deploying the public site itself (GitHub Pages or Workers Static Assets) waits on the domain.
