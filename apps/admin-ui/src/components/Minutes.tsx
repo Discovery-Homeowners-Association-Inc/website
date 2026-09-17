@@ -77,11 +77,16 @@ export default function Minutes() {
   if (!data.minutes) {
     const start = async () => {
       const agenda = await api<AgendaResponse>("GET", `/meetings/${id}/agenda`);
+      // The id comes from the agenda item, so a follow-up can be traced back
+      // to where it was first raised.
       const items = (agenda.current?.body.items ?? []).map((it) => ({
         id: it.id,
         title: it.title,
         discussion: "",
         motions: [],
+        outcome: "closed" as const,
+        follow_up_owner: "",
+        follow_up_note: "",
       }));
       const body: MinutesBody = {
         called_to_order: "",

@@ -36,3 +36,36 @@ describe("MinutesBody", () => {
     expect(r.success).toBe(false);
   });
 });
+
+describe("an item's outcome", () => {
+  const item = { id: "a", title: "Elm Street drainage" };
+
+  it("closes by default, so old minutes still parse", () => {
+    const r = MinutesBody.parse({ items: [item] });
+    expect(r.items[0]!.outcome).toBe("closed");
+    expect(r.items[0]!.follow_up_owner).toBe("");
+    expect(r.items[0]!.follow_up_note).toBe("");
+  });
+
+  it("carries who is following an item up, and why", () => {
+    const r = MinutesBody.parse({
+      items: [
+        {
+          ...item,
+          outcome: "follow_up",
+          follow_up_owner: "Bob Thornton",
+          follow_up_note: "Waiting on a second quote",
+        },
+      ],
+    });
+    expect(r.items[0]!.outcome).toBe("follow_up");
+    expect(r.items[0]!.follow_up_owner).toBe("Bob Thornton");
+  });
+
+  it("refuses an outcome it does not know", () => {
+    const r = MinutesBody.safeParse({
+      items: [{ ...item, outcome: "maybe-later" }],
+    });
+    expect(r.success).toBe(false);
+  });
+});

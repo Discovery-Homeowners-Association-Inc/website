@@ -23,16 +23,29 @@ export function MinutesEditor({
   everyone: string[];
 }) {
   const set = (patch: Partial<MinutesBody>) => onChange({ ...body, ...patch });
+  /** A motion recorded as tabled is a follow-up; pre-select it once. */
+  const afterMotionChange = (i: number, motions: Motion[]) => {
+    const item = body.items[i]!;
+    const tabled = motions.some((m) => m.result === "tabled");
+    return tabled && item.outcome === "closed"
+      ? { motions, outcome: "follow_up" as const }
+      : { motions };
+  };
+
   const setItem = (i: number, patch: Partial<MinutesBody["items"][number]>) =>
     set({
       items: body.items.map((it, j) => (j === i ? { ...it, ...patch } : it)),
     });
   const setMotion = (i: number, k: number, patch: Partial<Motion>) =>
-    setItem(i, {
-      motions: body.items[i]!.motions.map((mo, j) =>
-        j === k ? { ...mo, ...patch } : mo,
+    setItem(
+      i,
+      afterMotionChange(
+        i,
+        body.items[i]!.motions.map((mo, j) =>
+          j === k ? { ...mo, ...patch } : mo,
+        ),
       ),
-    });
+    );
   const num = (v: string) => Math.max(0, Number.parseInt(v, 10) || 0);
 
   return (
@@ -129,6 +142,60 @@ export function MinutesEditor({
               onInput={(e) => setItem(i, { discussion: e.currentTarget.value })}
             />
             <span class="hint">Leave a blank line between paragraphs</span>
+          </div>
+          {/*
+           * What happens to this item after the meeting. Anything not closed
+           * is offered on the next meeting's agenda, so this is the one field
+           * that saves someone rebuilding the agenda from memory.
+           */}
+          <div class="row">
+            <div class="field">
+              <label for={`outcome-${it.id}`}>After the meeting</label>
+              <select
+                id={`outcome-${it.id}`}
+                value={it.outcome}
+                onInput={(e) =>
+                  setItem(i, {
+                    outcome: e.currentTarget
+                      .value as MinutesBody["items"][number]["outcome"],
+                  })
+                }
+              >
+                <option value="closed">Closed</option>
+                <option value="follow_up">Follow up</option>
+                <option value="deferred">Deferred</option>
+              </select>
+              <span class="hint">
+                {it.outcome === "closed"
+                  ? "Nothing carries to the next meeting"
+                  : it.outcome === "follow_up"
+                    ? "Decided, but someone must act — offered on the next agenda"
+                    : "Not reached — offered on the next agenda"}
+              </span>
+            </div>
+            {it.outcome !== "closed" && (
+              <>
+                <NamePicker
+                  id={`owner-${it.id}`}
+                  label="Who is carrying it"
+                  value={it.follow_up_owner}
+                  names={everyone}
+                  onChange={(v) => setItem(i, { follow_up_owner: v })}
+                />
+                <div class="field">
+                  <label for={`fnote-${it.id}`}>What is waiting on</label>
+                  <input
+                    id={`fnote-${it.id}`}
+                    type="text"
+                    value={it.follow_up_note}
+                    placeholder="Waiting on a second quote"
+                    onInput={(e) =>
+                      setItem(i, { follow_up_note: e.currentTarget.value })
+                    }
+                  />
+                </div>
+              </>
+            )}
           </div>
           {it.motions.map((mo, k) => (
             <div class="motion">
@@ -254,7 +321,15 @@ export function MinutesEditor({
             set({
               items: [
                 ...body.items,
-                { id: newId(), title: "", discussion: "", motions: [] },
+                {
+                  id: newId(),
+                  title: "",
+                  discussion: "",
+                  motions: [],
+                  outcome: "closed" as const,
+                  follow_up_owner: "",
+                  follow_up_note: "",
+                },
               ],
             })
           }
