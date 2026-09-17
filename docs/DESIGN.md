@@ -19,7 +19,7 @@ Inquiry, Eureka, Imagination. The site borrows from that plan rather than from a
 
 | Token        | Light     | Dark      | Role                                                                         |
 | ------------ | --------- | --------- | ---------------------------------------------------------------------------- |
-| `--paper`    | `#F4F6F5` | `#101A22` | Page ground: a cool grey-white, not cream                                    |
+| `--paper`    | `#F4F6F5` | `#101A22` | Page ground: a cool gray-white, not cream                                    |
 | `--ink`      | `#1A2530` | `#E4EAEE` | Text                                                                         |
 | `--plan`     | `#1F4FA8` | `#8DB2F7` | Links, primary actions, Discovery's streets on the map                       |
 | `--marigold` | `#F2B43A` | `#F2B43A` | The sun from the association mark. Used for highlight fills only, never text |

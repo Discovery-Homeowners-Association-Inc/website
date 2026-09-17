@@ -28,7 +28,7 @@ const MeetingPatch = MeetingInput.pick({
   location: true,
 })
   .partial()
-  .extend({ status: z.enum(["scheduled", "cancelled", "held"]).optional() });
+  .extend({ status: z.enum(["scheduled", "canceled", "held"]).optional() });
 
 export async function meetingOr404(db: D1Database, id: string) {
   const m = await db

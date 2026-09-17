@@ -60,18 +60,18 @@ test("running it again creates nothing", async () => {
   expect(await boardMeetings()).toEqual(before);
 });
 
-test("a meeting the board cancelled is not brought back", async () => {
+test("a meeting the board canceled is not brought back", async () => {
   await materializeMeetings(env.DB, new Date("2026-01-05"));
   const [first] = await boardMeetings();
-  await env.DB.prepare("update meetings set status = 'cancelled' where id = ?")
+  await env.DB.prepare("update meetings set status = 'canceled' where id = ?")
     .bind(first!.id)
     .run();
 
   await materializeMeetings(env.DB, new Date("2026-01-05"));
 
   const after = (await boardMeetings()).find((m) => m.id === first!.id);
-  expect(after?.status, "the scheduler resurrected a cancelled meeting").toBe(
-    "cancelled",
+  expect(after?.status, "the scheduler resurrected a canceled meeting").toBe(
+    "canceled",
   );
 });
 

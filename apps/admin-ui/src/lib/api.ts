@@ -50,7 +50,7 @@ export type Meeting = {
   date: string;
   time: string;
   location: string;
-  status: "scheduled" | "cancelled" | "held";
+  status: "scheduled" | "canceled" | "held";
 };
 export type MeetingListItem = Meeting & {
   agenda_status: "draft" | "published" | null;

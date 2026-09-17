@@ -97,7 +97,7 @@ filled twice. The site reads those records; `occurrences()` is gone from
 
 Overrides were retired rather than kept alongside the records, which turned out
 to be free: the list was empty in the seed, in the snapshot and in production, so
-there was nothing to migrate. A meeting is now cancelled by setting its status
+there was nothing to migrate. A meeting is now canceled by setting its status
 and moved by editing its date, both in the admin app. The id keeps the date the
 rule gave it, so moving a meeting does not make the scheduler put the old date
 back.

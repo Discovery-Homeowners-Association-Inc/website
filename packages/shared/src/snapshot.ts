@@ -39,7 +39,7 @@ export const SiteSnapshot = z.object({
       date: z.iso.date(),
       time: z.string(),
       location: z.string(),
-      status: z.enum(["scheduled", "cancelled", "held"]),
+      status: z.enum(["scheduled", "canceled", "held"]),
       agenda: AgendaBody.nullable(),
       agenda_published_at: z.string().nullable(),
     }),

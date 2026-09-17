@@ -20,7 +20,7 @@ export type CalendarItem = {
  * These used to be generated here from the recurrence rule, which meant the
  * site advertised meetings that existed nowhere else and could not carry an
  * agenda. The rule now produces records (see the admin app's scheduler), and a
- * meeting is cancelled or moved by editing the record.
+ * meeting is canceled or moved by editing the record.
  */
 export async function boardMeetings(
   from: string,
@@ -31,7 +31,7 @@ export async function boardMeetings(
     .filter(
       (r) =>
         r.data.type === "board" &&
-        r.data.status !== "cancelled" &&
+        r.data.status !== "canceled" &&
         r.data.date >= from,
     )
     .toSorted((a, b) => a.data.date.localeCompare(b.data.date))

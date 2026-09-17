@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = meetings
-    .filter((m) => m.date >= today && m.status !== "cancelled")
+    .filter((m) => m.date >= today && m.status !== "canceled")
     .reverse();
   const inReview = meetings.filter(
     (m) =>

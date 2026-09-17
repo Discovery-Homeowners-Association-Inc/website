@@ -193,7 +193,7 @@ export default function Meeting() {
       </h1>
       <p>
         {m.time}, {m.location}.{" "}
-        {m.status === "cancelled" && <strong>Cancelled.</strong>}
+        {m.status === "canceled" && <strong>Canceled.</strong>}
       </p>
       {can(me, "admin", "secretary", "board", "reviewer") && (
         <p>

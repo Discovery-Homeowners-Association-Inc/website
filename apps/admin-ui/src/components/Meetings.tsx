@@ -128,8 +128,8 @@ export default function Meetings() {
               <tr>
                 <td>
                   <a href={`/meeting/?id=${m.id}`}>{longDate(m.date)}</a>
-                  {m.status === "cancelled" && (
-                    <span class="status status--none"> Cancelled</span>
+                  {m.status === "canceled" && (
+                    <span class="status status--none"> Canceled</span>
                   )}
                 </td>
                 <td>{typeLabel[m.type]}</td>

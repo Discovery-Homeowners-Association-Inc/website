@@ -4,6 +4,9 @@
 # The association and its residents are in Maryland, and British spelling in a
 # volunteer board's public documents reads as though someone else wrote them.
 #
+# 0002_app.sql is excluded because a migration that has already run is a record
+# of what happened, not prose; 0006 is what corrects the value it created.
+#
 # Deliberately not listed: `aria-labelledby`, which is an HTML attribute rather
 # than a spelling; upstream package names such as @img/colour in the lockfile;
 # and license text quoted verbatim from its author.
@@ -12,11 +15,13 @@ cd "$(dirname "$0")/.."
 
 # Word stems that only exist in British spelling. Kept narrow on purpose: a
 # false positive here blocks a commit, so anything ambiguous is left out.
-british='materialis|organis|recognis|optimis|normalis|rasteris|prioritis|summaris|apologis|behaviour|colour|favour|honour|artefact|neighbour|\bcentre\b|\bwhilst\b|\bamongst\b'
+british='materialis|organis|recognis|optimis|normalis|rasteris|prioritis|summaris|apologis|customis|standardis|utilis|specialis|authoris|realis|minimis|maximis|criticis|behaviour|colour|favour|honour|artefact|neighbour|\bcentre\b|\bgrey\b|\bplough|\bwhilst\b|\bamongst\b|\banalyse|\blicence\b|\bdefence\b|\bprogramme\b|\bpractise\b|\btravelled\b|\bcancelled\b'
 
 hits=$(
   git grep -nIE "$british" -- \
     ':!pnpm-lock.yaml' ':!*.txt' ':!*LICENSE*' ':!scripts/check-english.sh' \
+    ':!apps/admin/worker-configuration.d.ts' \
+    ':!apps/admin/migrations/0002_app.sql' \
   | grep -v 'aria-labelledby' || true
 )
 

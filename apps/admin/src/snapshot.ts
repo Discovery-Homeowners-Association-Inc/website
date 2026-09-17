@@ -42,7 +42,7 @@ export async function buildSnapshot(
         date: string;
         time: string;
         location: string;
-        status: "scheduled" | "cancelled" | "held";
+        status: "scheduled" | "canceled" | "held";
         published_at: string | null;
         agenda: string | null;
       }>(),
