@@ -1,9 +1,10 @@
 # Content the board needs to confirm
 
-The new site's content was ported from the Hugo mockup and checked against the live Google Site
-(`sites.google.com/view/discoveryhomeowners`) in September 2026. Where the two disagreed, the
-**live site was treated as current** and the new site uses its value. Each item below still needs
-a board member to confirm it before launch.
+The new site's content was ported from the Hugo mockup and compared with the live Google Site
+(`sites.google.com/view/discoveryhomeowners`) in September 2026. **The mockup is treated as the
+more current source**, so where the two disagree the new site uses the mockup's value. All content
+still needs review for accuracy by the board and others before launch. The tables below are where
+to start.
 
 ## Conflicts between the live site and the mockup
 
