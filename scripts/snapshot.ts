@@ -27,7 +27,13 @@ for (const doc of snapshot.documents) {
   const ext =
     doc.body.file_name.match(/\.[a-z0-9]+$/i)?.[0].toLowerCase() ?? ".pdf";
   const name = `${doc.slug}${ext}`;
-  const f = await fetch(doc.file_url);
+  /*
+   * Fetched from the origin the snapshot itself came from, not from the origin
+   * inside file_url. The Worker builds those URLs from BETTER_AUTH_URL so that
+   * one cached snapshot is correct for every caller, and that hostname is not
+   * necessarily resolvable from wherever this script runs.
+   */
+  const f = await fetch(new URL(new URL(doc.file_url).pathname, base));
   if (!f.ok) throw new Error(`file for ${doc.slug} answered ${f.status}`);
   writeFileSync(join(filesDir, name), new Uint8Array(await f.arrayBuffer()));
   keep.add(name);
