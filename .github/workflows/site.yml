@@ -1,10 +1,13 @@
 name: Site
 
-# Builds the public site from the admin app's published content:
+# Builds the public site from the admin app's published content and deploys it to
+# Cloudflare as an assets-only Worker:
 # - every morning (scheduled posts appear, expired ones disappear),
 # - when the admin app asks (repository_dispatch from the Worker),
 # - and on every push to main.
 # With no SITE_CONTENT_URL variable set, it builds from the committed snapshot.
+# Needs the repository secret CLOUDFLARE_API_TOKEN (Workers Scripts: Edit,
+# Account Settings: Read) and the variable CLOUDFLARE_ACCOUNT_ID.
 
 on:
   push:
@@ -26,6 +29,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: production
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -42,9 +46,13 @@ jobs:
         env:
           SITE_CONTENT_URL: ${{ vars.SITE_CONTENT_URL }}
         run: node scripts/snapshot.ts "$SITE_CONTENT_URL"
-      - run: pnpm --filter @dhoa/site run build
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: site
-          path: apps/site/dist
-          retention-days: 7
+      - name: Build the site
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: pnpm --filter @dhoa/site run build
+      - name: Deploy the site Worker
+        working-directory: apps/site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy
