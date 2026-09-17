@@ -69,8 +69,16 @@ const current = (href: string) =>
         exactRoot
       >
         <div class="admin-you" slot="action">
-          <a href="/profile/" aria-current={current("/profile/")}>
-            You
+          <a
+            href="/profile/"
+            aria-current={current("/profile/")}
+            title="Your profile"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="8" r="3.6" />
+              <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+            </svg>
+            <span class="visually-hidden">Your profile</span>
           </a>
           <form method="post" action="/api/auth/sign-out" data-sign-out>
             <button class="button button--quiet button--small" type="submit">

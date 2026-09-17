@@ -117,6 +117,10 @@
   --space-5: 2.5rem;
   --space-6: 4rem;
 
+  /* Every control is at least this tall, so a select, a date and a text box
+   * standing next to each other line up instead of each finding its own height. */
+  --control-height: 2.75rem;
+
   --header-z: 20;
 
   --measure: 68ch;
@@ -520,6 +524,92 @@ main {
   .brand small {
     display: none;
   }
+}
+
+/* ── Form controls ───────────────────────────────────────────────────────── */
+/*
+ * Shared by the public site and the admin app. Left to themselves a select, a
+ * date input and a text input each render at a different height -- measured at
+ * 46, 51 and 49 pixels side by side -- so the height is set here rather than
+ * left to the browser.
+ */
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+input[type="search"],
+select,
+textarea {
+  font: inherit;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.8rem;
+  min-height: var(--control-height);
+  width: 100%;
+  max-width: 100%;
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+/*
+ * Left alone a checkbox draws at 13px, a third the height of every other
+ * control and under the 24px WCAG 2.2 target minimum -- a hard thing to hit
+ * for the readers this typeface was chosen for. accent-color puts them in
+ * plan blue instead of the browser's own.
+ */
+input[type="checkbox"],
+input[type="radio"] {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin: 0;
+  accent-color: var(--plan);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--plan);
+  outline-offset: 1px;
+}
+
+/*
+ * A field is label, control, hint. In a row they share the grid, so the
+ * controls line up whether or not a field has a hint and whether or not a
+ * label wraps onto a second line.
+ */
+.field {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.field label,
+.field legend {
+  font-weight: 700;
+}
+
+.field .hint {
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  grid-template-rows: auto auto auto;
+  gap: 0 var(--space-3);
+  align-items: start;
+}
+
+.row > .field {
+  grid-row: span 3;
+  grid-template-rows: subgrid;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
