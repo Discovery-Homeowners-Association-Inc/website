@@ -19,6 +19,10 @@ lint:
     pnpm exec prettier --check .
     pnpm -r --if-present run lint
 
+# The seed must stay safe to apply twice; see the script for why
+seed-check:
+    ./scripts/check-seed-stable.sh
+
 # Run the fast test suite
 test *args:
     pnpm -r --if-present run test {{ args }}
@@ -70,4 +74,4 @@ clean:
     rm -rf apps/*/dist apps/*/.astro packages/*/dist apps/*/test-results apps/*/playwright-report
 
 # Everything CI runs
-ci: lint test security build e2e
+ci: lint seed-check test security build e2e

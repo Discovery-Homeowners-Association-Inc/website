@@ -100,15 +100,16 @@ query to write.
 
 ## Two bugs found while doing the above
 
-### The seed is not idempotent for roster people
+### ~~The seed is not idempotent for roster people~~ — fixed
 
-`just seed-local` is documented "(idempotent)". It is not: running it a second
-time duplicated all ten roster people. Committees survived, so whatever gives
-them a stable identity is missing for people, which get a fresh `randomUUID`.
+Every person was inserted with a fresh `randomUUID`, so `insert or ignore` never
+matched and a second run duplicated all ten. Committees survived because they
+key on a slug, and items because of `unique (kind, slug)`.
 
-This is pointed at production. `docs/RUNBOOK-admin.md` step 2 tells you to run
-`node scripts/seed.ts` against the live database, and running it twice would
-duplicate the whole board on the public site. Fix before anyone re-seeds.
+Ids are now derived from what identifies the row, and `just seed-check` runs in
+CI: it generates the seed twice and fails if any id moves. Verified by applying
+the seed twice to a throwaway database — 10 people, 35 items, 5 committees both
+times.
 
 ### Direct database writes do not clear the public snapshot cache
 

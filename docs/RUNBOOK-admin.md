@@ -70,10 +70,11 @@ Everything here stays on the Workers Free plan.
 --remote`, `node scripts/seed.ts`, `pnpm exec wrangler d1 execute dhoa --remote --file
 seed/seed.sql`, then `bash seed/kv.sh --remote`.
 
-   **Seed once only.** The roster seed is not idempotent, whatever `just seed-local` says:
-   running it a second time duplicated all ten roster people locally on 2026-09-17, because each
-   person is inserted with a fresh id. Committees are unaffected. Applying `seed.sql` twice to
-   the live database would duplicate the whole board on the public site.
+   **Applying it twice is a no-op**, as of 2026-09-17. It was not: every person was inserted
+   with a fresh id, so a second run duplicated all ten roster people, and this step tells you to
+   run the same seed against production. Ids are now derived from what identifies the row --
+   items and committees from their slug, people from their name -- so `insert or ignore` does
+   what it promises. `just seed-check` runs in CI and fails if an id ever stops being stable.
 
    **Seeding does not clear the public snapshot cache.** `/api/public/site.json` is cached and
    cleared when content changes through the admin app (DECISIONS #16). A write that bypasses the
