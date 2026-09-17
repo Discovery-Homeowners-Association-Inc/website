@@ -10,7 +10,12 @@ import { itemRoutes } from "./routes/items.ts";
 import { meetingRoutes } from "./routes/meetings.ts";
 import { minutesRoutes } from "./routes/minutes.ts";
 import { profileRoutes } from "./routes/profile.ts";
-import { publicRoutes } from "./routes/public.ts";
+import {
+  edgeCache,
+  invalidateSnapshot,
+  publicRoutes,
+  type SnapshotCache,
+} from "./routes/public.ts";
 import { rosterRoutes } from "./routes/roster.ts";
 import { settingsRoutes } from "./routes/settings.ts";
 import { userRoutes } from "./routes/users.ts";
@@ -22,9 +27,28 @@ export type AppDeps = {
   getAuth: (env: Env) => Auth;
   /** Called after anything the public site shows has changed. */
   siteChanged: (env: Env, reason: string) => Promise<void>;
+  /** Where the public snapshot is cached. Defaults to the edge cache. */
+  snapshotCache?: SnapshotCache;
 };
 
 export function createApp(deps: AppDeps) {
+  /*
+   * The cached public snapshot is dropped on every content change, before the
+   * site rebuild is asked for. The site build fetches the snapshot moments
+   * later, so a stale entry here would rebuild the site from its previous
+   * state. Wrapping the dependency rather than the entry point keeps this on
+   * the path the tests exercise.
+   */
+  const cache = deps.snapshotCache ?? edgeCache;
+  // Captured before deps is replaced below: reading deps.siteChanged at call
+  // time would find this wrapper and call itself for ever.
+  const notify = deps.siteChanged;
+  const siteChanged: AppDeps["siteChanged"] = async (env, reason) => {
+    await invalidateSnapshot(env, cache);
+    await notify(env, reason);
+  };
+  deps = { ...deps, siteChanged };
+
   const app = new Hono<AppEnv>();
   app.use("*", secureHeaders());
 
@@ -32,7 +56,7 @@ export function createApp(deps: AppDeps) {
     deps.getAuth(c.env).handler(c.req.raw),
   );
   app.route("/api/bootstrap", bootstrapRoutes(deps));
-  app.route("/api/public", publicRoutes());
+  app.route("/api/public", publicRoutes(cache));
 
   const api = new Hono<AppEnv>();
   api.use("*", requireUser(deps.resolveUser));

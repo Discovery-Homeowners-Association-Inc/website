@@ -60,7 +60,7 @@ repository, install it on the repository, and set these Worker secrets: `GITHUB_
 `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY` (the PEM file's contents). Until then the
 daily build picks up changes.
 
-## First deployment (done 2026-09-17, except Google sign-in)
+## First deployment (done 2026-09-17)
 
 Everything here stays on the Workers Free plan.
 
@@ -70,12 +70,17 @@ Everything here stays on the Workers Free plan.
 --remote`, `node scripts/seed.ts`, `pnpm exec wrangler d1 execute dhoa --remote --file
 seed/seed.sql`, then `bash seed/kv.sh --remote`.
 3. **Create the Google OAuth client.** Use a Google Cloud project owned by the association's
-   Google account (APIs & Services, then Credentials, then OAuth client ID, type **Web
-   application**).
+   Google account. The console calls this **Google Auth Platform** now, not APIs & Services:
+   go straight to <https://console.cloud.google.com/auth/clients> and Create client, type
+   **Web application**.
    - Authorized JavaScript origin: `https://dhoa-admin.discoveryhomeownersassociation.workers.dev`
    - Authorized redirect URI: `https://dhoa-admin.discoveryhomeownersassociation.workers.dev/api/auth/callback/google`
-   - OAuth consent screen: External, **In production**. The app asks only for the basic email and profile scopes, which normally do
-     not need Google verification. Adding a logo can trigger a brand review.
+   - Audience: External. **In production** if you can; while it is left in **Testing**, only
+     addresses listed under Test users can sign in at all — everyone else is refused with
+     `access_denied`, which looks exactly like a broken configuration — and sessions last 7 days
+     regardless of the app's own setting.
+   - The app asks only for the basic email and profile scopes, which normally do not need Google
+     verification. **Adding a logo triggers a brand review**, so leave it off until you want it.
 4. **Set the variables and secrets:**
    - In `wrangler.jsonc`, set `vars.BETTER_AUTH_URL` to
      `https://dhoa-admin.discoveryhomeownersassociation.workers.dev`.
@@ -89,9 +94,33 @@ seed/seed.sql`, then `bash seed/kv.sh --remote`.
    `BOOTSTRAP_TOKEN` has been deleted from the Worker. To do it again on a fresh database, set the
    secret, call `/api/bootstrap` as shown above against the `workers.dev` address, then delete the
    secret.
-7. **Check CPU use.** Sign in with Google, then open Workers & Pages, then `dhoa-admin`, then
-   Metrics. Confirm CPU time per request stays under 10 ms. The only heavy step is sign-in, and it
-   has no password hashing.
+7. **Check CPU use.** Measured on 2026-09-17, over 172 requests, this does **not** hold as the
+   earlier note assumed. The median request costs 4 ms, but 19% exceed the 10 ms Workers Free
+   limit. No request has ever been terminated: the only invocation status this Worker has ever
+   recorded is `success`, so enforcement is currently looser than the documented Error 1102
+   behaviour. Two separate causes, and only one of them is ours:
+
+   - **Cold starts dominate the tail.** The same endpoint costs 4 ms warm and 32 ms cold;
+     94% of requests following an idle gap exceed 10 ms, against 10% of warm ones. Cloudflare
+     documents Worker startup as a separate 1-second limit, which is the likely reason none of
+     these are rejected.
+   - **Two endpoints are over the limit while warm.** `/api/public/site.json` cost 22–35 ms until
+     it was cached (see DECISIONS #12); `/api/auth/callback/google` costs about 24 ms on every
+     sign-in, measured over only three samples. Gather more before optimising it.
+
+   To re-measure, with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment,
+   query per-request CPU by path from the observability API — the Worker has
+   `observability.enabled`, and `$workers.cpuTimeMs` with `$workers.event.request.path` is what
+   the dashboard cannot group for you:
+
+   ```
+   POST https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/observability/telemetry/query
+   {"queryId":"cpu","timeframe":{"from":<ms>,"to":<ms>},
+    "parameters":{"datasets":["cloudflare-workers"]},"view":"events","limit":500}
+   ```
+
+   Aggregate `$workers.cpuTimeMs` per path yourself; the API's `groupBys` returns nothing useful
+   for these events.
 
 When the domain moves to Cloudflare, add `admin.discoveryhomeowners.com` as a custom domain on the
 Worker. Update `BETTER_AUTH_URL` and add the new origin and redirect URI to the Google client.

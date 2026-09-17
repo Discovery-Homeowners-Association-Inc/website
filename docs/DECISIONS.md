@@ -95,6 +95,14 @@ value. Every fact still needs board review before launch; see `docs/CONTENT-REVI
 invites a person by email, and that person's first Google sign-in with the same address links to
 the invitation. Emailed one-time codes may be added later for people without a Google account.
 
+**A correction, 2026-09-17.** This decision was argued from "password hashing costs 20 to 230 ms
+and the Workers Free plan allows 10 ms per request". The first half is right; the implied
+contrast is not. Measured on the deployed Worker, the Google callback costs about 24 ms of CPU —
+inside the range this decision rejected — and 19% of all requests exceed 10 ms without a single
+one being terminated. The decision stands, on the grounds that nobody stores a password and
+nobody manages one. The CPU headroom argument does not, and should not be quoted again without
+re-measuring. See RUNBOOK-admin.md step 7.
+
 **Why.** The association stays on free plans. Storing passwords safely means a deliberately slow
 hash. Measured on a 13th-gen Intel i5:
 
@@ -203,3 +211,26 @@ a term is the only way to remove someone, and past members can be shown.
 **Why.** Minutes name people. The board page and committee pages come from the roster, and so does
 the attendance list in minutes. Names in minutes are stored as text at the time, so an approved
 record never changes when the roster does.
+
+## 16. The public snapshot is cached, and every content change clears it
+
+**Decision.** `/api/public/site.json` is held in the Cloudflare edge cache. Every change to
+published content clears the entry, in `createApp`, before the site rebuild is requested.
+
+**Why.** The endpoint builds the whole site in one request — five queries and the serialisation of
+every published item — and measured 22 to 35 ms of CPU against a 10 ms limit. It is called by the
+site build, not by residents, so the cost is small in aggregate, but it was the largest warm
+number on the Worker.
+
+**What makes it safe.** Caching a snapshot is only worth doing if it cannot be stale: the site
+build runs moments after a publish, so a stale entry would rebuild the public site from its
+previous state. Clearing on every content change is what prevents that, and
+`settings-roster-files.test.ts` pins it down by editing through a route and reading the snapshot
+back.
+
+**The awkward part.** The cache is injected rather than reached for directly, because
+`caches.default.delete()` never settles when called from inside a request handler under the
+Workers test harness. Production uses the edge cache; the tests pass an in-memory stand-in with
+the same contract. A cache hit is also copied into a new Response before being returned — a
+response from the cache has immutable headers, and the `secureHeaders` middleware writes to them
+on the way out, so returning the cache's own object turns every hit into a 500.
