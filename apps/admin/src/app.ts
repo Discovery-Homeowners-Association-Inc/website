@@ -4,6 +4,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { ZodError } from "zod";
 import { requireUser } from "./access.ts";
 import type { Auth } from "./auth.ts";
+import { bootstrapRoutes } from "./routes/bootstrap.ts";
 import { meetingRoutes } from "./routes/meetings.ts";
 import { minutesRoutes } from "./routes/minutes.ts";
 import { userRoutes } from "./routes/users.ts";
@@ -18,6 +19,8 @@ export function createApp(deps: AppDeps) {
   app.on(["GET", "POST"], "/api/auth/*", (c) =>
     deps.getAuth(c.env).handler(c.req.raw),
   );
+
+  app.route("/api/bootstrap", bootstrapRoutes(deps));
 
   const api = new Hono<AppEnv>();
   api.use("*", requireUser(deps.resolveUser));

@@ -5,6 +5,12 @@
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // The admin UI is static files. Only /api/* runs Worker code, so page views
+  // do not count against the Workers Free CPU or request limits.
+  "assets": {
+    "directory": "../admin-ui/dist",
+    "run_worker_first": ["/api/*"],
+  },
   "d1_databases": [
     {
       "binding": "DB",

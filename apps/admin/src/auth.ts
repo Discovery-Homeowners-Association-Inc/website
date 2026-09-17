@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { authOptions } from "./auth-options.ts";
+import { devSignIn, devSignInEnabled } from "./dev-sign-in.ts";
 
 export function createAuth(env: Env) {
   return betterAuth({
@@ -11,6 +12,7 @@ export function createAuth(env: Env) {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     trustedOrigins: [env.BETTER_AUTH_URL],
+    plugins: devSignInEnabled(env) ? [devSignIn()] : [],
   });
 }
 export type Auth = ReturnType<typeof createAuth>;
