@@ -114,3 +114,20 @@ what a former member did.
 
 **Consequence.** An invitation for a former member's email is refused with a pointer to Restore
 access, so there is only ever one record per person.
+
+## 10. Latest versions, with a 24-hour quarantine and two exceptions
+
+**Decision.** Tools and dependencies track their latest releases, pinned exactly: `mise.toml` for
+Node, pnpm and just; lockfile and exact versions for packages. Dependabot proposes updates weekly.
+
+- **pnpm's 24-hour release-age rule stays on.** A package published less than a day ago is refused,
+  because hijacked releases are usually caught within hours. When we adopt something inside that
+  window on purpose, its exact version goes in `minimumReleaseAgeExclude`.
+- **Node stays on the active LTS line** (24.x). Node 26 becomes LTS in October 2026.
+- **TypeScript 7** is used by `apps/admin` and `packages/shared`. The two Astro apps stay on
+  TypeScript 6, because `astro check` (`@astrojs/check` 0.9.10) refuses TypeScript 7.
+- **Vitest 5** is used by `packages/shared`. `apps/admin` stays on Vitest 4, because
+  `@cloudflare/vitest-pool-workers` 0.22.0 supports only Vitest 4.
+- **The Worker's `compatibility_date`** is 2026-08-15, the newest date the test runtime supports.
+
+**Revisit** each exception when its blocker ships a release that supports the newer version.
