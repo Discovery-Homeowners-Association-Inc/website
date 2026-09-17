@@ -48,6 +48,17 @@ export const MinutesBody = z.object({
         title: text(200).min(1),
         discussion: text(20000).default(""),
         motions: z.array(Motion).max(20).default([]),
+        /*
+         * What happens to this item after the meeting. "closed" is finished and
+         * carries nothing; "follow_up" was decided but someone must act;
+         * "deferred" was not reached and belongs on the next agenda. The last
+         * two are what the next meeting's agenda suggests, which is the only
+         * reason the secretary is asked for it.
+         */
+        outcome: z.enum(["closed", "follow_up", "deferred"]).default("closed"),
+        /** A roster name, so a follow-up has someone carrying it. */
+        follow_up_owner: text(120).default(""),
+        follow_up_note: text(500).default(""),
       }),
     )
     .max(60)

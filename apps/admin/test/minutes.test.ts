@@ -257,3 +257,43 @@ describe("minutes, from draft to filed", () => {
     expect(bad.json.error).toMatch(/missing or invalid/);
   });
 });
+
+describe("an item's outcome", () => {
+  it("survives a save, so the next agenda can use it", async () => {
+    const secretary = await makeUser(["secretary"]);
+    const meeting = await call(secretary, "POST", "/api/meetings", {
+      type: "board",
+      date: "2027-05-18",
+      time: "7:00 pm",
+      location: "Discovery Recreation Center",
+    });
+    expect(meeting.status).toBe(201);
+    const id = meeting.json.id;
+
+    const saved = await call(secretary, "PUT", `/api/meetings/${id}/minutes`, {
+      base_version: 0,
+      change_note: "First draft",
+      body: {
+        items: [
+          {
+            id: "i1",
+            title: "Elm Street drainage",
+            outcome: "follow_up",
+            follow_up_owner: "Bob Thornton",
+            follow_up_note: "Waiting on a second quote",
+          },
+          { id: "i2", title: "Treasurer's report" },
+        ],
+      },
+    });
+    expect(saved.status).toBe(200);
+
+    const read = await call(secretary, "GET", `/api/meetings/${id}/minutes`);
+    const items = read.json.current.body.items;
+    expect(items[0].outcome).toBe("follow_up");
+    expect(items[0].follow_up_owner).toBe("Bob Thornton");
+    expect(items[0].follow_up_note).toBe("Waiting on a second quote");
+    // Anything not said is closed, so existing minutes are unaffected.
+    expect(items[1].outcome).toBe("closed");
+  });
+});
