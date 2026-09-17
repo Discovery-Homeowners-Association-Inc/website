@@ -4,7 +4,7 @@
  *   node scripts/seed.ts            -> writes seed/seed.sql and seed/kv.sh
  *   just seed-local                 -> applies both to the local dev database
  */
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -19,6 +19,16 @@ const dir = new URL("../seed/", import.meta.url).pathname;
 const read = (f: string) => JSON.parse(readFileSync(join(dir, f), "utf8"));
 const q = (v: unknown) => `'${String(v).replaceAll("'", "''")}'`;
 const now = new Date().toISOString();
+
+/*
+ * Ids are derived from whatever identifies the row, never generated, so that
+ * applying the seed twice is the no-op `insert or ignore` promises. Items and
+ * committees are keyed on a slug, and people on their name; a fresh uuid meant
+ * a second run duplicated the whole board, which docs/RUNBOOK-admin.md tells
+ * you to do against production. scripts/check-seed-stable.sh holds this.
+ */
+const stableId = (...parts: string[]) =>
+  createHash("sha256").update(parts.join("\u0000")).digest("hex").slice(0, 32);
 const lines: string[] = [];
 const kv: string[] = [
   "#!/usr/bin/env bash",
@@ -46,9 +56,10 @@ for (const raw of read("items.json")) {
     raw.body.file_id = fileIds.get(raw.file) ?? "";
   }
   const body = ITEM_BODIES[kind].parse(raw.body);
-  const id = randomUUID();
+  const slug = raw.slug ?? slugify(body.title);
+  const id = stableId("item", kind, slug);
   lines.push(
-    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(raw.slug ?? slugify(body.title))}, 'published', ${q(JSON.stringify(body))}, ${q(raw.publish_at)}, ${q(now)}, ${q(now)});`,
+    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${q(JSON.stringify(body))}, ${q(raw.publish_at)}, ${q(now)}, ${q(now)});`,
   );
 }
 
@@ -60,10 +71,18 @@ for (const [key, schema] of Object.entries(SETTINGS)) {
   );
 }
 
+const seenNames = new Set<string>();
 for (const raw of read("people.json")) {
   const person = Person.parse(raw);
+  // The id is the name, so two people sharing one would silently become one
+  // row. Fail here rather than lose a director.
+  if (seenNames.has(person.name))
+    throw new Error(
+      `people.json has two entries named ${person.name}; ids are derived from the name`,
+    );
+  seenNames.add(person.name);
   lines.push(
-    `insert or ignore into people (id, data, created_at, updated_at) values (${q(randomUUID())}, ${q(JSON.stringify(person))}, ${q(now)}, ${q(now)});`,
+    `insert or ignore into people (id, data, created_at, updated_at) values (${q(stableId("person", person.name))}, ${q(JSON.stringify(person))}, ${q(now)}, ${q(now)});`,
   );
 }
 for (const raw of read("committees.json")) {
