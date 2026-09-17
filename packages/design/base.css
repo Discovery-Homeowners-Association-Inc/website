@@ -268,9 +268,9 @@ main {
  * sizes one row needs 1090px in the web font and 1120px in the fallback, hence
  * 71rem (1136px) with 16px of headroom. See docs/DESIGN.md.
  *
- *   >= 71rem  brand · links · action        one row
- *   medium    brand · action / links        links on their own row
- *   phone     brand / menu · action / links links behind the Menu button
+ *   >= 71rem       brand · links · action   one row
+ *   44rem–71rem    brand · action / links   links on one further row
+ *   < 44rem        brand · Menu             links and action in a panel
  *
  * The links may wrap. They must never clip: see .site-nav ul below.
  */
@@ -336,6 +336,16 @@ main {
   justify-self: end;
 }
 
+/*
+ * The panel wraps the links AND the action so a phone can show both behind the
+ * Menu button. Above the phone band it is not a box at all: `display: contents`
+ * hands its children straight to the header's grid. The wrapper is a plain div,
+ * never the <nav>, whose landmark role must survive.
+ */
+.site-nav-panel {
+  display: contents;
+}
+
 .site-nav {
   grid-area: nav;
   min-width: 0;
@@ -388,29 +398,65 @@ main {
   }
 }
 
-/* Phone: links behind the Menu button. */
-@media (max-width: 52rem) {
+/* Phone: one row, with the links and the action in a panel over the page. */
+@media (max-width: 43.99rem) {
   .site-header .wrap {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      "brand brand"
-      "toggle action"
-      "nav nav";
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand toggle";
+    padding-block: var(--space-2);
+  }
+  .brand svg {
+    width: 2.1rem;
   }
   .button.nav-toggle {
     grid-area: toggle;
     display: inline-flex;
-    justify-self: start;
+    justify-self: end;
   }
-  .site-nav[data-open="false"] {
+  .site-nav-panel {
+    display: block;
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 15%);
+    padding: 0 var(--gutter) var(--space-3);
+  }
+  /*
+   * Closed only where a script can open it again. With no script the links
+   * stay on the page: a phone visitor must never be left with no navigation.
+   */
+  html[data-js] .nav-toggle[aria-expanded="false"] + .site-nav-panel {
     display: none;
   }
   .site-nav ul {
     flex-direction: column;
+    gap: 0;
   }
   .site-nav li a {
     display: block;
     border-bottom: 1px solid var(--rule);
+    border-left: 3px solid transparent;
+    padding-inline-start: var(--space-2);
+  }
+  .site-nav a:hover,
+  .site-nav a[aria-current="page"] {
+    border-bottom-color: var(--rule);
+    border-left-color: var(--marigold);
+  }
+  .header-action {
+    justify-self: stretch;
+    margin-top: var(--space-3);
+  }
+}
+
+/* Narrowest phones: the locality line is decoration, and dropping it keeps the
+ * brand to one row beside the Menu button instead of three. */
+@media (max-width: 23rem) {
+  .brand small {
+    display: none;
   }
 }
 

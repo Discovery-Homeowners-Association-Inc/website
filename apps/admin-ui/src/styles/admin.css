@@ -1,54 +1,15 @@
 @import "@dhoa/design/base.css";
 
 /*
- * Admin header: the shared width-driven layouts from base.css, with admin
- * breakpoints (seven short links, no menu button).
- *
- *   64rem and wider   brand · links · You/Sign out   one row
- *   52–64rem          brand · You/Sign out / links   links on their own row
- *   52rem and narrower  links in a grid whose column count depends only on
- *                       the screen width, so the rows never change between
- *                       page loads
+ * The header itself is shared (packages/design/SiteHeader.astro and base.css).
+ * Admin carries seven shorter links, so only its own sizing lives here.
  *
  * Accounts and Settings show only for administrators. The role is remembered
- * from the last page (see Admin.astro), so they are in place before the page
- * is drawn instead of appearing a moment later.
+ * from the last page (see Admin.astro), so they are in place before the page is
+ * drawn instead of appearing a moment later.
  */
-@media (min-width: 64rem) {
-  .admin-header .wrap {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: "brand nav action";
-  }
-  .admin-nav ul {
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 52rem) {
-  .admin-header .wrap {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "brand action"
-      "nav nav";
-    padding-bottom: 0;
-  }
-  .admin-nav ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
-    column-gap: var(--space-3);
-    flex-direction: row;
-    border-top: 1px solid var(--rule);
-  }
-  .admin-nav li a {
-    display: block;
-    border-bottom: 3px solid transparent;
-  }
-  .admin-header .brand svg {
-    width: 2.25rem;
-  }
-  .admin-header [data-sign-out] .button {
-    padding: 0.45rem 0.8rem;
-  }
+.admin-header [data-sign-out] .button {
+  padding: 0.45rem 0.8rem;
 }
 
 html:not([data-admin]) [data-admin-only] {

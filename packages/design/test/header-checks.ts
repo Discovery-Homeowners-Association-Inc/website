@@ -2,13 +2,13 @@ import { expect, type Page } from "@playwright/test";
 
 /** Widths that matter: phones, tablets, laptops, and both sides of each breakpoint. */
 export const LADDER = [
-  320, 360, 390, 414, 480, 600, 639, 640, 700, 768, 834, 900, 1000, 1024, 1100,
-  1135, 1136, 1152, 1200, 1280, 1366, 1440, 1600, 1920,
+  320, 360, 390, 414, 480, 600, 640, 700, 703, 704, 768, 834, 900, 1000, 1024,
+  1100, 1135, 1136, 1152, 1200, 1280, 1366, 1440, 1600, 1920,
 ];
 
 /** The height a header may take at a given width. See docs/DESIGN.md. */
 export const heightBudget = (width: number) =>
-  width >= 1136 ? 80 : width >= 640 ? 150 : 72;
+  width >= 1136 ? 80 : width >= 704 ? 150 : 72;
 
 /**
  * Every navigation link must lie inside its container. The old header put the

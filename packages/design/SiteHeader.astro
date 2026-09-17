@@ -1,0 +1,99 @@
+---
+/**
+ * The one header, shared by the public site and the admin app. Its widths come
+ * from measurement, not from round numbers, and its links wrap rather than
+ * clip. See docs/DESIGN.md and base.css.
+ */
+import markSvg from "./dhoa-mark.svg?raw";
+
+interface Props {
+  title: string;
+  subtitle: string;
+  nav: { href: string; label: string; adminOnly?: boolean }[];
+  path: string;
+  /** Admin's "Home" is `/` and must match exactly, not prefix every page. */
+  exactRoot?: boolean;
+  class?: string;
+}
+const {
+  title,
+  subtitle,
+  nav,
+  path,
+  exactRoot = false,
+  class: extraClass,
+} = Astro.props;
+const current = (href: string) =>
+  (href === "/" && exactRoot ? path === "/" : path.startsWith(href))
+    ? "page"
+    : undefined;
+const mark = markSvg.replace(
+  /role="img"\s+aria-label="[^"]*"/,
+  'aria-hidden="true" focusable="false"',
+);
+---
+
+<script is:inline>
+  // Scripting is available, so the phone panel may start closed. Set before the
+  // header is parsed: with no script at all the links stay visible instead of
+  // being unreachable, and with one there is no flash of an open panel.
+  document.documentElement.setAttribute("data-js", "");
+</script>
+
+<header class:list={["site-header", extraClass]}>
+  <div class="wrap">
+    <a class="brand" href="/">
+      <Fragment set:html={mark} />
+      <span>
+        {title}
+        <small>{subtitle}</small>
+      </span>
+    </a>
+    <button
+      class="button button--quiet nav-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-nav"
+    >
+      Menu
+    </button>
+    <div class="site-nav-panel" id="site-nav">
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          {nav.map((item) => (
+            <li data-admin-only={item.adminOnly ? "" : undefined}>
+              <a href={item.href} aria-current={current(item.href)}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div class="header-action">
+        <slot name="action" />
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+  const header = document.querySelector(".site-header");
+  if (toggle && header) {
+    const isOpen = () => toggle.getAttribute("aria-expanded") === "true";
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.textContent = open ? "Close" : "Menu";
+    };
+    toggle.addEventListener("click", () => setOpen(!isOpen()));
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !isOpen()) return;
+      setOpen(false);
+      toggle.focus();
+    });
+    document.addEventListener("click", (event) => {
+      if (!isOpen() || header.contains(event.target as Node)) return;
+      setOpen(false);
+    });
+  }
+</script>
