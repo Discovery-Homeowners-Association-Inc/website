@@ -9,7 +9,33 @@ import { createAuth } from "../src/auth.ts";
  */
 const auth = createAuth(env);
 export const rebuilds: string[] = [];
+
+/**
+ * An in-memory stand-in for the edge cache. The real one cannot be used here:
+ * `caches.default.delete()` never settles when it is called from inside a
+ * request handler under the Workers test harness, which hangs any test that
+ * changes content. Same contract, so the caching logic is still exercised.
+ */
+const store = new Map<string, string>();
+export const snapshotCache = {
+  // The body is kept as text, not as a Response: a stored Response holds an
+  // unread stream, and cloning those across tests crashes the worker.
+  match: async (key: Request) => {
+    const body = store.get(key.url);
+    return body === undefined
+      ? undefined
+      : new Response(body, {
+          status: 200,
+          headers: { "content-type": "application/json; charset=UTF-8" },
+        });
+  },
+  put: async (key: Request, res: Response) =>
+    void store.set(key.url, await res.text()),
+  delete: async (key: Request) => void store.delete(key.url),
+};
+
 export const app = createApp({
+  snapshotCache,
   getAuth: () => auth,
   siteChanged: async (_env, reason) => void rebuilds.push(reason),
   currentSessionId: async (request) => request.headers.get("x-test-session"),
