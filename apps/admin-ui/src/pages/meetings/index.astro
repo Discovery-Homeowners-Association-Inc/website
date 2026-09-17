@@ -1,0 +1,8 @@
+---
+import Admin from "../../layouts/Admin.astro";
+import C from "../../components/Meetings.tsx";
+---
+
+<Admin title="Meetings">
+  <C client:only="preact" />
+</Admin>

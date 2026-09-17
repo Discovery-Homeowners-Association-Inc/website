@@ -31,13 +31,19 @@ security:
 build:
     pnpm -r --if-present run build
 
-# Browser tests: accessibility, layout, links, feeds (needs a build)
-e2e *args:
-    pnpm --filter @dhoa/site exec playwright test {{ args }}
+# Browser tests for the public site and the admin app (needs a build)
+e2e:
+    pnpm -r --if-present run e2e
 
 # Run the public site locally, reachable over the LAN and Tailscale
 run:
     pnpm --filter @dhoa/site run dev --host 0.0.0.0
+
+# Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see docs/RUNBOOK-admin.md)
+run-admin:
+    pnpm --filter @dhoa/admin-ui run build
+    cd apps/admin && pnpm exec wrangler d1 migrations apply dhoa --local
+    cd apps/admin && pnpm exec wrangler dev --ip 0.0.0.0 --port 8787
 
 # Remove build output
 clean:

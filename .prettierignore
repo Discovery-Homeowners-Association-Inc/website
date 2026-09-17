@@ -3,3 +3,4 @@ dist/
 .astro/
 apps/admin/worker-configuration.d.ts
 apps/admin/migrations/0001_auth.sql
+apps/admin-ui/test-results/

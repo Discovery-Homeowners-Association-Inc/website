@@ -1,0 +1,24 @@
+{
+  "name": "@dhoa/admin-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "lint": "astro check",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/preact": "6.0.5",
+    "@dhoa/design": "workspace:*",
+    "@dhoa/shared": "workspace:*",
+    "astro": "7.3.3",
+    "preact": "10.29.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.13.5",
+    "typescript": "~6.0.3"
+  }
+}

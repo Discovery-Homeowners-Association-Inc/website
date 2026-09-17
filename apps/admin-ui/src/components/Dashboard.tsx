@@ -1,0 +1,123 @@
+import { useEffect, useState } from "preact/hooks";
+import {
+  api,
+  can,
+  longDate,
+  type MeetingListItem,
+  statusLabel,
+  typeLabel,
+} from "../lib/api.ts";
+import { useMe } from "../lib/use-me.ts";
+import { ErrorNotice, Loading } from "./Notice.tsx";
+
+export default function Dashboard() {
+  const { me, error: meError } = useMe();
+  const [meetings, setMeetings] = useState<MeetingListItem[] | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: Error) =>
+      setError(e.message),
+    );
+  }, []);
+
+  if (meError || error) return <ErrorNotice message={meError || error} />;
+  if (!me || !meetings) return <Loading />;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = meetings
+    .filter((m) => m.date >= today && m.status !== "cancelled")
+    .reverse();
+  const inReview = meetings.filter(
+    (m) =>
+      m.minutes_status === "in_review" || m.minutes_status === "ready_for_vote",
+  );
+  const toFile = meetings.filter((m) => m.minutes_status === "approved");
+  const seesMinutes = can(me, "admin", "secretary", "board", "reviewer");
+
+  return (
+    <>
+      <h1>Hello, {me.name.split(" ")[0]}</h1>
+      <p class="meta">
+        Your roles:{" "}
+        {me.grants
+          .map((g) => (g.scope ? `${g.role} (${g.scope})` : g.role))
+          .join(", ")}
+      </p>
+
+      {seesMinutes && (
+        <section>
+          <h2>Minutes waiting on the board</h2>
+          {inReview.length === 0 ? (
+            <p>Nothing is in review right now.</p>
+          ) : (
+            <ul class="tasks">
+              {inReview.map((m) => (
+                <li>
+                  <a href={`/minutes/?id=${m.id}`}>
+                    <strong>
+                      {typeLabel[m.type]}, {longDate(m.date)}
+                    </strong>
+                    <span>
+                      {statusLabel[m.minutes_status!]}. Read, comment, and mark
+                      as reviewed.
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {can(me, "admin", "secretary") && toFile.length > 0 && (
+        <section>
+          <h2>Approved, not yet uploaded to PayHOA</h2>
+          <ul class="tasks">
+            {toFile.map((m) => (
+              <li>
+                <a href={`/minutes/?id=${m.id}`}>
+                  <strong>
+                    {typeLabel[m.type]}, {longDate(m.date)}
+                  </strong>
+                  <span>Export the PDF, upload it, then mark it filed.</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section>
+        <h2>Coming up</h2>
+        {upcoming.length === 0 ? (
+          <p>
+            No meetings are scheduled.{" "}
+            {can(me, "admin", "secretary") && (
+              <a href="/meetings/">Add a meeting</a>
+            )}
+          </p>
+        ) : (
+          <ul class="tasks">
+            {upcoming.slice(0, 4).map((m) => (
+              <li>
+                <a href={`/meeting/?id=${m.id}`}>
+                  <strong>
+                    {typeLabel[m.type]}, {longDate(m.date)}
+                  </strong>
+                  <span>
+                    {m.time}, {m.location}. Agenda:{" "}
+                    {m.agenda_status === "published"
+                      ? "published"
+                      : m.agenda_status === "draft"
+                        ? "draft"
+                        : "not started"}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  );
+}

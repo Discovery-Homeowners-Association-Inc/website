@@ -1,0 +1,103 @@
+---
+import "../styles/admin.css";
+import markSvg from "@dhoa/design/dhoa-mark.svg?raw";
+
+interface Props {
+  title: string;
+  bare?: boolean;
+}
+const { title, bare = false } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  { href: "/", label: "Home" },
+  { href: "/meetings/", label: "Meetings" },
+  { href: "/people/", label: "People", adminOnly: true },
+];
+const current = (href: string) =>
+  (href === "/" ? path === "/" : path.startsWith(href)) ? "page" : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{title} | Discovery HOA admin</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    {!bare && (
+      <header class="site-header admin-header">
+        <div class="wrap">
+          <a class="brand" href="/">
+            <Fragment
+              set:html={markSvg.replace(
+                /role="img"\s+aria-label="[^"]*"/,
+                'aria-hidden="true" focusable="false"',
+              )}
+            />
+            <span>
+              Discovery HOA<small>Board administration</small>
+            </span>
+          </a>
+          <nav class="site-nav admin-nav" aria-label="Main">
+            <ul>
+              {nav.map((n) => (
+                <li
+                  hidden={n.adminOnly}
+                  data-admin-only={n.adminOnly ? "" : undefined}
+                >
+                  <a href={n.href} aria-current={current(n.href)}>
+                    {n.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <form method="post" action="/api/auth/sign-out" data-sign-out>
+            <button class="button button--quiet" type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
+      </header>
+    )}
+    <main id="main" class="wrap">
+      <slot />
+    </main>
+    <script>
+      // Show admin-only navigation to administrators. The API enforces access either way.
+      if (document.querySelector("[data-admin-only]")) {
+        fetch("/api/me", { credentials: "same-origin" })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((me) => {
+            if (
+              me?.grants?.some(
+                (g: { role: string; scope: string }) =>
+                  g.role === "admin" && g.scope === "",
+              )
+            ) {
+              document
+                .querySelectorAll<HTMLElement>("[data-admin-only]")
+                .forEach((el) => (el.hidden = false));
+            }
+          });
+      }
+      document
+        .querySelector<HTMLFormElement>("[data-sign-out]")
+        ?.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          await fetch("/api/auth/sign-out", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: "{}",
+          });
+          location.assign("/sign-in/");
+        });
+    </script>
+  </body>
+</html>

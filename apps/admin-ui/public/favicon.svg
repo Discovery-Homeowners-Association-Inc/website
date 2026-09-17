@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Discovery HOA">
+  <!--
+    A simplified form of the association's mark. At 16-32px the full emblem's
+    fourteen fruit and three ridge lines merge into a smudge, so this keeps the
+    three things that make it recognisable — the arched sun, the ridge, and an
+    orchard tree — drawn larger than they sit in the real mark so they survive
+    at favicon size. The full mark is assets/brand/dhoa-mark.svg.
+  -->
+  <rect width="64" height="64" rx="13" fill="#2f5d43"/>
+
+  <g fill="none" stroke="#faf6ef" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the arched sun, standing on the ridge -->
+    <path d="M25.5 22 C25 15.5, 28 12.5, 32 12.5 C36 12.5, 39 15.5, 38.5 22"/>
+    <!-- the ridge it stands on -->
+    <path d="M6 30 C16 25.5, 25 22.5, 32 21.5 C41 23.5, 51 27, 58 30.5"/>
+  </g>
+
+  <!-- the tree -->
+  <path d="M29.8 56 L31.2 36 L32.8 36 L34.2 56 Z" fill="#faf6ef"/>
+  <g fill="#faf6ef">
+    <ellipse cx="32" cy="37" rx="5.4" ry="4.2"/>
+    <ellipse cx="22.5" cy="43.5" rx="5.4" ry="4.2"/>
+    <ellipse cx="41.5" cy="43.5" rx="5.4" ry="4.2"/>
+    <ellipse cx="24.5" cy="51.5" rx="5.4" ry="4.2"/>
+    <ellipse cx="39.5" cy="51.5" rx="5.4" ry="4.2"/>
+  </g>
+</svg>

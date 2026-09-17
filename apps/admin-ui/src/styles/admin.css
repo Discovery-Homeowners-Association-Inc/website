@@ -1,0 +1,291 @@
+@import "@dhoa/design/base.css";
+
+/* The admin header keeps the public site's structure; the nav never collapses to a menu. */
+.admin-nav {
+  flex-basis: auto;
+}
+
+.admin-nav ul {
+  flex-direction: row;
+}
+
+main {
+  padding-block: var(--space-4) var(--space-6);
+}
+
+h1 {
+  font-size: var(--step-3);
+  margin-top: var(--space-3);
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--pool);
+  border-left: 4px solid var(--plan);
+  margin-block: var(--space-3);
+}
+
+.notice--error {
+  background: var(--warn-soft);
+  border-left-color: var(--warn);
+}
+
+.status {
+  display: inline-block;
+  font-size: var(--step--1);
+  font-weight: 700;
+  padding: 0.05rem 0.55rem;
+  border-radius: 999px;
+  background: var(--pool);
+  white-space: nowrap;
+}
+
+.status--approved,
+.status--filed,
+.status--published {
+  background: var(--marigold);
+  color: #1a2530;
+}
+
+.status--none {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-muted);
+}
+
+/* Forms */
+.field {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.field label,
+.field legend {
+  font-weight: 700;
+}
+
+.field .hint {
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.65rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+input[type="number"] {
+  max-width: 6rem;
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--plan);
+  outline-offset: 1px;
+}
+
+fieldset {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.row > .field {
+  flex: 1 1 12rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-block: var(--space-3);
+}
+
+.button--small {
+  padding: 0.35rem 0.7rem;
+  font-size: var(--step--1);
+}
+
+.button--danger {
+  background: transparent;
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.button--danger:hover {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+button[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Minutes workspace: document on the left, review panel on the right */
+.workspace {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 64rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    align-items: start;
+  }
+}
+
+.item-card {
+  border-top: 3px solid var(--rule);
+  padding-top: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.motion {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.comment {
+  border-top: 1px solid var(--rule);
+  padding-block: var(--space-2);
+}
+
+.comment--resolved {
+  opacity: 0.6;
+}
+
+.comment p {
+  margin: 0 0 var(--space-1);
+}
+
+.meta {
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  font-size: var(--step--1);
+}
+
+.steps li {
+  color: var(--ink-muted);
+  padding-bottom: var(--space-1);
+  border-bottom: 3px solid var(--rule);
+}
+
+.steps li[aria-current="step"] {
+  color: var(--ink);
+  font-weight: 700;
+  border-bottom-color: var(--marigold);
+}
+
+.steps li.done {
+  color: var(--ink);
+  border-bottom-color: var(--plan);
+}
+
+.sign-in {
+  max-width: 28rem;
+  margin: var(--space-6) auto;
+}
+
+.minutes-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+}
+
+.minutes-facts dt {
+  font-weight: 700;
+}
+
+.minutes-facts dd {
+  margin: 0;
+}
+
+/* Printable export */
+.print-doc {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.print-org {
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin: 0;
+}
+
+.print-approval {
+  border-top: 2px solid var(--ink);
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+}
+
+@media print {
+  @page {
+    margin: 2cm;
+  }
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  main {
+    padding: 0;
+  }
+  .no-print,
+  .skip-link {
+    display: none !important;
+  }
+  .print-doc h1 {
+    font-size: 18pt;
+  }
+  .print-doc h3 {
+    font-size: 12pt;
+    break-after: avoid;
+  }
+  .motion {
+    border: 1px solid #999;
+    break-inside: avoid;
+  }
+}
