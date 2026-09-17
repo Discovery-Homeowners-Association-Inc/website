@@ -1,0 +1,50 @@
+name: Site
+
+# Builds the public site from the admin app's published content:
+# - every morning (scheduled posts appear, expired ones disappear),
+# - when the admin app asks (repository_dispatch from the Worker),
+# - and on every push to main.
+# With no SITE_CONTENT_URL variable set, it builds from the committed snapshot.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "15 10 * * *" # 10:15 UTC, after the Worker's 10:00 expiry job
+  repository_dispatch:
+    types: [site-content-changed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+      - name: Cache the pnpm store
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - name: Fetch the latest published content
+        if: vars.SITE_CONTENT_URL != ''
+        env:
+          SITE_CONTENT_URL: ${{ vars.SITE_CONTENT_URL }}
+        run: node scripts/snapshot.ts "$SITE_CONTENT_URL"
+      - run: pnpm --filter @dhoa/site run build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: site
+          path: apps/site/dist
+          retention-days: 7

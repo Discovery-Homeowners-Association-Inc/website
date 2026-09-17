@@ -1,5 +1,8 @@
 # Content the board needs to confirm
 
+> Since 2026-09-17 all of this content is edited in the admin app, not in files. The file paths
+> below say where each value started; change them under Content or Site settings in the app.
+
 The new site's content was ported from the Hugo mockup and compared with the live Google Site
 (`sites.google.com/view/discoveryhomeowners`) in September 2026. **The mockup is treated as the
 more current source**, so where the two disagree the new site uses the mockup's value. All content

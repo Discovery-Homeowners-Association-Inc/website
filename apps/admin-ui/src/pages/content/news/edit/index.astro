@@ -1,0 +1,8 @@
+---
+import Admin from "../../../../layouts/Admin.astro";
+import C from "../../../../components/ItemEditor.tsx";
+---
+
+<Admin title="Edit">
+  <C client:only="preact" kind="news" />
+</Admin>

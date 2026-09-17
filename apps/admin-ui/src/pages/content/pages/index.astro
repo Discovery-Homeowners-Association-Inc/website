@@ -1,0 +1,8 @@
+---
+import Admin from "../../../layouts/Admin.astro";
+import C from "../../../components/ItemList.tsx";
+---
+
+<Admin title="pages">
+  <C client:only="preact" kind="page" />
+</Admin>

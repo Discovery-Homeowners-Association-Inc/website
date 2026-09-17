@@ -1,78 +1,146 @@
 import { defineCollection } from "astro:content";
-import { glob } from "astro/loaders";
+import type { Loader } from "astro/loaders";
 import { z } from "astro/zod";
+import { snapshot } from "./lib/snapshot.ts";
+
+/**
+ * Collections come from the snapshot rather than from files. Each loader
+ * renders the Markdown body so pages can use <Content /> as before.
+ */
+function fromSnapshot<T extends { slug?: string; id: string }>(
+  name: string,
+  rows: T[],
+  map: (row: T) => { id: string; data: Record<string, unknown>; body?: string },
+): Loader {
+  return {
+    name: `snapshot:${name}`,
+    async load({ store, renderMarkdown, parseData }) {
+      store.clear();
+      for (const row of rows) {
+        const { id, data, body } = map(row);
+        const parsed = await parseData({ id, data });
+        store.set({
+          id,
+          data: parsed,
+          body,
+          rendered: body ? await renderMarkdown(body) : undefined,
+        });
+      }
+    },
+  };
+}
 
 const pages = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/pages" }),
+  loader: fromSnapshot("pages", snapshot.pages, (p) => ({
+    id: p.slug,
+    data: { title: p.body.title, summary: p.body.summary },
+    body: p.body.body,
+  })),
   schema: z.object({ title: z.string(), summary: z.string() }),
 });
 
 const news = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/news" }),
+  loader: fromSnapshot("news", snapshot.news, (n) => ({
+    id: n.slug,
+    data: {
+      title: n.body.title,
+      date: n.publish_at,
+      summary: n.body.summary,
+      category: n.body.category,
+      pinned: n.body.pinned,
+    },
+    body: n.body.body,
+  })),
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
     summary: z.string(),
-    category: z.enum(["general", "maintenance", "pool", "meetings", "events"]),
-    pinned: z.boolean().default(false),
+    category: z.string(),
+    pinned: z.boolean(),
   }),
 });
 
 const events = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/events" }),
+  loader: fromSnapshot("events", snapshot.events, (e) => ({
+    id: e.slug,
+    data: {
+      title: e.body.title,
+      start: e.body.start,
+      end: e.body.end,
+      summary: e.body.summary,
+      location: e.body.location,
+      cost: e.body.cost,
+      audience: e.body.audience,
+      contact_email_key: e.body.contact_email_key,
+    },
+    body: e.body.body,
+  })),
   schema: z.object({
     title: z.string(),
     start: z.coerce.date(),
     end: z.coerce.date(),
     summary: z.string(),
-    location: z.string().default("Discovery Recreation Center"),
-    cost: z.string().optional(),
-    category: z.string().optional(),
-    audience: z.string().optional(),
-    contact_email_key: z.string().optional(),
+    location: z.string(),
+    cost: z.string(),
+    audience: z.string(),
+    contact_email_key: z.string(),
   }),
 });
 
 const documents = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/documents" }),
+  loader: fromSnapshot("documents", snapshot.documents, (d) => ({
+    id: d.slug,
+    data: {
+      title: d.body.title,
+      date: d.publish_at,
+      category: d.body.category,
+      file: d.file_url,
+      language: d.body.language,
+      summary: d.body.summary,
+      featured: d.body.featured,
+    },
+  })),
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
-    category: z.enum([
-      "general",
-      "governing",
-      "acc",
-      "pool",
-      "rec-center",
-      "rv-lot",
-      "parks",
-      "trash",
-      "newsletters",
-      "minutes",
-    ]),
-    file: z.string().startsWith("/documents/"),
-    language: z.enum(["en", "es"]).default("en"),
+    category: z.string(),
+    file: z.string(),
+    language: z.enum(["en", "es"]),
     summary: z.string(),
-    featured: z.boolean().default(false),
+    featured: z.boolean(),
   }),
 });
 
-/**
- * Published meeting records. The admin app writes one file per meeting when an
- * agenda is published. Minutes are not published here: approved minutes are
- * kept in PayHOA's resident portal, and drafts never leave the admin app.
- */
+/** Meetings with a published agenda. Minutes are never here: they live in PayHOA. */
 const meetings = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/meetings" }),
+  loader: fromSnapshot(
+    "meetings",
+    snapshot.meetings.filter((m) => m.agenda),
+    (m) => ({
+      id: m.id,
+      data: {
+        date: m.date,
+        type: m.type,
+        time: m.time,
+        location: m.location,
+        status: m.status,
+        agenda: m.agenda?.items ?? [],
+        notes: m.agenda?.notes ?? "",
+        agenda_published: m.agenda_published_at,
+      },
+    }),
+  ),
   schema: z.object({
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    date: z.string(),
     type: z.enum(["board", "annual", "special", "pool-rec"]),
     time: z.string(),
     location: z.string(),
-    agenda: z
-      .array(z.object({ title: z.string(), detail: z.string().optional() }))
-      .optional(),
-    agenda_published: z.coerce.date().optional(),
+    status: z.enum(["scheduled", "cancelled", "held"]),
+    agenda: z.array(
+      z.object({ id: z.string(), title: z.string(), detail: z.string() }),
+    ),
+    notes: z.string(),
+    agenda_published: z.string().nullable(),
   }),
 });
 

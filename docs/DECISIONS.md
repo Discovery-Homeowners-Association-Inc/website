@@ -131,3 +131,60 @@ Node, pnpm and just; lockfile and exact versions for packages. Dependabot propos
 - **The Worker's `compatibility_date`** is 2026-08-15, the newest date the test runtime supports.
 
 **Revisit** each exception when its blocker ships a release that supports the newer version.
+
+## 11. The admin app is the single source of truth; the site builds from a snapshot
+
+**Decision.** Every fact and every piece of text on the public site lives in the admin app's
+database. The site builds from `apps/site/content/site.json`, a snapshot of what the admin API
+publishes (`just snapshot`), which is committed.
+
+**Why.** Volunteers edit in one place with one set of rules (roles, approval, dates). The site
+stays a pile of static files that costs nothing to serve and never depends on the Worker being up.
+Git keeps a history of everything that was published. Draft or pending content never reaches the
+repository because the public endpoint never returns it.
+
+**Consequence.** Content changes reach the site when it rebuilds: on request from the Worker (once
+a GitHub App is configured), and every morning by schedule, which also applies publish and expiry
+dates. A private repository would burn about 120 Actions minutes a month on this; the repository
+is public, so it is free.
+
+## 12. Uploaded files live in Workers KV
+
+**Decision.** PDFs and images uploaded through the admin app are stored in a KV namespace, listed
+in D1, and copied into the site at snapshot time so the public site serves them as ordinary files.
+
+**Why.** KV is included in the Workers Free plan with no payment method: 1 GB of storage, values up
+to 25 MiB, 1,000 writes and 100,000 reads a day. D1 caps a single row at 2 MB, which a scanned
+form exceeds. R2 needs a card on the account. Uploads are rare (a few a month) and public reads
+come from the static site, not from KV.
+
+**Revisit if** the association adds a card for the domain transfer and wants direct public file
+URLs; R2 then replaces KV with the same `files` table.
+
+## 13. No Queues
+
+**Decision.** Nothing uses Cloudflare Queues.
+
+**Why.** Queues has a free allowance (10,000 operations a day), but every job here is small and
+synchronous: a publish is one D1 batch and one GitHub request; expiry is a daily cron trigger,
+which is also free. A queue would add a moving part with no work to do.
+
+## 14. Approval is by kind, and never by the author
+
+**Decision.** Site settings say which kinds of item need approval (default: news, documents and
+pages). Editors always submit. Anyone with the admin, secretary or board role may approve, except
+the person who submitted. Events do not need approval by default because they are time-boxed and
+low-risk.
+
+**Why.** The board asked for approval on some content without a vote on everything. Kind-level
+switches keep the rule understandable, and the "not your own" rule is what makes approval mean
+something.
+
+## 15. People on the roster are never deleted
+
+**Decision.** Directors and committee members are records with a start and a leaving date. Ending
+a term is the only way to remove someone, and past members can be shown.
+
+**Why.** Minutes name people. The board page and committee pages come from the roster, and so does
+the attendance list in minutes. Names in minutes are stored as text at the time, so an approved
+record never changes when the roster does.

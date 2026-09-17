@@ -4,7 +4,9 @@
  *   {{phone:office}}   -> a tel link to the office phone
  * Unknown keys throw, so a typo fails the build.
  */
-import organization from "../data/organization.json" with { type: "json" };
+import { settings } from "./snapshot.ts";
+
+const organization = settings.organization;
 
 type Node = { type: string; value?: string; url?: string; children?: Node[] };
 
@@ -12,7 +14,7 @@ const TOKEN = /\{\{(email|phone):([a-z_]+)\}\}/g;
 
 function replacement(kind: string, key: string): Node {
   if (kind === "email") {
-    const address = (organization.emails as Record<string, string>)[key];
+    const address = organization.emails[key];
     if (!address) throw new Error(`Unknown email key "${key}" in Markdown`);
     return {
       type: "link",

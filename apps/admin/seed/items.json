@@ -1,0 +1,387 @@
+[
+  {
+    "kind": "news",
+    "slug": "rv-lot-fee",
+    "publish_at": "2025-08-11T09:00:00-04:00",
+    "body": {
+      "title": "The RV lot is no longer free",
+      "summary": "From 1 October 2025 the lot costs $50 a month, or $150 a quarter paid with your assessment.",
+      "body": "The association now charges for the RV lot. The fee is **$50 per month per\nhousehold**, or **$150 per quarter** paid alongside your quarterly assessment.\n\nPay by Zelle, with **RV Lot Payment** in the memo line.\n\nA few rules came in at the same time: one vehicle per household, current\nregistration on every vehicle, and keep both the vehicle and the space around it\ntidy.\n\nThe fee is what will pay for repairing the fence, repainting the lines and space\nnumbers, and improving security. Full details are on the\n[RV lot page](/amenities/rv-lot/).",
+      "category": "general",
+      "pinned": false
+    }
+  },
+  {
+    "kind": "news",
+    "slug": "water-main-phase-1",
+    "publish_at": "2026-02-10T09:00:00-05:00",
+    "body": {
+      "title": "Water main replacement: what Phase 1 affects",
+      "summary": "Six streets are in Phase 1. Expect construction traffic and occasional short water interruptions.",
+      "body": "Phase 1 of the water main replacement covers Inspiration Court, both stretches of\nInspiration Avenue, Triumphant Court, Successful Way, and Curiosity Court.\n\nIf you live on one of those streets, expect construction traffic and the\noccasional short interruption to your water supply. Notices go out ahead of any\nplanned shut-off.\n\nThe full plan-and-profile drawings are in the [document library](/documents/),\nand the [projects page](/board/projects/) tracks where things stand.",
+      "category": "maintenance",
+      "pinned": false
+    }
+  },
+  {
+    "kind": "news",
+    "slug": "pool-season-2026",
+    "publish_at": "2026-03-01T09:00:00-05:00",
+    "body": {
+      "title": "Pool passes for 2026 are on sale",
+      "summary": "Early-bird pricing runs until 15 April. After that the resident rate goes up by $10 a head.",
+      "body": "Registration for the 2026 pool season is open. Early-bird pricing — **$35 per\nperson** — runs until **15 April**. After that it is $45.\n\nChildren five and under swim free. You need to be current on your assessment to\nbuy a pool membership.\n\nSeason dates, hours, and the fee tables are on the [pool page](/amenities/pool/).",
+      "category": "pool",
+      "pinned": true
+    }
+  },
+  {
+    "kind": "event",
+    "slug": "ladies-day-out",
+    "publish_at": "2026-03-01T09:00:00-05:00",
+    "body": {
+      "title": "Ladies Day Out",
+      "summary": "An afternoon at the Recreation Center. Bring a neighbor.",
+      "body": "",
+      "start": "2026-04-25T14:00:00-04:00",
+      "end": "2026-04-25T16:00:00-04:00",
+      "location": "Discovery Recreation Center",
+      "cost": "Free",
+      "audience": "Open to all Discovery residents",
+      "contact_email_key": "pool_rec"
+    }
+  },
+  {
+    "kind": "event",
+    "slug": "mothers-day-craft",
+    "publish_at": "2026-03-01T09:00:00-05:00",
+    "body": {
+      "title": "Mother's Day Craft for Kids",
+      "summary": "Make something for Mom. Materials provided.",
+      "body": "",
+      "start": "2026-05-09T14:00:00-04:00",
+      "end": "2026-05-09T16:00:00-04:00",
+      "location": "Discovery Recreation Center",
+      "cost": "Free",
+      "audience": "Children, with a grown-up",
+      "contact_email_key": "pool_rec"
+    }
+  },
+  {
+    "kind": "event",
+    "slug": "pool-opening",
+    "publish_at": "2026-03-01T09:00:00-05:00",
+    "body": {
+      "title": "Pool Opening — Free Open House",
+      "summary": "The first swim of the season, and no pass needed on opening day.",
+      "body": "The pool opens for the 2026 season. Opening day is a free open house, so you can\ncome and look even if you have not bought a pass yet.\n\nPasses for the season are on sale — see the [pool page](/amenities/pool/) for\nfees and registration.",
+      "start": "2026-05-23T12:00:00-04:00",
+      "end": "2026-05-23T20:00:00-04:00",
+      "location": "Discovery Community Pool",
+      "cost": "Free",
+      "audience": "Everyone",
+      "contact_email_key": "pool_rec"
+    }
+  },
+  {
+    "kind": "event",
+    "slug": "fathers-day-craft",
+    "publish_at": "2026-03-01T09:00:00-05:00",
+    "body": {
+      "title": "Father's Day Craft for Kids",
+      "summary": "Make something for Dad. Materials provided.",
+      "body": "",
+      "start": "2026-06-20T14:00:00-04:00",
+      "end": "2026-06-20T16:00:00-04:00",
+      "location": "Discovery Recreation Center",
+      "cost": "Free",
+      "audience": "Children, with a grown-up",
+      "contact_email_key": "pool_rec"
+    }
+  },
+  {
+    "kind": "document",
+    "slug": "discovery-community-site-plan",
+    "publish_at": "2026-01-01T09:00:00-04:00",
+    "file": "discovery-community-site-plan.pdf",
+    "body": {
+      "title": "Discovery Community Site Plan",
+      "summary": "The plat drawing of the neighborhood showing lots, common areas, and the parks.",
+      "category": "general",
+      "language": "en",
+      "featured": false,
+      "file_id": "",
+      "file_name": "discovery-community-site-plan.pdf"
+    }
+  },
+  {
+    "kind": "document",
+    "slug": "recreation-center-rental-contract",
+    "publish_at": "2026-01-01T09:00:00-04:00",
+    "file": "recreation-center-rental-contract.pdf",
+    "body": {
+      "title": "Recreation Center Rental Contract",
+      "summary": "The rental agreement and house rules for the Recreation Center. Sign and return this to book the building.",
+      "category": "rec-center",
+      "language": "en",
+      "featured": true,
+      "file_id": "",
+      "file_name": "recreation-center-rental-contract.pdf"
+    }
+  },
+  {
+    "kind": "document",
+    "slug": "rv-lot-policy-update-2025",
+    "publish_at": "2025-08-11T09:00:00-04:00",
+    "file": "rv-lot-policy-update-2025.pdf",
+    "body": {
+      "title": "RV Lot Policy Update (August 2025)",
+      "summary": "The notice announcing that the RV lot is no longer free from 1 October 2025, with the fee, the payment options, and the updated rules.",
+      "category": "rv-lot",
+      "language": "en",
+      "featured": false,
+      "file_id": "",
+      "file_name": "rv-lot-policy-update-2025.pdf"
+    }
+  },
+  {
+    "kind": "document",
+    "slug": "rv-lot-registration-form",
+    "publish_at": "2025-08-11T09:00:00-04:00",
+    "file": "rv-lot-registration-form.pdf",
+    "body": {
+      "title": "RV Lot Registration Form",
+      "summary": "Register a boat, trailer, or recreational vehicle in the RV lot. Send it in with the vehicle's registration certificate and a photograph.",
+      "category": "rv-lot",
+      "language": "en",
+      "featured": true,
+      "file_id": "",
+      "file_name": "rv-lot-registration-form.pdf"
+    }
+  },
+  {
+    "kind": "document",
+    "slug": "water-main-phase-1-plans",
+    "publish_at": "2025-03-01T09:00:00-04:00",
+    "file": "water-main-phase-1-plans.pdf",
+    "body": {
+      "title": "Water Main Replacement, Phase 1 — Engineering Drawings",
+      "summary": "The full plan-and-profile drawings for Phase 1 of the water main replacement, covering Inspiration Court and Avenue, Triumphant Court, Successful Way, and Curiosity Court.",
+      "category": "general",
+      "language": "en",
+      "featured": false,
+      "file_id": "",
+      "file_name": "water-main-phase-1-plans.pdf"
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "about",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "About Discovery",
+      "summary": "How the neighborhood came to be, and the people who keep it running.",
+      "body": "Discovery is a neighborhood of single-family homes and townhouses in\nWalkersville, Maryland — about 160 acres, laid out in 1972 as Frederick County's\nfirst planned unit development.\n\nThe association owns and looks after the things no single household does: the\npool, the Recreation Center, the RV lot, and roughly twenty parks and open\nspaces."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "amenities",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Amenities",
+      "summary": "The pool, the Recreation Center, the RV lot, and twenty parks — all paid for by your assessment.",
+      "body": "These are the things the association owns on everyone's behalf. Your assessment\nmaintains them, and residents in good standing can use them."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "architectural-control",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Exterior Changes (ACC)",
+      "summary": "Anything you change on the outside of your home needs approval first. Here is what that covers and how to ask.",
+      "body": "If you are changing anything on the outside of your home, send the Architectural\nControl Committee an application **before** the work starts.\n\nThat is the whole rule, and it is worth taking seriously in the order given.\nApproval after the fact is a much harder conversation than approval beforehand,\nand the committee would far rather review a drawing than send a non-compliance\nletter.\n\n## Why this exists\n\nThe ACC is six neighbors, not an office. What they are protecting is the thing\nthat made anyone buy here: a neighborhood that looks cared for and holds its\nvalue. A fence that sits three feet into a common area, or a roof color nobody\nelse has, costs somebody money eventually — sometimes the person who installed\nit, when they try to sell.\n\nMost applications are approved. The ones that are not usually turn out to be\nmisunderstandings about where a property line runs.\n\n## How to apply\n\nAsk the office for the current **Application for Exterior Change**, or email the\ncommittee directly at {{email:acc}}. Send it in with a sketch or a\nphotograph and the materials you plan to use. If you are not sure whether your\nproject needs approval, ask — it takes one email and saves a lot of bother.\n\n<aside class=\"callout callout--note\">\n\nIf you need help filling out the application, call the office at\n\n{{phone:office}} and the manager will put you in touch with someone who\ncan walk you through it.\n\n</aside>\n\n<section lang=\"es\">\n\nSi está pensando en realizar algún trabajo en el exterior de su casa — cercas,\npatios, terrazas, ventanas, puertas delanteras y mosquiteras, puertas\ncorredizas, paneles solares, revestimientos, techos, canaletas y puertas de\ngaraje — por favor complete una solicitud **antes** de comenzar el trabajo. No\nqueremos enviar cartas de incumplimiento.\n\nSi necesita ayuda llenando la solicitud, por favor contacte a la oficina y la\ngerente lo pondrá en contacto con una persona que le ayude. Gracias.\n\n</section>\n\n## If you get a letter\n\nA non-compliance letter is not a fine and it is not the end of the conversation.\nIt comes with a response form — fill it in and send it back. Most cases close\nthere.\n\n## Parking, trailers, and boats\n\nThis is the other thing the committee spends its time on, and it is governed by\nthe association's recorded documents rather than by committee preference. The\nrelevant passages are quoted below so you can read the actual language rather\nthan a summary of it."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "board",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Board & Governance",
+      "summary": "Seven neighbors, elected by the membership, who run the association in their spare time.",
+      "body": "The association is governed by a board of seven directors elected by the\nmembership. They are not employees and they are not a management company — they\nlive here, and they do this on evenings and weekends.\n\nThe board meets on the third Tuesday of every month at the Recreation Center,\nand **any homeowner or renter can attend**."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "committees",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Committees",
+      "summary": "Three standing committees do most of the association's hands-on work. Two are looking for volunteers.",
+      "body": "Committees are where most of the actual work happens — reviewing applications,\nrunning the pool season, organizing events, welcoming new neighbors.\n\nThey are made up of residents. If one of them sounds like something you would\nenjoy, email and say so; there is no application process and no minimum\ncommitment."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "community-links",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Community Links",
+      "summary": "Schools, utilities, county services, libraries, churches, and help when you need it — around Walkersville and Frederick County.",
+      "body": "Things the association does not run, but that residents ask about constantly.\nNumbers and hours were current when this page was last checked; if you find one\nthat has changed, tell {{email:general}}."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "contact",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Contact",
+      "summary": "The office, the committees, and where to go for things the association does not handle.",
+      "body": "The office at 8740 Stauffer Road handles assessments, forms, rentals, and most\nquestions about the neighborhood. It is staffed part-time — the hours are on the\nright, and email is often the fastest route.\n\nIf your question is about a specific problem — a broken swing, a car in your\nspace, a street light out — [the reporting page](/rules/report-a-problem/) will\nget you to the right number faster than the office can."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "documents",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Documents & Forms",
+      "summary": "Every association form and notice in one place.",
+      "body": "Forms, contracts, and notices published by the association. Each one links\nstraight to the PDF.\n\nThe association's **governing documents** (the By-Laws, the Declaration of\nCovenants, and the Articles of Incorporation) are being added to this library.\nUntil they are, ask the office for a copy at {{email:general}}."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "dues",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Pay your assessment",
+      "summary": "What the assessment is, when it is due, and every way to pay it.",
+      "body": "The assessment pays for everything the association looks after on your behalf:\nthe pool, the Recreation Center, the RV lot, twenty parks, trash collection,\nlandscaping, and street lights.\n\nPayments are due on the first day of each quarter. Late payments are charged a\npenalty each month until they are paid.\n\nIf you are having trouble paying, call the office at {{phone:office}} before the\ndue date. It is a much easier conversation beforehand."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "history",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "History",
+      "summary": "Discovery was Frederick County's first planned unit development, built on 160 acres of farmland starting in 1972.",
+      "body": "In 1972, four miles outside Frederick City, a 160-acre tract of farmland became\nFrederick County's first planned unit development.\n\nThat phrase — _planned unit development_ — was doing real work at the time. The\nconventional approach was to divide land into lots and let the amenities work\nthemselves out. Discovery was drawn the other way round: housing, parks, and\nshared facilities laid out together from the start, as one thing.\n\n## What was drawn\n\nThe master plan called for 255 single-family houses and 400 townhouses, a\n6.5-acre shopping center, a swimming pool, tennis courts, a day care center, and\nrecreational facilities scattered through the neighborhood rather than gathered\nat one edge of it.\n\nNot all of it survived contact with the next fifty years. The shopping center\nand the day care are no longer part of the association. The pool, the Recreation\nCenter, and about twenty parks and open spaces are — and they are still the\nreason the association exists.\n\n## The streets\n\nWhoever named the streets committed to the theme completely, and the result is\none of the more cheerful street grids in the county: Revelation Avenue, Inquiry\nCourt, Dream Place, Discovery Place, Discovery Boulevard, Seekers Walk, Daring\nCourt, Inspiration Court. Later sections kept it up — Eureka Lane, Foresight\nLane, Imagination Court, Curiosity Court, Triumphant Court, Successful Way.\n\nThe bare ground in the photograph above is now front yards.\n\n## Still run by the people who live here\n\nFifty years on, Discovery is not managed by a company that also manages forty\nother neighborhoods. It is run by a board of directors who live on these\nstreets, meet monthly in the Recreation Center, and are elected by their\nneighbors.\n\nThat is worth knowing when something goes wrong: the person you end up talking\nto almost certainly drives past the problem too."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "home",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Home",
+      "summary": "Discovery Homeowners Association in Walkersville, Maryland — assessments, the pool, the Recreation Center, architectural approvals, and how to reach the office.",
+      "body": "## Welcome to Discovery\n\nDiscovery is a neighborhood of single-family homes and townhouses in\nWalkersville, Maryland. When ground was broken in 1972 it was the first planned\nunit development in Frederick County — a deliberate mix of housing, parks, and\nshared amenities on about 160 acres of former farmland.\n\nThe association exists to look after the things no single household owns: the\npool, the Recreation Center, the RV lot, and roughly twenty parks and open\nspaces. It is run by a volunteer board of directors elected by the people who\nlive here, and it is funded by the annual assessment.\n\n## New to the neighborhood?\n\nThree things are worth knowing in your first week.\n\n**Get approval before you change the outside of your home.** Fences, decks,\nsheds, windows, doors, siding, roofing, solar panels — anything visible from\noutside needs an Architectural Control Committee application first. It is a\nshort form, and it protects your investment as much as your neighbor's.\n[Start here](/rules/architectural-control/).\n\n**Set up your account in the resident portal.** You can pay your assessment,\npull up association documents, and send questions to the office without a stamp.\n\n**Come to a board meeting.** They are held monthly and every homeowner and\nrenter is welcome — you do not need a reason or an invitation to attend."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "meetings",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Meetings",
+      "summary": "The board meets monthly and every homeowner and renter is welcome. No invitation needed.",
+      "body": "The board of directors meets on the third Tuesday of every month at the\nRecreation Center.\n\n**Any homeowner or renter can attend.** You do not need to be on an agenda, ask\npermission, or have a complaint. People come to listen, and that is a perfectly\ngood reason to be there.\n\n## What gets discussed\n\nThe recurring business is money and maintenance: the budget, contracts for\nlandscaping and trash, the pool season, park repairs, and whatever project is\ncurrently in flight. Architectural Control matters are handled by that committee\nand come to the board when they need a decision.\n\n## Bringing something up\n\nIf you have a question or a proposal, two things make it go better. Email the\noffice beforehand so it can go on the agenda — {{email:general}} — and\nbring the specifics: the address, the date, the photo. Boards can act on\nspecifics and can only nod sympathetically at generalities."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "parks",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Parks & Playgrounds",
+      "summary": "Twenty parks and open spaces, inspected once a year and maintained by the association.",
+      "body": "Twenty parks and open spaces are scattered through the neighborhood — the tot\nlots between the townhouse courts, the open greens, and the paths connecting\nthem. They are association property, which means they are paid for out of your\nassessment and maintained on your behalf.\n\n## Reporting something broken\n\nDo not wait for the annual inspection. If a swing is hanging by one chain or a\nslide has a crack in it, tell the office and it gets logged and scheduled."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "pool",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Community Pool",
+      "summary": "Season dates, hours, membership fees, and the rules that keep it pleasant.",
+      "body": "The pool is the reason a lot of people picked this neighborhood, and it is the\nassociation's busiest amenity by a wide margin.\n\nThe full rules are posted at the gate and included with the online application.\nThe four below are the ones the lifeguards spend their summer repeating."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "projects",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Projects",
+      "summary": "What the association is working on right now, and what is coming.",
+      "body": "The association is a volunteer board with a finite budget, so work is sequenced\nrather than done all at once. This is what is actually in progress.\n\nFeedback genuinely does change what gets prioritized. Come to a\n[monthly meeting](/meetings/) or email {{email:general}}."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "recreation-center",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Recreation Center",
+      "summary": "Rent the Rec Center for a party, a meeting, or a family gathering. Capacity 49.",
+      "body": "The Recreation Center at 8740 Stauffer Road is available to rent for birthdays,\nshowers, meetings, and family gatherings.\n\nBook it through the office at least a week ahead. You will get the door code\nwhen the rental fee and deposit are paid.\n\nThe deposit comes back after someone from the association walks through and\nfinds the place in good order. It is forfeited if the occupancy limit was\nexceeded — that one is a fire code violation and the association has no\ndiscretion about it.\n\nRenters who do not own their home need written permission from their landlord;\nthere is a separate form for that, signed at the same time as the contract."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "report-a-problem",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Report a Problem",
+      "summary": "Who to call, sorted by the kind of problem you have.",
+      "body": "Different problems go to different places, and calling the wrong one costs you a\nday. This is the whole list, most urgent first.\n\n<aside class=\"callout callout--warning\">\n\nFor anything immediate, urgent, or life-threatening, call **911**. Do not call\nthe office first.\n\n</aside>"
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "rules",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Rules & Requests",
+      "summary": "Exterior changes, trash and recycling, and who to call when something is wrong.",
+      "body": "Most of what the association asks of residents comes down to three things: get\napproval before you change the outside of your home, put the bins out at the\nright time, and tell someone when something is broken."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "rv-lot",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "RV Lot",
+      "summary": "Storage for boats, trailers, and recreational vehicles. There is a monthly fee, and registration is enforced.",
+      "body": "The association keeps a lot where residents can store boats, trailers, and\nrecreational vehicles instead of leaving them on the street or in a driveway.\n\n## There is now a fee\n\nThe RV lot used to be free. It is not any more — the association began charging\nfor it on 1 October 2025, and the fee is what will eventually pay for repairing\nthe fence and marking out the spaces.\n\n## Registration is not optional\n\nIf you have anything in the RV lot, it has to be registered with the office.\n\n<aside class=\"callout callout--warning\">\n\nAnything in the lot that is not registered with the office is towed by Dorsey's\nTowing, at the owner's expense. There is no warning notice first.\n\n</aside>\n\nRegistration is straightforward — the form, a copy of the vehicle's\nregistration, and a photo. Ask the office for the current application, or call\n\n{{phone:office}}.\n\n<section lang=\"es\">\n\n**Solicitud de lote para vehículos recreativos**\n\nSi tiene un barco, un remolque o cualquier otro vehículo recreativo en el lote,\ndebe enviar el formulario junto con el certificado de registro y una foto. Por\nfavor, envíenos esta información antes de la fecha límite.\n\nDesde el 1 de octubre de 2025 el lote ya no es gratuito: la tarifa es de **$50\npor mes** o **$150 por trimestre**, pagadera junto con su cuota trimestral.\n\nTodos los vehículos en el lote que no estén registrados en la oficina serán\nremolcados por Dorsey's Towing a cargo del propietario.\n\n</section>"
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "trash-recycling",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Trash & Recycling",
+      "summary": "Collection days, what belongs in yard waste, and why recycling keeps your assessment down.",
+      "body": "Trash goes out Tuesday and Friday mornings. Recycling alternates depending on\nwhich side of Stauffer Road you live on, and yard waste runs twice a month from\nApril to December.\n\nThe full schedule is below. If you are new, the county's lookup tool will tell\nyou your exact recycling week by address.\n\n## Containers\n\nAnimals are the reason this rule exists. A bag left at the curb overnight is an\ninvitation, and whoever finds the mess in the morning is usually not the person\nwho put the bag out."
+    }
+  },
+  {
+    "kind": "page",
+    "slug": "welcome-committee",
+    "publish_at": "2026-09-01T09:00:00-04:00",
+    "body": {
+      "title": "Welcome Committee",
+      "summary": "New neighbors get a knock on the door and a friendly face. Volunteers welcome.",
+      "body": "Moving in is disorienting. You do not know which day the trash goes out, where\nthe pool passes come from, or who to ask about the fence you were planning to\nput up.\n\nThe Welcome Committee exists to shorten that. Someone stops by, says hello,\nanswers the obvious questions, and points you at the less obvious ones.\n\n## Help out\n\nThis is one of the easiest ways to get involved in the neighborhood. It costs an\nhour here and there, it does not require a skill you have to already have, and\nnew neighbors remember it.\n\nEmail {{email:general}} and they will connect you with\nthe right person.\n\n## Just moved in?\n\nStart with three things:\n\n1. **[Get approval before changing anything outside your home](/rules/architectural-control/)** — fences, sheds, doors, windows, roofing.\n2. **Set up your account in the resident portal** so you can pay your assessment and pull up documents online.\n3. **[Come to a board meeting](/meetings/)** — every homeowner and renter is welcome, no invitation needed."
+    }
+  }
+]

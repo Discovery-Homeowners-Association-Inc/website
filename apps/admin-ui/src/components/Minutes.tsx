@@ -12,7 +12,9 @@ import {
   typeLabel,
   when,
 } from "../lib/api.ts";
+import { useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
+import { NamePicker } from "./NamePicker.tsx";
 import { MinutesEditor } from "./MinutesEditor.tsx";
 import { MinutesView } from "./MinutesView.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
@@ -22,6 +24,9 @@ type Loaded = Extract<MinutesResponse, { minutes: object }>;
 export default function Minutes() {
   const id = param("id");
   const { me } = useMe();
+  const roster = useRoster();
+  const directors = roster.directors.map((p) => p.name);
+  const everyone = roster.serving.map((p) => p.name);
   const [data, setData] = useState<MinutesResponse | null>(null);
   const [draft, setDraft] = useState<MinutesBody | null>(null);
   const [changeNote, setChangeNote] = useState("");
@@ -285,6 +290,7 @@ export default function Minutes() {
             can(me, "board", "secretary", "admin") && (
               <VoteForm
                 d={d}
+                names={everyone}
                 disabled={dirty}
                 onVote={(v) =>
                   act(
@@ -354,6 +360,8 @@ export default function Minutes() {
               }}
             >
               <MinutesEditor
+                directors={directors}
+                everyone={everyone}
                 body={draft}
                 onChange={(b) => {
                   setDraft(b);
@@ -417,10 +425,12 @@ export default function Minutes() {
 
 function VoteForm({
   d,
+  names,
   disabled,
   onVote,
 }: {
   d: Loaded;
+  names: string[];
   disabled: boolean;
   onVote: (v: object) => void;
 }) {
@@ -456,26 +466,22 @@ function VoteForm({
           onInput={(e) => setV({ ...v, voted_on: e.currentTarget.value })}
         />
       </div>
-      <div class="field">
-        <label for="v-moved">Motion to approve moved by</label>
-        <input
-          id="v-moved"
-          type="text"
-          required
-          value={v.motion_by}
-          onInput={(e) => setV({ ...v, motion_by: e.currentTarget.value })}
-        />
-      </div>
-      <div class="field">
-        <label for="v-second">Seconded by</label>
-        <input
-          id="v-second"
-          type="text"
-          required
-          value={v.seconded_by}
-          onInput={(e) => setV({ ...v, seconded_by: e.currentTarget.value })}
-        />
-      </div>
+      <NamePicker
+        id="v-moved"
+        label="Motion to approve moved by"
+        value={v.motion_by}
+        names={names}
+        required
+        onChange={(n) => setV({ ...v, motion_by: n })}
+      />
+      <NamePicker
+        id="v-second"
+        label="Seconded by"
+        value={v.seconded_by}
+        names={names}
+        required
+        onChange={(n) => setV({ ...v, seconded_by: n })}
+      />
       <div class="row row--counts">
         {(["yes", "no", "abstain"] as const).map((f) => (
           <div class="field">

@@ -1,0 +1,319 @@
+import AxeBuilder from "@axe-core/playwright";
+import { type Browser, expect, type Page, test } from "@playwright/test";
+
+/**
+ * Site content: an editor writes, a director approves, scheduling and expiry
+ * work, settings and the roster are editable, and every screen is usable on a
+ * phone. Runs against a seeded throwaway database.
+ */
+test.describe.configure({ mode: "serial" });
+
+const ADMIN = "secretary@example.com";
+const EDITOR = "writer@example.com";
+const DIRECTOR = "approver@example.com";
+
+async function signIn(browser: Browser, email: string, phone = false) {
+  const page = await (
+    await browser.newContext(
+      phone
+        ? {
+            viewport: { width: 390, height: 844 },
+            hasTouch: true,
+            isMobile: true,
+          }
+        : {},
+    )
+  ).newPage();
+  await page.goto("/sign-in/");
+  await page.getByLabel("Invited email").fill(email);
+  await page.getByRole("button", { name: "Sign in without Google" }).click();
+  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
+  return page;
+}
+
+async function expectAccessible(page: Page) {
+  const { violations } = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(
+    violations.map(
+      (v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
+    ),
+  ).toEqual([]);
+}
+
+const noSidewaysScroll = async (page: Page) =>
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    ),
+  ).toBeLessThanOrEqual(0);
+
+let admin: Page;
+let editor: Page;
+let director: Page;
+let newsUrl = "";
+
+test.beforeAll(async ({ request, browser }) => {
+  const res = await request.post("/api/bootstrap", {
+    headers: {
+      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
+    },
+    data: { email: ADMIN, name: "Sam Secretary" },
+  });
+  expect([201, 409]).toContain(res.status());
+  admin = await signIn(browser, ADMIN);
+  await admin.goto("/people/");
+  for (const [name, email, role] of [
+    ["Wren Writer", EDITOR, "editor"],
+    ["Dee Director", DIRECTOR, "board"],
+  ] as const) {
+    await admin.getByLabel("Name").fill(name);
+    await admin.getByLabel("Google account email").fill(email);
+    const form = admin
+      .locator("form")
+      .filter({ has: admin.getByRole("heading", { name: "Invite someone" }) });
+    for (const box of await form.getByRole("checkbox").all())
+      await box.setChecked(false);
+    await admin.locator(`#invite-${role}`).check();
+    await admin.getByRole("button", { name: "Invite", exact: true }).click();
+    await expect(admin.getByRole("status")).toContainText(`Invited ${email}`);
+  }
+  editor = await signIn(browser, EDITOR);
+  director = await signIn(browser, DIRECTOR);
+});
+
+test("the seeded site content is listed with its status", async () => {
+  await admin.goto("/content/news/");
+  await expect(
+    admin.getByRole("link", { name: "Pool passes for 2026 are on sale" }),
+  ).toBeVisible();
+  await expect(admin.locator(".status--published").first()).toBeVisible();
+  await expectAccessible(admin);
+});
+
+test("an editor writes a news post and submits it; the editor cannot publish", async () => {
+  await editor.goto("/content/news/");
+  await editor.getByRole("link", { name: "New news post" }).click();
+  await editor.getByLabel("Title").fill("Leaf collection starts Monday");
+  await editor
+    .getByLabel("Summary")
+    .fill("Bag leaves in paper bags and put them out Sunday night.");
+  await editor
+    .getByLabel("Full text")
+    .fill(
+      "The county collects leaves on Mondays through November.\n\nPaper bags only.",
+    );
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  newsUrl = editor.url().replace(/&saved=1$/, "");
+  await expect(
+    editor.getByRole("button", { name: "Publish", exact: true }),
+  ).toBeHidden();
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+  await expect(
+    editor.getByRole("heading", { name: "Status: Waiting for approval" }),
+  ).toBeVisible();
+  await expectAccessible(editor);
+});
+
+test("a director sees it on the home page, sends it back, then approves the fix", async () => {
+  await director.goto("/");
+  await expect(
+    director.getByRole("heading", { name: "Waiting for approval" }),
+  ).toBeVisible();
+  await director
+    .getByRole("link", { name: /Leaf collection starts Monday/ })
+    .click();
+  await director.getByLabel("Note for the author").fill("Say which Mondays.");
+  await director.getByRole("button", { name: "Send back with a note" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Draft" }),
+  ).toBeVisible();
+
+  await editor.goto(newsUrl);
+  await expect(editor.getByText("Sent back: Say which Mondays.")).toBeVisible();
+  await editor
+    .getByLabel("Summary")
+    .fill("Every Monday in October and November, paper bags only.");
+  await editor.getByRole("button", { name: "Save changes" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved.");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+
+  await director.goto(newsUrl);
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Published" }),
+  ).toBeVisible();
+  const site = await director.request.get("/api/public/site.json");
+  const json = await site.json();
+  expect(
+    json.news.map((n: { body: { title: string } }) => n.body.title),
+  ).toContain("Leaf collection starts Monday");
+});
+
+test("a scheduled post stays off the site until its date; an expired one disappears", async () => {
+  await admin.goto("/content/events/edit/");
+  await admin.getByLabel("Title").fill("Holiday lights walk");
+  await admin.getByLabel("Summary").fill("A stroll to see the lights.");
+  await admin.getByLabel("Starts").fill("2099-12-15T18:00");
+  await admin.getByLabel("Ends").fill("2099-12-15T20:00");
+  await admin.getByLabel("Publish date").fill("2099-11-01T09:00");
+  await admin.getByRole("button", { name: "Save as draft" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved as a draft");
+  await admin.getByRole("button", { name: "Publish", exact: true }).click();
+  await expect(admin.getByText(/On the site from/)).toBeVisible();
+  await admin.goto("/content/events/");
+  await expect(
+    admin
+      .getByRole("listitem")
+      .filter({ hasText: "Holiday lights walk" })
+      .locator(".status"),
+  ).toHaveText("Scheduled");
+  let json = await (await admin.request.get("/api/public/site.json")).json();
+  expect(
+    json.events.map((e: { body: { title: string } }) => e.body.title),
+  ).not.toContain("Holiday lights walk");
+
+  await admin.goto("/content/events/edit/");
+  await admin.getByLabel("Title").fill("Yard sale sign-up");
+  await admin.getByLabel("Summary").fill("Sign up by the deadline.");
+  await admin.getByLabel("Starts").fill("2026-05-01T09:00");
+  await admin.getByLabel("Ends").fill("2026-05-01T12:00");
+  await admin.getByLabel("Publish date").fill("2026-01-01T09:00");
+  await admin.getByLabel("Hide after (optional)").fill("2026-04-01T09:00");
+  await admin.getByRole("button", { name: "Save as draft" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved as a draft");
+  await admin.getByRole("button", { name: "Publish", exact: true }).click();
+  await admin.goto("/content/events/");
+  await expect(
+    admin
+      .getByRole("listitem")
+      .filter({ hasText: "Yard sale sign-up" })
+      .locator(".status"),
+  ).toHaveText("Expired");
+  json = await (await admin.request.get("/api/public/site.json")).json();
+  expect(
+    json.events.map((e: { body: { title: string } }) => e.body.title),
+  ).not.toContain("Yard sale sign-up");
+});
+
+test("a document is uploaded and described", async () => {
+  await admin.goto("/content/documents/edit/");
+  await admin.getByLabel("The file").setInputFiles({
+    name: "Pool rules 2027.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4 rules"),
+  });
+  await expect(admin.getByText("Pool rules 2027.pdf")).toBeVisible();
+  await admin.getByLabel("Title").fill("Pool rules 2027");
+  await admin
+    .getByLabel("What it is")
+    .fill("The full pool rules for the 2027 season.");
+  await admin.getByLabel("Section of the library").selectOption("pool");
+  await admin.getByRole("button", { name: "Save as draft" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved as a draft");
+  await admin.getByRole("button", { name: "Submit for approval" }).click();
+  await director.goto("/");
+  await director.getByRole("link", { name: /Pool rules 2027/ }).click();
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Published" }),
+  ).toBeVisible();
+  const json = await (
+    await director.request.get("/api/public/site.json")
+  ).json();
+  const doc = json.documents.find(
+    (d: { body: { title: string } }) => d.body.title === "Pool rules 2027",
+  );
+  expect(doc.file_url).toMatch(/\/api\/public\/files\//);
+  const file = await director.request.get(doc.file_url);
+  expect(await file.text()).toBe("%PDF-1.4 rules");
+});
+
+test("an administrator changes a fact once in site settings", async () => {
+  await admin.goto("/settings/");
+  await admin.getByRole("link", { name: /^Organization/ }).click();
+  const phone = admin.getByLabel("Phone", { exact: true });
+  await expect(phone).toHaveValue("301-845-2050");
+  await phone.fill("301-845-2051");
+  await admin.getByRole("button", { name: "Save changes" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved");
+  const json = await (await admin.request.get("/api/public/site.json")).json();
+  expect(json.settings.organization.office.phone).toBe("301-845-2051");
+  await expectAccessible(admin);
+  await expect(
+    editor
+      .goto("/settings/?group=parks")
+      .then(() => editor.getByText("Only administrators")),
+  ).resolves.toBeVisible();
+});
+
+test("the roster drives attendance in minutes, and ending a term keeps the record", async () => {
+  await admin.goto("/roster/");
+  await admin.getByRole("button", { name: "Add a person" }).click();
+  await admin.getByLabel("Name", { exact: true }).fill("Nova Newcomer");
+  await admin.getByLabel("Board office").selectOption("Director");
+  await admin.getByRole("button", { name: "Add to the roster" }).click();
+  await expect(admin.getByRole("status")).toContainText("Added Nova Newcomer");
+  await expectAccessible(admin);
+
+  await admin.goto("/meetings/");
+  await admin.getByLabel("Date").fill("2026-11-17");
+  await admin.getByRole("button", { name: "Add meeting" }).click();
+  await admin.getByRole("link", { name: "Minutes for this meeting" }).click();
+  await admin
+    .getByRole("button", { name: "Start minutes from the agenda" })
+    .click();
+  const present = admin.getByRole("group", { name: "Directors present" });
+  await expect(present.getByLabel("Nova Newcomer")).toBeVisible();
+  await expect(present.getByLabel("Valentina Duk")).toBeVisible();
+  await present.getByLabel("Nova Newcomer").check();
+  await admin.getByLabel("Presiding").selectOption("Valentina Duk");
+
+  await admin.goto("/roster/");
+  admin.once("dialog", (d) => void d.accept());
+  await admin
+    .getByRole("listitem")
+    .filter({ hasText: "Nova Newcomer" })
+    .getByRole("button", { name: "End term" })
+    .click();
+  await expect(admin.getByRole("status")).toContainText(
+    "term is recorded as ended",
+  );
+  await admin.getByRole("button", { name: /Show past members/ }).click();
+  await expect(
+    admin.getByRole("listitem").filter({ hasText: "Nova Newcomer" }),
+  ).toBeVisible();
+});
+
+test("profile and help pages work, and every new screen fits a phone", async ({
+  browser,
+}) => {
+  await admin.goto("/profile/");
+  await admin.getByLabel("Name as it appears to others").fill("Ada A. Admin");
+  await admin.getByRole("button", { name: "Save name" }).click();
+  await expect(admin.getByRole("status")).toContainText("Name saved.");
+  await admin.goto("/help/");
+  await expect(admin.getByRole("heading", { name: "Help" })).toBeVisible();
+  await expectAccessible(admin);
+
+  const phone = await signIn(browser, ADMIN, true);
+  for (const path of [
+    "/content/",
+    "/content/news/",
+    newsUrl.replace(/^https?:\/\/[^/]+/, ""),
+    "/content/documents/edit/",
+    "/roster/",
+    "/settings/?group=organization",
+    "/profile/",
+    "/help/",
+  ]) {
+    await phone.goto(path);
+    await expect(phone.locator("h1")).toBeVisible();
+    await noSidewaysScroll(phone);
+    await expectAccessible(phone);
+  }
+});

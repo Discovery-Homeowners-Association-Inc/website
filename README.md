@@ -31,8 +31,6 @@ Secrets go in `.env`, which is ignored. See `.env.example`.
 
 ## Editing content
 
-Until the admin app exists, content is edited in the repository:
-
-- Organizational facts (phone, hours, dues, board, committees) are in `apps/site/src/data/*.json`. The build fails if a required value is missing.
-- Page text is Markdown in `apps/site/src/content/pages/`. Write `{{email:general}}` or `{{phone:office}}` instead of typing an address or number.
-- News, events and documents each have a folder under `apps/site/src/content/`.
+Everything on the site is edited in the admin app (`just run-admin` locally): news, events,
+documents, page text, the roster, and site settings such as phone numbers, hours and fees. See the
+app's Help page and `docs/RUNBOOK-admin.md`.

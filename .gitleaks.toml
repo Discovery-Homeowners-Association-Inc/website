@@ -1,0 +1,19 @@
+# gitleaks configuration. The default rules apply; this only adds allowlists
+# for values that look like secrets but are not.
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  # Real local credentials, git-ignored. The dir scan still sees them on disk.
+  '''(^|/)\.env$''',
+  '''(^|/)\.dev\.vars$''',
+  '''pnpm-lock\.yaml''',
+  '''apps/admin/worker-configuration\.d\.ts''',
+]
+# The browser tests run against a throwaway local database with made-up values.
+regexes = [
+  '''e2e-tests-only-this-is-not-a-real-secret-value''',
+  '''e2e-bootstrap-token-for-tests-only-0123456789''',
+  '''test-secret-that-is-at-least-32-characters-long''',
+]

@@ -1,3 +1,4 @@
+import type { Item } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
   api,
@@ -7,16 +8,29 @@ import {
   statusLabel,
   typeLabel,
 } from "../lib/api.ts";
+import { KINDS } from "../lib/content.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
 
 export default function Dashboard() {
   const { me, error: meError } = useMe();
   const [meetings, setMeetings] = useState<MeetingListItem[] | null>(null);
+  const [pendingItems, setPendingItems] = useState<
+    (Item & { author: string | null })[]
+  >([]);
   const [error, setError] = useState("");
   useEffect(() => {
     api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: Error) =>
       setError(e.message),
+    );
+    void Promise.all(
+      Object.keys(KINDS).map((k) =>
+        api<(Item & { author: string | null })[]>("GET", `/items?kind=${k}`),
+      ),
+    ).then(
+      (lists) =>
+        setPendingItems(lists.flat().filter((i) => i.status === "pending")),
+      () => {},
     );
   }, []);
 
@@ -43,6 +57,27 @@ export default function Dashboard() {
           .map((g) => (g.scope ? `${g.role} (${g.scope})` : g.role))
           .join(", ")}
       </p>
+
+      {can(me, "admin", "secretary", "board") && pendingItems.length > 0 && (
+        <section>
+          <h2>Waiting for approval</h2>
+          <ul class="tasks">
+            {pendingItems.map((i) => (
+              <li key={i.id}>
+                <a href={`${KINDS[i.kind].path}edit/?id=${i.id}`}>
+                  <strong>{i.body.title}</strong>
+                  <span>
+                    {KINDS[i.kind].one.charAt(0).toUpperCase() +
+                      KINDS[i.kind].one.slice(1)}
+                    {i.author && ` by ${i.author}`}. Read it, then approve or
+                    send it back.
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {seesMinutes && (
         <section>
@@ -117,6 +152,36 @@ export default function Dashboard() {
             ))}
           </ul>
         )}
+      </section>
+      <section>
+        <h2>Update the site</h2>
+        <ul class="tasks">
+          {Object.values(KINDS).map((k) => (
+            <li key={k.kind}>
+              <a href={k.path}>
+                <strong>{k.many}</strong>
+                <span>{k.intro}</span>
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href="/roster/">
+              <strong>The roster</strong>
+              <span>Who serves on the board and committees.</span>
+            </a>
+          </li>
+          {can(me, "admin") && (
+            <li>
+              <a href="/settings/">
+                <strong>Site settings</strong>
+                <span>
+                  Phone numbers, hours, dues, fees and other facts shown across
+                  the site.
+                </span>
+              </a>
+            </li>
+          )}
+        </ul>
       </section>
     </>
   );

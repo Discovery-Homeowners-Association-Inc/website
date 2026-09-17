@@ -1,0 +1,864 @@
+{
+  "organization": {
+    "legal_name": "Discovery Homeowners Association, Inc.",
+    "short_name": "Discovery HOA",
+    "tagline": "A neighborhood since 1972.",
+    "locality": "Walkersville",
+    "county": "Frederick County",
+    "state": "Maryland",
+    "state_abbr": "MD",
+    "founded": 1972,
+    "office": {
+      "street": "8740 Stauffer Road",
+      "city": "Walkersville",
+      "state": "MD",
+      "zip": "21793",
+      "mailing": "P.O. Box 394, Walkersville, MD 21793",
+      "phone": "301-845-2050",
+      "phone_e164": "+13018452050",
+      "fax": "301-845-6392",
+      "email": "dhoa@verizon.net",
+      "hours": [
+        {
+          "days": "Monday, Wednesday, Friday",
+          "open": "9:00 am",
+          "close": "1:30 pm"
+        },
+        {
+          "days": "Thursday",
+          "open": "3:30 pm",
+          "close": "6:30 pm"
+        }
+      ]
+    },
+    "emails": {
+      "general": "dhoa@verizon.net",
+      "acc": "discoveryacc8740@gmail.com",
+      "pool_rec": "poolrecommittee@gmail.com"
+    },
+    "dues": {
+      "year": 2026,
+      "annual": 776,
+      "quarterly": 194,
+      "due_dates": ["January 1", "April 1", "July 1", "October 1"],
+      "pay_in_full_note": "The full year may be paid during January.",
+      "late_penalty": "1% per month",
+      "water_plant_fee": 50,
+      "water_bill_due": "December 1",
+      "zelle": {
+        "enabled": true,
+        "recipient": "Discovery Homeowners Assoc Inc",
+        "identifier": "dhoa@verizon.net",
+        "memo_instruction": "Put your Discovery property address in the memo line."
+      },
+      "no_cash_dropbox": true
+    },
+    "meetings": {
+      "board": {
+        "rule": "Third Tuesday of every month",
+        "ordinal": 3,
+        "weekday": 2,
+        "time": "7:00 pm",
+        "location": "Discovery Recreation Center",
+        "open_to": "All homeowners and renters are welcome."
+      },
+      "pool_rec": {
+        "rule": "Second Tuesday of every month",
+        "time": "6:30 pm",
+        "location": "Walkersville"
+      }
+    },
+    "external": {
+      "payhoa": {
+        "enabled": true,
+        "is_placeholder": false,
+        "label": "Pay Dues",
+        "portal_label": "Resident Portal",
+        "portal_url": "https://app.payhoa.com/auth/login",
+        "pay_url": "https://app.payhoa.com/auth/login",
+        "signup_url": "https://app.payhoa.com/auth/login",
+        "help_text": "Pay your assessment, see your balance, get documents, and submit ACC applications.",
+        "features": [
+          "Pay your assessment online",
+          "Get association documents",
+          "Submit an Architectural Control (ACC) application",
+          "Send a question to the office",
+          "Report a maintenance concern",
+          "Receive assessment invoices by email instead of by mail"
+        ],
+        "registration_steps": [
+          "Go to payhoa.com and click Login.",
+          "Enter your email address.",
+          "Confirm your name and property address.",
+          "Your request goes to the HOA office for approval.",
+          "Once approved, create a password and sign in."
+        ],
+        "fees": [
+          {
+            "method": "Bank account (ACH)",
+            "amount": "$2.45 per transaction"
+          },
+          {
+            "method": "Credit card",
+            "amount": "3.5% + $0.50 per transaction"
+          }
+        ],
+        "fees_note": "These processing fees are charged by PayHOA, not by the association.",
+        "offline_note": "The office still accepts cash, check, and bank bill-pay.",
+        "minutes_note": "Approved board meeting minutes are posted in the resident portal."
+      },
+      "pool_registration": {
+        "is_placeholder": false,
+        "label": "Register for a pool pass",
+        "url": "https://swimmingpoolpasses.net/discovery-community-pool/",
+        "vendor": "Access Granted Systems"
+      },
+      "county_recycling": {
+        "is_placeholder": false,
+        "label": "Frederick County collection schedule",
+        "url": "https://frederickcountymd.gov/3447/Curbside-Collection-Schedule"
+      },
+      "water_bill": {
+        "is_placeholder": false,
+        "label": "Pay your Walkersville water bill",
+        "url": "https://www.walkersvillemd.gov/"
+      }
+    },
+    "newsletter": {
+      "enabled": false,
+      "provider": "sender"
+    }
+  },
+  "parks": {
+    "count": 20,
+    "inspection_note": "An outside inspector reviews all twenty parks each year, usually in late July or early August, checking equipment for safety and wear.",
+    "report_note": "If a swing, slide, or bench is broken or looks unsafe, tell the office. It is logged and scheduled rather than waiting for the annual inspection."
+  },
+  "problems": {
+    "entries": [
+      {
+        "issue": "Anything immediate, urgent, or life-threatening",
+        "contact": "Emergency services",
+        "phone": "911",
+        "urgent": true,
+        "category": "Emergency"
+      },
+      {
+        "issue": "Questions about the association, your assessment, or the neighborhood",
+        "contact": "DHOA office",
+        "phone_key": "office",
+        "email_key": "general",
+        "category": "The association"
+      },
+      {
+        "issue": "Damaged or unsafe playground equipment",
+        "contact": "DHOA office",
+        "phone_key": "office",
+        "email_key": "general",
+        "category": "The association"
+      },
+      {
+        "issue": "Landscaping and mowing",
+        "contact": "DHOA office — the association contracts this out",
+        "phone_key": "office",
+        "category": "The association"
+      },
+      {
+        "issue": "A street light that is out",
+        "contact": "DHOA office",
+        "phone_key": "office",
+        "note": "Read the pole number off the metal plate on the light pole first — it is the fastest way to get the right light fixed.",
+        "category": "The association"
+      },
+      {
+        "issue": "A vehicle parked where it should not be, in a townhouse court",
+        "contact": "A Board member",
+        "email_key": "general",
+        "note": "Residents may not call the association's towing contractor directly. Try to find the owner first, then contact a Board member, who will arrange towing if it comes to that.",
+        "category": "Parking"
+      },
+      {
+        "issue": "Vandalism, suspicious activity, or a noisy neighbor (non-emergency)",
+        "contact": "Frederick County Sheriff's Office, non-emergency dispatch",
+        "phone": "301-600-2071",
+        "category": "Police"
+      },
+      {
+        "issue": "A party you believe involves underage drinking or drugs",
+        "contact": "Sheriff's Office anonymous tip line",
+        "phone": "301-600-1318",
+        "note": "Give the address, date, and time. You are not required to give your name, and what you say is kept confidential.",
+        "category": "Police"
+      },
+      {
+        "issue": "Sheriff's Office general information (24 hours)",
+        "contact": "Frederick County Sheriff's Office",
+        "phone": "301-600-1046",
+        "category": "Police"
+      },
+      {
+        "issue": "A dog or cat running loose, an aggressive animal, or an animal in poor conditions",
+        "contact": "Frederick County Animal Control",
+        "phone": "301-600-1546",
+        "note": "Monday to Friday, 7:00 am to 5:00 pm.",
+        "category": "Animals"
+      },
+      {
+        "issue": "Snow removal on roads by single-family homes",
+        "contact": "Frederick County Office of Highway Operations",
+        "phone": "301-600-1564",
+        "note": "After hours, call 301-600-1603. Every county road is a snow emergency route, so park in driveways rather than on the road or in cul-de-sacs.",
+        "category": "Weather"
+      },
+      {
+        "issue": "A problem with a cluster mailbox",
+        "contact": "Walkersville Post Office",
+        "phone": "301-845-8342",
+        "category": "Mail"
+      },
+      {
+        "issue": "Mail theft",
+        "contact": "U.S. Postal Inspection Service",
+        "phone": "1-800-275-8777",
+        "category": "Mail"
+      }
+    ]
+  },
+  "trash": {
+    "collections": [
+      {
+        "service": "Trash",
+        "schedule": "Tuesdays and Fridays, mornings",
+        "zone": ""
+      },
+      {
+        "service": "Recycling — north of Stauffer Road",
+        "schedule": "Alternating Mondays",
+        "zone": "Yellow zone"
+      },
+      {
+        "service": "Recycling — south of Stauffer Road",
+        "schedule": "Alternating Tuesdays",
+        "zone": "Pink zone"
+      },
+      {
+        "service": "Yard waste",
+        "schedule": "Second and fourth Wednesday, April 1 through December 10",
+        "zone": ""
+      }
+    ],
+    "setout_rule": "Not before 6:00 pm the evening before your pickup day.",
+    "bring_in_rule": "Bring containers back in as soon as you can after collection.",
+    "container_rule": "Trash needs to go in a rodent-proof container with a lid that closes, kept out of sight. Bags on their own do not survive the night — animals get into them and the mess ends up on the street.",
+    "yard_waste": {
+      "season": "April 1 – December 10",
+      "accepted": [
+        "Leaves",
+        "Grass clippings",
+        "Plants and shrubs",
+        "Tree prunings and trimmings"
+      ],
+      "not_accepted": [
+        "Rocks",
+        "Loose dirt or mulch",
+        "Fruit and vegetable scraps",
+        "Stumps",
+        "Limbs over 4 feet long or 4 inches thick"
+      ],
+      "bundling": "Bundle branches with rope or string, or put them in paper yard-waste bags. Nothing longer than 4 feet or thicker than 4 inches."
+    },
+    "tipping_fee_note": "The association pays Frederick County by the ton for everything sent to the transfer station. Those tipping fees are the single largest line item in the budget, which means recycling is not just tidy — it directly holds your assessment down.",
+    "contacts": [
+      {
+        "name": "Frederick County Solid Waste Management",
+        "address": "9031 Reich's Ford Road, Frederick, MD 21704",
+        "phones": [
+          {
+            "label": "Landfill",
+            "number": "301-600-2890"
+          },
+          {
+            "label": "Recycling",
+            "number": "301-600-2960"
+          }
+        ]
+      },
+      {
+        "name": "Frederick County Recycling Services",
+        "url": "https://www.frederickcountymd.gov/recycling",
+        "phones": [
+          {
+            "label": "Phone",
+            "number": "301-600-2960"
+          }
+        ]
+      }
+    ]
+  },
+  "links": {
+    "categories": [
+      {
+        "category": "Animals & pets",
+        "links": [
+          {
+            "name": "Frederick County Animal Control",
+            "phone": "301-600-1546",
+            "address": "1832 Rosemont Ave., Frederick, MD 21702",
+            "hours": "Monday–Friday, 7:00 am–5:00 pm",
+            "url": "https://frederickcountymd.gov/",
+            "note": "Loose animals, aggressive animals, neglect, licensing and rabies."
+          },
+          {
+            "name": "Frederick County Humane Society",
+            "url": "https://www.fchs.org/"
+          },
+          {
+            "name": "Adopt a pet (Petfinder)",
+            "url": "https://www.petfinder.com/animal-shelters-and-rescues/search/?location=MD"
+          },
+          {
+            "name": "Rabies vaccination & pet licensing",
+            "url": "https://frederickcountymd.gov/124/Rabies-Licensing",
+            "note": "Dogs, cats and ferrets four months and older must be vaccinated; dogs and cats must be licensed."
+          }
+        ]
+      },
+      {
+        "category": "Government",
+        "links": [
+          {
+            "name": "Town of Walkersville",
+            "phone": "301-845-4500",
+            "address": "21 W. Frederick St., Walkersville, MD 21793",
+            "hours": "Monday–Friday, 8:30 am–4:30 pm",
+            "url": "https://www.walkersvillemd.gov/"
+          },
+          {
+            "name": "Frederick County Government",
+            "url": "https://www.frederickcountymd.gov/"
+          },
+          {
+            "name": "Frederick County Department of Social Services",
+            "phone": "301-600-4555",
+            "address": "1888 N Market St, Frederick, MD 21701",
+            "hours": "Monday–Friday, 8:00 am–4:30 pm"
+          },
+          {
+            "name": "State of Maryland",
+            "url": "https://www.maryland.gov/"
+          },
+          {
+            "name": "Maryland Motor Vehicle Administration",
+            "url": "https://mva.maryland.gov/"
+          }
+        ]
+      },
+      {
+        "category": "Utilities",
+        "links": [
+          {
+            "name": "Miss Utility — call before you dig",
+            "phone": "1-800-257-7777",
+            "note": "Free, and required by law before any digging. Call 811 from most phones."
+          },
+          {
+            "name": "Potomac Edison (electric)",
+            "phone": "1-800-686-0011",
+            "note": "Report an outage: 1-888-544-4877"
+          },
+          {
+            "name": "Washington Gas",
+            "phone": "301-662-2151",
+            "address": "1800 N. Market St., Frederick, MD 21701"
+          },
+          {
+            "name": "Town of Walkersville Water",
+            "phone": "301-845-4500",
+            "url": "https://www.walkersvillemd.gov/"
+          },
+          {
+            "name": "Frederick County Water & Sewer",
+            "phone": "301-600-1825",
+            "address": "4520 Metropolitan Court, Frederick, MD 21704"
+          },
+          {
+            "name": "Verizon",
+            "url": "https://www.verizon.com/"
+          },
+          {
+            "name": "Xfinity (Comcast)",
+            "url": "https://www.xfinity.com/"
+          }
+        ]
+      },
+      {
+        "category": "Schools",
+        "links": [
+          {
+            "name": "Frederick County Public Schools",
+            "url": "https://www.fcps.org/"
+          },
+          {
+            "name": "Walkersville Elementary School",
+            "phone": "227-203-1180",
+            "address": "83 W Frederick St, Walkersville, MD 21793"
+          },
+          {
+            "name": "Glade Elementary School",
+            "phone": "227-203-1700",
+            "address": "9525 Glade Rd, Walkersville, MD 21793"
+          },
+          {
+            "name": "Walkersville Middle School",
+            "phone": "227-203-2650",
+            "address": "55 W Frederick St, Walkersville, MD 21793"
+          },
+          {
+            "name": "Walkersville High School",
+            "phone": "227-203-3350",
+            "address": "81 W Frederick St, Walkersville, MD 21793"
+          },
+          {
+            "name": "Frederick Community College",
+            "phone": "301-846-2400",
+            "address": "7932 Opossumtown Pike, Frederick, MD 21701"
+          },
+          {
+            "name": "Hood College",
+            "phone": "301-663-3131",
+            "address": "401 Rosemont Ave., Frederick, MD 21701"
+          },
+          {
+            "name": "Mount St. Mary's University",
+            "phone": "301-447-6122",
+            "address": "16300 Old Emmitsburg Rd., Emmitsburg, MD 21727"
+          }
+        ]
+      },
+      {
+        "category": "Libraries",
+        "links": [
+          {
+            "name": "Walkersville Branch Library",
+            "phone": "301-600-8200",
+            "address": "2 South Glade Road, Walkersville, MD 21793",
+            "hours": "Mon–Thu 10 am–8 pm · Fri & Sat 10 am–5 pm · Closed Sunday",
+            "note": "The closest branch to Discovery."
+          },
+          {
+            "name": "C. Burr Artz Library",
+            "phone": "301-600-1630",
+            "address": "110 East Patrick Street, Frederick, MD 21701",
+            "hours": "Mon–Thu 10 am–9 pm · Fri & Sat 10 am–5 pm · Sun 1–5 pm",
+            "note": "Home of the Maryland Room, where Discovery's 1972 photographs are archived."
+          },
+          {
+            "name": "Urbana Regional Library",
+            "phone": "301-600-7000",
+            "address": "9020 Amelung Street, Frederick, MD 21704"
+          },
+          {
+            "name": "Thurmont Regional Library",
+            "phone": "301-600-7200",
+            "address": "76 East Moser Road, Thurmont, MD 21788"
+          },
+          {
+            "name": "Middletown Branch Library",
+            "phone": "301-600-7560",
+            "address": "101 Prospect Street, Middletown, MD 21769"
+          },
+          {
+            "name": "Brunswick Branch Library",
+            "phone": "301-600-7250",
+            "address": "915 North Maple Ave., Brunswick, MD 21716"
+          }
+        ]
+      },
+      {
+        "category": "Help & social services",
+        "links": [
+          {
+            "name": "Glade Valley Community Services — Food Bank",
+            "phone": "301-845-4229",
+            "address": "Walkersville Town Hall, lower level, 21 West Frederick St.",
+            "hours": "Monday 6:30–8:00 pm · Thursday 1:00–3:00 pm",
+            "url": "https://gladevalley.org"
+          },
+          {
+            "name": "Glade Valley Community Services — Emergency Relief Fund",
+            "phone": "301-845-0213",
+            "note": "Help with electric, water, heating oil, rent or mortgage, prescriptions and other medical costs."
+          },
+          {
+            "name": "Glade Valley Thrift Shop",
+            "address": "St. Paul's Lutheran Church Parish Hall basement, 19 West Pennsylvania Ave.",
+            "hours": "Saturdays 10:00 am–2:00 pm"
+          },
+          {
+            "name": "Salvation Army",
+            "phone": "301-662-2311"
+          },
+          {
+            "name": "St. Vincent de Paul Society",
+            "phone": "301-662-4676"
+          },
+          {
+            "name": "Religious Coalition for Emergency Human Needs",
+            "phone": "301-631-2670"
+          }
+        ]
+      },
+      {
+        "category": "Parks & recreation nearby",
+        "links": [
+          {
+            "name": "Walkersville Community Park",
+            "phone": "301-845-4500",
+            "address": "Kenneth Dr., off Biggs Ford Road",
+            "hours": "Daily, 7:00 am to sunset"
+          },
+          {
+            "name": "Fountain Rock Park & Nature Center",
+            "phone": "301-600-4460",
+            "address": "8511 Nature Center Place, Walkersville, MD 21793"
+          },
+          {
+            "name": "Heritage Farm Park",
+            "address": "Devilbiss Bridge Road, across from Glade Elementary",
+            "hours": "Daily, 8:00 am to sunset"
+          },
+          {
+            "name": "Creamery Park",
+            "address": "S. Glade Rd. & E. Pennsylvania Ave., Walkersville"
+          },
+          {
+            "name": "Catoctin Mountain Park",
+            "phone": "301-663-9388",
+            "address": "14707 Park Central Rd., Thurmont, MD 21788"
+          },
+          {
+            "name": "Rose Hill Manor Park",
+            "phone": "301-600-1650",
+            "address": "1611 N. Market St., Frederick, MD 21701"
+          }
+        ]
+      },
+      {
+        "category": "Churches",
+        "links": [
+          {
+            "name": "St. Timothy Catholic Church",
+            "note": "Catholic",
+            "phone": "301-845-8043",
+            "address": "8651 Biggs Ford Rd., Walkersville",
+            "url": "https://www.stimothys.org"
+          },
+          {
+            "name": "St. Paul's Lutheran Church",
+            "note": "Lutheran",
+            "phone": "301-845-4600",
+            "address": "14 W Pennsylvania Ave., Walkersville",
+            "url": "https://www.saintpaulslutheranchurch.org/"
+          },
+          {
+            "name": "Peace In Christ Lutheran Church",
+            "note": "Lutheran",
+            "phone": "301-845-6300",
+            "address": "8798 Adventure Ave., Walkersville",
+            "url": "https://www.peaceinchrist.org"
+          },
+          {
+            "name": "Glade United Church of Christ",
+            "note": "United Church of Christ",
+            "phone": "301-845-6775",
+            "address": "21 Fulton Ave., Walkersville",
+            "url": "https://www.gladechurch.org/"
+          },
+          {
+            "name": "Walkersville United Methodist Church",
+            "note": "Methodist",
+            "phone": "301-845-9860",
+            "address": "22 Main Street, Walkersville"
+          },
+          {
+            "name": "Fredericktowne Baptist Church",
+            "note": "Baptist",
+            "phone": "301-845-8700",
+            "address": "8645 Biggs Ford Rd., Walkersville",
+            "url": "https://www.fbcfamily.org/"
+          },
+          {
+            "name": "Calvary Assembly of God",
+            "note": "Assembly of God",
+            "phone": "301-898-7811",
+            "address": "8234 Woodsboro Pike, Walkersville",
+            "url": "https://www.cafrederick.com/"
+          },
+          {
+            "name": "Walkersville Community Church",
+            "note": "Non-denominational",
+            "phone": "301-845-2544",
+            "address": "207 Braeburn Drive, Walkersville",
+            "url": "https://www.walkersvillecc.org/"
+          },
+          {
+            "name": "Iglesia Campamento De Dios",
+            "note": "Non-denominational · servicios en español",
+            "phone": "301-845-4677",
+            "address": "1 W. Frederick St., Walkersville",
+            "url": "https://www.icddfrederick.org/"
+          },
+          {
+            "name": "Sure Fellowship Church",
+            "note": "Non-denominational",
+            "phone": "301-845-9870",
+            "address": "1 W. Frederick St., Walkersville"
+          },
+          {
+            "name": "Congregation Kol Ami of Frederick",
+            "note": "Jewish",
+            "address": "4880 Elmer Derr Road, Frederick, MD 21703",
+            "url": "https://www.kolamifrederick.org/"
+          },
+          {
+            "name": "The Church of Jesus Christ of Latter-day Saints",
+            "note": "Latter-day Saints",
+            "phone": "301-695-0697",
+            "address": "1811 Latham Dr, Frederick, MD",
+            "url": "https://www.churchofjesuschrist.org/"
+          }
+        ]
+      },
+      {
+        "category": "Local news",
+        "links": [
+          {
+            "name": "Frederick News-Post",
+            "url": "https://www.fredericknewspost.com/"
+          },
+          {
+            "name": "WTOP News",
+            "url": "https://wtop.com/"
+          },
+          {
+            "name": "WFMD AM 930",
+            "url": "https://www.wfmd.com/"
+          },
+          {
+            "name": "WFRE 99.9",
+            "url": "https://www.wfre.com/"
+          },
+          {
+            "name": "Key 103 Radio",
+            "url": "https://www.key103radio.com/"
+          }
+        ]
+      }
+    ]
+  },
+  "meeting-overrides": {
+    "overrides": []
+  },
+  "pool": {
+    "season": {
+      "year": 2026,
+      "opens": "2026-05-23",
+      "closes": "2026-09-07",
+      "closed_weekday": "Mondays",
+      "open_days": "Tuesday through Sunday on non-school days",
+      "registration_note": "Registration is handled online by Access Granted Systems. You can pay by card when you register, or print a paper application and mail it with a check.",
+      "prerequisite": "You must be current on your assessment to buy a pool membership.",
+      "no_cash": true
+    },
+    "hours": [
+      {
+        "period": "Opening weekend — May 23, 24, 25",
+        "time": "Noon – 8:00 pm"
+      },
+      {
+        "period": "June and July, non-school days",
+        "time": "12:00 pm – 8:00 pm"
+      },
+      {
+        "period": "August, Friday–Sunday until school starts Aug 18",
+        "time": "11:00 am – 7:00 pm"
+      },
+      {
+        "period": "Labor Day weekend",
+        "time": "11:00 am – 7:00 pm"
+      }
+    ],
+    "fees_resident": [
+      {
+        "label": "Early bird, on or before April 15",
+        "amount": "$35.00",
+        "unit": "per person"
+      },
+      {
+        "label": "After April 15",
+        "amount": "$45.00",
+        "unit": "per person"
+      },
+      {
+        "label": "Children 5 and under",
+        "amount": "Free"
+      }
+    ],
+    "fees_nonresident": [
+      {
+        "label": "Single adult",
+        "amount": "$175.00"
+      },
+      {
+        "label": "Single child, ages 14–17",
+        "amount": "$125.00"
+      },
+      {
+        "label": "Senior single, 65+",
+        "amount": "$85.00"
+      },
+      {
+        "label": "Senior couple, 65+",
+        "amount": "$150.00"
+      },
+      {
+        "label": "Family, whole season",
+        "amount": "$375.00"
+      }
+    ],
+    "rules": [
+      "Children under 14 must be with an adult 18 or older.",
+      "There is a 250-pound weight limit on the diving board. No back flips, and no more than two bounces.",
+      "No smoking anywhere on the pool premises, or within 50 feet of the Recreation Center.",
+      "Headphones only — nobody else at the pool should be able to hear your music."
+    ],
+    "guest_passes": "Guest and day passes are punch tickets, sold in the Marketplace section of the registration site in books of 1, 5, 10, 15 and 20."
+  },
+  "recreation-center": {
+    "capacity": 49,
+    "notice_days": 7,
+    "deposit": "$100.00",
+    "rental_fees": [
+      {
+        "label": "Minimum booking",
+        "amount": "$60.00",
+        "unit": "2 hours"
+      },
+      {
+        "label": "Each additional hour",
+        "amount": "$20.00",
+        "unit": "per hour"
+      },
+      {
+        "label": "Setup and clean-up",
+        "amount": "1 hour free",
+        "note": "Additional setup time is charged at the hourly rate."
+      }
+    ],
+    "eligibility": "Available to Discovery residents who are current on their assessments.",
+    "rules": [
+      "Whoever signs the contract has to be there for the whole rental.",
+      "No smoking and no alcohol, anywhere on the premises or the grounds.",
+      "You cannot sub-let the Center to someone else.",
+      "Do not tape or staple decorations to the walls, floors, or ceilings.",
+      "Maximum occupancy is 49 people. This is Frederick County Fire Code, not a house rule.",
+      "No open flames, and no cooking, heating, or reheating equipment.",
+      "No animals except genuine service animals.",
+      "No bicycles, skateboards, roller blades, or anything else with wheels on the premises.",
+      "Keep music and noise inside the building.",
+      "Do not park on the grass or on the driveway beside the Center."
+    ],
+    "before_leaving": [
+      "Wrap up by 12:30 am and vacate the building.",
+      "Empty every trash can and take the bags out to the outside containers.",
+      "Put the furniture back where you found it.",
+      "Sweep the floor.",
+      "Set the thermostat to 60°F in winter, 85°F in summer.",
+      "Lock all the doors and windows, and turn off the lights."
+    ]
+  },
+  "rv-lot": {
+    "fees": {
+      "effective": "October 1, 2025",
+      "monthly": "$50.00",
+      "monthly_note": "due at the beginning of each month",
+      "quarterly": "$150.00",
+      "quarterly_note": "due with your quarterly assessment",
+      "payment": "Pay by Zelle to the association's usual address, with “RV Lot Payment” in the memo line."
+    },
+    "registration_requirements": [
+      "The completed registration form",
+      "The vehicle's current registration certificate",
+      "A photograph of the vehicle"
+    ],
+    "rules": [
+      "One vehicle per household.",
+      "Every vehicle must carry current registration.",
+      "Vehicles must be clean and well maintained.",
+      "Keep the area around your space clear."
+    ],
+    "planned_improvements": "The lot stays as it is for now. Once enough has been collected, the plan is to repair the fence, repaint the lines and space numbers, and improve security."
+  },
+  "projects": {
+    "projects": [
+      {
+        "name": "Water main replacement — Phase 1",
+        "status": "in-progress",
+        "timing": "Began spring 2025",
+        "summary": "Replacing aging water main along six streets. Residents on the affected streets should watch for notices about construction timelines and temporary service interruptions.",
+        "streets": [
+          "Inspiration Court",
+          "Inspiration Avenue, from Imagination Court to Stauffer Road",
+          "Inspiration Avenue, from Stauffer Road to Discovery Boulevard",
+          "Triumphant Court",
+          "Successful Way",
+          "Curiosity Court"
+        ]
+      },
+      {
+        "name": "Grant applications",
+        "status": "ongoing",
+        "summary": "Pursuing outside grant money for community improvements, so more of the work gets done without raising the assessment."
+      },
+      {
+        "name": "Park assessment",
+        "status": "ongoing",
+        "summary": "Inspecting all twenty parks and working out which equipment should be repaired, which should be replaced, and which should be removed."
+      },
+      {
+        "name": "Sidewalks in the townhouse area",
+        "status": "exploring",
+        "summary": "Early-stage: looking at whether sidewalks in the townhouse section are feasible and what they would cost."
+      }
+    ]
+  },
+  "architectural-control": {
+    "requires_approval": [
+      "Fences",
+      "Patios and decks",
+      "Windows",
+      "Front doors and screen doors",
+      "Sliding doors",
+      "Solar panels",
+      "Siding",
+      "Roofing and gutters",
+      "Garage doors"
+    ],
+    "bylaw_excerpts": [
+      {
+        "cite": "Amended By-Laws, Article XVIII (Vehicles and Parking), Section 2",
+        "text": "No trailers, campers, recreational vehicles, boat trailers, boats, tractors, or trucks in excess of 6,500 pounds gross vehicle weight, or other large vehicles may be parked, stored, maintained or repaired upon any portion of the Property of the Association, upon any streets (including County-owned streets), lots or common areas in the community except in such locations, if any, as may be designated for the parking of such vehicles by the Board."
+      },
+      {
+        "cite": "Declaration of Covenants, Exhibit A, Section 8 (Use Restrictions)",
+        "text": "No boats on cradles or trailers may be parked in streets, driveways, yards, or common areas for more than twenty-four hours. No vehicles except those classified as passenger cars or station wagons shall be regularly parked in residential areas."
+      }
+    ]
+  },
+  "approvals": {
+    "news": true,
+    "event": false,
+    "document": true,
+    "page": true
+  }
+}

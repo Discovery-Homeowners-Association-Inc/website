@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Valentina Duk",
+    "office": "President",
+    "committees": ["acc"],
+    "chairs": [],
+    "note": "",
+    "order": 1
+  },
+  {
+    "name": "Candice Swet",
+    "office": "Vice President",
+    "committees": ["acc"],
+    "chairs": [],
+    "note": "",
+    "order": 2
+  },
+  {
+    "name": "Robert \"Bob\" Thornton",
+    "office": "Treasurer",
+    "committees": [],
+    "chairs": [],
+    "note": "",
+    "order": 3
+  },
+  {
+    "name": "Doug Shoemaker",
+    "office": "Director",
+    "committees": ["maintenance"],
+    "chairs": [],
+    "note": "",
+    "order": 4
+  },
+  {
+    "name": "Robert \"Bobby\" Brown",
+    "office": "Director",
+    "committees": ["acc"],
+    "chairs": ["acc"],
+    "note": "Chairs the Architectural Control Committee",
+    "order": 5
+  },
+  {
+    "name": "Paul Fiumara",
+    "office": "Director",
+    "committees": [],
+    "chairs": [],
+    "note": "",
+    "order": 6
+  },
+  {
+    "name": "Jennifer Goodman",
+    "office": "Director",
+    "committees": ["pool-rec", "welcome", "website"],
+    "chairs": [],
+    "note": "Pool applications and the Summer Lunch Program",
+    "order": 7
+  },
+  {
+    "name": "Jonathon Berkowitz",
+    "office": "",
+    "committees": ["acc"],
+    "chairs": [],
+    "note": "",
+    "order": 200
+  },
+  {
+    "name": "Donald Jack",
+    "office": "",
+    "committees": ["acc"],
+    "chairs": [],
+    "note": "",
+    "order": 200
+  },
+  {
+    "name": "Ralph Picarella",
+    "office": "",
+    "committees": ["acc"],
+    "chairs": [],
+    "note": "",
+    "order": 200
+  }
+]

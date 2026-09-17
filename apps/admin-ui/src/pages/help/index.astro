@@ -1,0 +1,177 @@
+---
+import Admin from "../../layouts/Admin.astro";
+---
+
+<Admin title="Help">
+  <div class="prose help">
+    <h1>Help</h1>
+    <p class="lede">
+      Short guides for the things people do most. If something here is wrong or
+      missing, tell the website committee.
+    </p>
+
+    <nav aria-label="On this page">
+      <ul>
+        <li>
+          <a href="#post">Post news or an event</a>
+        </li>
+        <li>
+          <a href="#approve">Approve something someone else wrote</a>
+        </li>
+        <li>
+          <a href="#schedule">
+            Publish later, or take something down automatically
+          </a>
+        </li>
+        <li>
+          <a href="#document">Add a form or document</a>
+        </li>
+        <li>
+          <a href="#page">Change the words on a page</a>
+        </li>
+        <li>
+          <a href="#facts">Change a phone number, fee or office hours</a>
+        </li>
+        <li>
+          <a href="#roster">Add or remove a board member</a>
+        </li>
+        <li>
+          <a href="#minutes">Write, approve and file minutes</a>
+        </li>
+        <li>
+          <a href="#accounts">Give someone access to this app</a>
+        </li>
+        <li>
+          <a href="#site">When does the website update?</a>
+        </li>
+      </ul>
+    </nav>
+
+    <h2 id="post">Post news or an event</h2>
+    <ol>
+      <li>
+        Go to <a href="/content/news/">News</a> (or{" "}
+        <a href="/content/events/">Events</a>) and choose <strong>New</strong>.
+      </li>
+      <li>
+        Fill in the title and summary. Write the full text in plain sentences;
+        leave a blank line between paragraphs.
+      </li>
+      <li>
+        Choose <strong>Save as draft</strong>. Nothing is public yet.
+      </li>
+      <li>
+        If you see <strong>Publish</strong>, choose it and you are done. If you
+        see <strong>Submit for approval</strong>, choose that; an admin, the
+        secretary or a board member will publish it.
+      </li>
+    </ol>
+
+    <h2 id="approve">Approve something someone else wrote</h2>
+    <p>
+      Items waiting for approval appear at the top of <a href="/">Home</a>. Open
+      one, read it, then choose <strong>Approve and publish</strong>, or{" "}
+      <strong>Send back with a note</strong> saying what to change. You cannot
+      approve something you submitted yourself.
+    </p>
+
+    <h2 id="schedule">Publish later, or take something down automatically</h2>
+    <p>
+      Every item has a <strong>Publish date</strong> in the panel beside it. Set
+      a future date and time, then publish: it stays hidden until then. Set{" "}
+      <strong>Hide after</strong> for a notice with a deadline, and choose
+      whether to keep it here or delete it when the date passes.
+    </p>
+
+    <h2 id="document">Add a form or document</h2>
+    <ol>
+      <li>
+        Go to <a href="/content/documents/">Documents</a>, choose{" "}
+        <strong>New</strong>.
+      </li>
+      <li>Choose the file (PDF, JPEG or PNG). It uploads straight away.</li>
+      <li>
+        Give it a title people will recognise, one sentence about what it is,
+        and the section of the library it belongs in.
+      </li>
+      <li>Save, then publish or submit for approval.</li>
+    </ol>
+    <p>
+      To replace a file, open the document, choose a new file, and save. The web
+      address stays the same.
+    </p>
+
+    <h2 id="page">Change the words on a page</h2>
+    <p>
+      Go to <a href="/content/pages/">Pages</a> and open the page. The text is
+      plain writing. For headings start a line with <code>## </code>; for a
+      bullet start it with <code>- </code>. To mention the office email or phone
+      write <code>{"{{email:general}}"}</code> or{" "}
+      <code>{"{{phone:office}}"}</code> so the page never goes out of date.
+    </p>
+
+    <h2 id="facts">Change a phone number, fee or office hours</h2>
+    <p>
+      Facts that appear in more than one place live under{" "}
+      <a href="/settings/">Site settings</a> (administrators only). Change a
+      value once and every page that shows it changes.
+    </p>
+
+    <h2 id="roster">Add or remove a board member</h2>
+    <p>
+      Go to <a href="/roster/">Roster</a>. <strong>Add a person</strong> with
+      their office and committees. When someone leaves, choose{" "}
+      <strong>End term</strong>: they stop appearing as serving, but every
+      record that names them is kept. The board page, committees page and the
+      attendance list in minutes all come from the roster.
+    </p>
+
+    <h2 id="minutes">Write, approve and file minutes</h2>
+    <ol>
+      <li>
+        Open the meeting under <a href="/meetings/">Meetings</a> and choose{" "}
+        <strong>Minutes for this meeting</strong>, then{" "}
+        <strong>Start minutes from the agenda</strong>.
+      </li>
+      <li>
+        Tick who was present. Write what was discussed under each item, and add
+        motions with who moved and seconded them.
+      </li>
+      <li>
+        Choose <strong>Save a new version</strong> as you go, then{" "}
+        <strong>Send for review</strong>.
+      </li>
+      <li>
+        Board members read, comment, and mark the version reviewed. Fix anything
+        raised and save again.
+      </li>
+      <li>
+        Before the next meeting choose <strong>Ready for a vote</strong>. At the
+        meeting, record the vote.
+      </li>
+      <li>
+        Choose <strong>Export PDF</strong>, save it, upload it to PayHOA, then{" "}
+        <strong>Mark as uploaded to PayHOA</strong>.
+      </li>
+    </ol>
+    <p>
+      Minutes are never on the public website; residents read them in PayHOA.
+    </p>
+
+    <h2 id="accounts">Give someone access to this app</h2>
+    <p>
+      Administrators go to <a href="/people/">Accounts</a> and invite the person
+      with the email address of their Google account. They then sign in with
+      Google. Roles decide what they can do: <em>editor</em> writes,{" "}
+      <em>board</em> reviews and approves, <em>secretary</em> runs meetings and
+      minutes, <em>admin</em> manages accounts and settings.
+    </p>
+
+    <h2 id="site">When does the website update?</h2>
+    <p>
+      Publishing here asks the website to rebuild, which takes a few minutes.
+      The site also rebuilds every morning, which is when scheduled posts appear
+      and expired ones disappear.
+    </p>
+  </div>
+</Admin>

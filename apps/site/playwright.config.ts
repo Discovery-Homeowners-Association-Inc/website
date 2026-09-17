@@ -13,8 +13,10 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },
   ],
+  // A plain static server: Astro's preview command manages one background
+  // daemon per project and refuses to start a second, which breaks test runs.
   webServer: {
-    command: `astro preview --host 127.0.0.1 --port ${port}`,
+    command: `python3 -m http.server ${port} --bind 127.0.0.1 --directory dist`,
     url: `http://127.0.0.1:${port}/`,
     reuseExistingServer: !process.env.CI,
   },

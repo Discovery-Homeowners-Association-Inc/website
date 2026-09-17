@@ -1,5 +1,6 @@
 import type { MinutesBody } from "@dhoa/shared";
 import { newId } from "../lib/api.ts";
+import { AttendancePicker, NamePicker } from "./NamePicker.tsx";
 
 type Motion = MinutesBody["items"][number]["motions"][number];
 const lines = (s: string) =>
@@ -11,9 +12,15 @@ const lines = (s: string) =>
 export function MinutesEditor({
   body,
   onChange,
+  directors,
+  everyone,
 }: {
   body: MinutesBody;
   onChange: (b: MinutesBody) => void;
+  /** Names of directors serving now, for attendance. */
+  directors: string[];
+  /** Everyone on the roster, for pickers. */
+  everyone: string[];
 }) {
   const set = (patch: Partial<MinutesBody>) => onChange({ ...body, ...patch });
   const setItem = (i: number, patch: Partial<MinutesBody["items"][number]>) =>
@@ -43,46 +50,41 @@ export function MinutesEditor({
               onInput={(e) => set({ called_to_order: e.currentTarget.value })}
             />
           </div>
-          <div class="field">
-            <label for="presiding">Presiding</label>
-            <input
-              id="presiding"
-              type="text"
-              value={body.presiding}
-              onInput={(e) => set({ presiding: e.currentTarget.value })}
-            />
-          </div>
-          <div class="field">
-            <label for="recorded">Recorded by</label>
-            <input
-              id="recorded"
-              type="text"
-              value={body.recorded_by}
-              onInput={(e) => set({ recorded_by: e.currentTarget.value })}
-            />
-          </div>
+          <NamePicker
+            id="presiding"
+            label="Presiding"
+            value={body.presiding}
+            names={everyone}
+            onChange={(v) => set({ presiding: v })}
+          />
+          <NamePicker
+            id="recorded"
+            label="Recorded by"
+            value={body.recorded_by}
+            names={everyone}
+            onChange={(v) => set({ recorded_by: v })}
+          />
         </div>
         <div class="row">
-          <div class="field">
-            <label for="present">Directors present</label>
-            <textarea
-              id="present"
-              rows={4}
-              value={body.present.join("\n")}
-              onInput={(e) => set({ present: lines(e.currentTarget.value) })}
-            />
-            <span class="hint">One name per line</span>
-          </div>
-          <div class="field">
-            <label for="absent">Directors absent</label>
-            <textarea
-              id="absent"
-              rows={4}
-              value={body.absent.join("\n")}
-              onInput={(e) => set({ absent: lines(e.currentTarget.value) })}
-            />
-            <span class="hint">One name per line</span>
-          </div>
+          <AttendancePicker
+            id="present"
+            label="Directors present"
+            value={body.present}
+            names={directors}
+            onChange={(v) =>
+              set({
+                present: v,
+                absent: body.absent.filter((n) => !v.includes(n)),
+              })
+            }
+          />
+          <AttendancePicker
+            id="absent"
+            label="Directors absent"
+            value={body.absent}
+            names={directors.filter((n) => !body.present.includes(n))}
+            onChange={(v) => set({ absent: v })}
+          />
         </div>
         <div class="field">
           <label for="guests">Also present</label>
@@ -143,29 +145,21 @@ export function MinutesEditor({
                 />
               </div>
               <div class="row">
-                <div class="field">
-                  <label for={`mb-${it.id}-${k}`}>Moved by</label>
-                  <input
-                    id={`mb-${it.id}-${k}`}
-                    type="text"
-                    required
-                    value={mo.moved_by}
-                    onInput={(e) =>
-                      setMotion(i, k, { moved_by: e.currentTarget.value })
-                    }
-                  />
-                </div>
-                <div class="field">
-                  <label for={`ms-${it.id}-${k}`}>Seconded by</label>
-                  <input
-                    id={`ms-${it.id}-${k}`}
-                    type="text"
-                    value={mo.seconded_by}
-                    onInput={(e) =>
-                      setMotion(i, k, { seconded_by: e.currentTarget.value })
-                    }
-                  />
-                </div>
+                <NamePicker
+                  id={`mb-${it.id}-${k}`}
+                  label="Moved by"
+                  value={mo.moved_by}
+                  names={everyone}
+                  required
+                  onChange={(v) => setMotion(i, k, { moved_by: v })}
+                />
+                <NamePicker
+                  id={`ms-${it.id}-${k}`}
+                  label="Seconded by"
+                  value={mo.seconded_by}
+                  names={everyone}
+                  onChange={(v) => setMotion(i, k, { seconded_by: v })}
+                />
                 <div class="field">
                   <label for={`mr-${it.id}-${k}`}>Result</label>
                   <select
