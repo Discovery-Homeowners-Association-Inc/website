@@ -1,31 +1,81 @@
 /* Shared design system for the public site and the admin app. See docs/DESIGN.md. */
 /*
  * Fonts are self-hosted (SIL Open Font License; see fonts/). Both layouts
- * preload them. font-display: optional means text is drawn once and never
- * reflows: if a font has not arrived within about 100 ms on a first visit the
- * fallback stays for that page, and the cached font is used from then on.
+ * preload them.
+ *
+ * font-display: swap, not optional. Optional lets the browser keep the fallback
+ * for a whole page load and never swap, so a slow first visit could show the
+ * wrong typeface start to finish. Swap always arrives at the real font.
+ *
+ * The reflow swap would normally cause is reduced instead by naming the local
+ * fonts a visitor actually has and scaling them with size-adjust. Every ratio
+ * below was measured in a browser against what actually renders, never
+ * estimated:
+ *
+ *   body font, prose at weight 400   98.83%
+ *   body font, nav links at 600     103.79%
+ *   display font, the brand at 700  108.94%
+ *
+ * One ratio per family cannot serve every weight, so each is set to the value
+ * that keeps the fallback no WIDER than the web font. A narrower fallback
+ * cannot clip anything and cannot push the header past a breakpoint; a wider
+ * one is what broke it. Body text is therefore matched at prose weight, where
+ * it is within 1.2%, and the display face is left at 100%, which keeps the
+ * brand 16px narrower in the fallback rather than 9% wider everywhere.
+ *
+ * Vertical metrics are not overridden: every line-height here is unitless, so
+ * the line box follows font-size rather than the font's own ascent.
  */
 @font-face {
   font-family: "Bricolage Grotesque Variable";
   font-style: normal;
   font-weight: 200 800;
   font-stretch: 75% 100%;
-  font-display: optional;
+  font-display: swap;
   src: url("./fonts/bricolage-grotesque.woff2") format("woff2-variations");
+}
+
+/* Metric-matched stand-ins for the display font. Each group's ratio was
+ * measured against its first member; the rest are metric-compatible with it. */
+@font-face {
+  font-family: "Display fallback Arial";
+  src:
+    local("Arial"), local("Liberation Sans"), local("Helvetica Neue"),
+    local("Helvetica");
+  size-adjust: 100%;
+}
+@font-face {
+  font-family: "Display fallback Noto";
+  src: local("Noto Sans"), local("Roboto"), local("DejaVu Sans");
+  size-adjust: 97%;
 }
 @font-face {
   font-family: "Atkinson Hyperlegible Next Variable";
   font-style: normal;
   font-weight: 200 800;
-  font-display: optional;
+  font-display: swap;
   src: url("./fonts/atkinson-hyperlegible-next.woff2")
     format("woff2-variations");
+}
+
+/* Metric-matched stand-ins for the body font. */
+@font-face {
+  font-family: "Body fallback Arial";
+  src:
+    local("Arial"), local("Liberation Sans"), local("Helvetica Neue"),
+    local("Helvetica");
+  size-adjust: 98.83%;
+}
+@font-face {
+  font-family: "Body fallback Noto";
+  src: local("Noto Sans"), local("Roboto"), local("DejaVu Sans");
+  size-adjust: 97.2%;
 }
 @font-face {
   font-family: "Atkinson Hyperlegible Next Variable";
   font-style: italic;
   font-weight: 200 800;
-  font-display: optional;
+  font-display: swap;
   src: url("./fonts/atkinson-hyperlegible-next-italic.woff2")
     format("woff2-variations");
 }
@@ -47,10 +97,11 @@
   --warn-soft: #fbe6d4;
 
   --font-display:
-    "Bricolage Grotesque Variable", "Arial Narrow", system-ui, sans-serif;
+    "Bricolage Grotesque Variable", "Display fallback Arial",
+    "Display fallback Noto", system-ui, sans-serif;
   --font-body:
-    "Atkinson Hyperlegible Next Variable", system-ui, -apple-system, "Segoe UI",
-    sans-serif;
+    "Atkinson Hyperlegible Next Variable", "Body fallback Arial",
+    "Body fallback Noto", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --step--1: 0.889rem;
   --step-0: 1.125rem;
