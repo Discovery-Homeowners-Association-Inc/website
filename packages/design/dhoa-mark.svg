@@ -9,7 +9,7 @@
 
     Measured from the association's own 467x470 artwork. Drawn with currentColor
     so it inherits its surroundings and works in light and dark themes; the
-    ridge fill is the same colour held back to 35% opacity, which reproduces the
+    ridge fill is the same color held back to 35% opacity, which reproduces the
     grey of the original against any background.
   -->
   <defs>

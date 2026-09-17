@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1421" class="map" role="img" aria-labelledby="map-title map-desc">
 <title id="map-title">Street map of the Discovery neighborhood</title>
-<desc id="map-desc">The streets of Discovery in Walkersville, Maryland, highlighted against the surrounding road network. Discovery Boulevard runs through the centre, with the courts and places branching from it.</desc>
+<desc id="map-desc">The streets of Discovery in Walkersville, Maryland, highlighted against the surrounding road network. Discovery Boulevard runs through the center, with the courts and places branching from it.</desc>
 <rect class="map__ground" width="100%" height="100%"/>
 <g class="map__context" fill="none">
 <path d="M75.0 966.9L86.3 976.6L87.5 977.6L111.2 983.4L125.1 985.9L135.6 987.0L148.8 987.4L177.8 986.6L263.0 986.0L314.7 984.9L393.0 984.2L397.5 984.0L408.5 977.7"/>

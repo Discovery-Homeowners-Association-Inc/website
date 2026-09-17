@@ -13,11 +13,11 @@ export const HORIZON_MONTHS = 12;
  * the records, and the records are what everything reads.
  *
  * The id is the schedule -- `2026-09-15-board` -- so a meeting the rule has
- * already produced is recognised rather than written twice. `insert or ignore`
+ * already produced is recognized rather than written twice. `insert or ignore`
  * therefore leaves every existing row exactly as it is, which is what lets the
  * board cancel or move a meeting without the next run undoing it.
  */
-export async function materialiseMeetings(
+export async function materializeMeetings(
   db: D1Database,
   now = new Date(),
   months = HORIZON_MONTHS,

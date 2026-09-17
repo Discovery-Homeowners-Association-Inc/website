@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { beforeAll, expect, test } from "vitest";
-import { materialiseMeetings } from "../src/meetings-schedule.ts";
+import { materializeMeetings } from "../src/meetings-schedule.ts";
 import { seedSettings } from "./helpers.ts";
 
 /**
@@ -31,7 +31,7 @@ const boardMeetings = async () => {
 const weekdayOf = (date: string) => new Date(`${date}T12:00:00Z`).getUTCDay();
 
 test("the rule fills a year of board meetings", async () => {
-  const { created } = await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  const { created } = await materializeMeetings(env.DB, new Date("2026-01-05"));
   expect(created).toBe(12);
 
   const rows = await boardMeetings();
@@ -53,21 +53,21 @@ test("the rule fills a year of board meetings", async () => {
 });
 
 test("running it again creates nothing", async () => {
-  await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
   const before = await boardMeetings();
-  const { created } = await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  const { created } = await materializeMeetings(env.DB, new Date("2026-01-05"));
   expect(created).toBe(0);
   expect(await boardMeetings()).toEqual(before);
 });
 
 test("a meeting the board cancelled is not brought back", async () => {
-  await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
   const [first] = await boardMeetings();
   await env.DB.prepare("update meetings set status = 'cancelled' where id = ?")
     .bind(first!.id)
     .run();
 
-  await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
 
   const after = (await boardMeetings()).find((m) => m.id === first!.id);
   expect(after?.status, "the scheduler resurrected a cancelled meeting").toBe(
@@ -76,10 +76,10 @@ test("a meeting the board cancelled is not brought back", async () => {
 });
 
 test("moving forward in time extends the horizon rather than starting over", async () => {
-  await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
   const firstRun = await boardMeetings();
   // Two months later the far end has grown; the near end is untouched.
-  const { created } = await materialiseMeetings(env.DB, new Date("2026-03-05"));
+  const { created } = await materializeMeetings(env.DB, new Date("2026-03-05"));
   expect(created).toBeGreaterThan(0);
   const second = await boardMeetings();
   expect(second.length).toBeGreaterThan(firstRun.length);
@@ -87,7 +87,7 @@ test("moving forward in time extends the horizon rather than starting over", asy
 });
 
 test("a moved meeting keeps its slot, so the old date is not put back", async () => {
-  await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
   const [first] = await boardMeetings();
   const moved = "2026-01-27";
   // Moving edits the date; the id still records the slot the rule gave it.
@@ -95,7 +95,7 @@ test("a moved meeting keeps its slot, so the old date is not put back", async ()
     .bind(moved, first!.id)
     .run();
 
-  await materialiseMeetings(env.DB, new Date("2026-01-05"));
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
 
   const rows = await boardMeetings();
   expect(rows.filter((m) => m.id === first!.id)).toHaveLength(1);
