@@ -1,0 +1,13 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import Prose from "../components/Prose.astro";
+import { page } from "../lib/pages";
+
+const p = await page("privacy");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <Prose id="privacy" />
+</Base>

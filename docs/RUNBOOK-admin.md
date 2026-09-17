@@ -69,6 +69,19 @@ Everything here stays on the Workers Free plan.
 2. **Apply migrations and seed:** in `apps/admin`, `pnpm exec wrangler d1 migrations apply dhoa
 --remote`, `node scripts/seed.ts`, `pnpm exec wrangler d1 execute dhoa --remote --file
 seed/seed.sql`, then `bash seed/kv.sh --remote`.
+
+   **Seed once only.** The roster seed is not idempotent, whatever `just seed-local` says:
+   running it a second time duplicated all ten roster people locally on 2026-09-17, because each
+   person is inserted with a fresh id. Committees are unaffected. Applying `seed.sql` twice to
+   the live database would duplicate the whole board on the public site.
+
+   **Seeding does not clear the public snapshot cache.** `/api/public/site.json` is cached and
+   cleared when content changes through the admin app (DECISIONS #16). A write that bypasses the
+   app -- seeding, or `wrangler d1 execute` -- does not clear it, so the site build can read a
+   snapshot up to five minutes old. Wait it out, or make any edit through the admin app to clear
+   it. Locally the cache is on disk and survives restarting the dev server: delete
+   `apps/admin/.wrangler/state/v3/cache` to force a rebuild.
+
 3. **Create the Google OAuth client.** Use a Google Cloud project owned by the association's
    Google account. The console calls this **Google Auth Platform** now, not APIs & Services:
    go straight to <https://console.cloud.google.com/auth/clients> and Create client, type
