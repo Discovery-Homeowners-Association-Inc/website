@@ -6,4 +6,8 @@ export default defineConfig({
   output: "static",
   trailingSlash: "always",
   markdown: { remarkPlugins: [remarkOrg] },
+  // The dev server is reached from other machines over the LAN and Tailscale.
+  // Vite blocks unknown Host headers to prevent DNS rebinding, so allow the
+  // development machine's name and any Tailscale MagicDNS name.
+  server: { allowedHosts: ["desktop", ".ts.net"] },
 });
