@@ -92,6 +92,7 @@ const Organization = z.object({
       fees: z.array(z.object({ method: z.string(), amount: z.string() })),
       fees_note: z.string(),
       offline_note: z.string(),
+      minutes_note: z.string(),
     }),
     pool_registration: z.object({ label: z.string(), url, vendor: z.string() }),
     county_recycling: z.object({ label: z.string(), url }),

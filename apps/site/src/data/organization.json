@@ -103,7 +103,8 @@
         }
       ],
       "fees_note": "These processing fees are charged by PayHOA, not by the association.",
-      "offline_note": "The office still accepts cash, check, and bank bill-pay."
+      "offline_note": "The office still accepts cash, check, and bank bill-pay.",
+      "minutes_note": "Approved board meeting minutes are posted in the resident portal."
     },
     "governing_documents": {
       "enabled": false,

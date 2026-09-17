@@ -1,10 +1,17 @@
-/** Minutes lifecycle. The API enforces these transitions; the UI only reflects them. */
+/**
+ * Minutes lifecycle. The API enforces these transitions; the UI only reflects them.
+ *
+ * Approved minutes are kept in PayHOA's resident portal, not on the public
+ * website. The last step is therefore "filed": the secretary exports the
+ * approved version as a PDF, uploads it to PayHOA by hand, and records that
+ * the upload happened.
+ */
 export const MINUTES_STATES = [
   "draft",
   "in_review",
   "ready_for_vote",
   "approved",
-  "published",
+  "filed",
 ] as const;
 export type MinutesState = (typeof MINUTES_STATES)[number];
 
@@ -33,7 +40,7 @@ export const MINUTES_TRANSITIONS: readonly Transition[] = [
     to: "approved",
     roles: ["secretary", "board", "admin"],
   },
-  { from: "approved", to: "published", roles: ["secretary", "admin"] },
+  { from: "approved", to: "filed", roles: ["secretary", "admin"] },
 ];
 
 export function canTransition(
@@ -46,3 +53,7 @@ export function canTransition(
       t.from === from && t.to === to && t.roles.some((r) => roles.includes(r)),
   );
 }
+
+/** Only approved minutes may be exported for PayHOA. Drafts never leave the admin app. */
+export const canExport = (state: MinutesState) =>
+  state === "approved" || state === "filed";

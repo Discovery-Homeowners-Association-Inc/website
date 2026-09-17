@@ -59,8 +59,8 @@ const documents = defineCollection({
 
 /**
  * Published meeting records. The admin app writes one file per meeting when an
- * agenda is published, and adds the minutes only after the board has approved
- * them. Draft minutes never exist in this repository.
+ * agenda is published. Minutes are not published here: approved minutes are
+ * kept in PayHOA's resident portal, and drafts never leave the admin app.
  */
 const meetings = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/meetings" }),
@@ -73,18 +73,6 @@ const meetings = defineCollection({
       .array(z.object({ title: z.string(), detail: z.string().optional() }))
       .optional(),
     agenda_published: z.coerce.date().optional(),
-    minutes: z
-      .object({
-        approved_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        vote: z.object({
-          yes: z.number(),
-          no: z.number(),
-          abstain: z.number(),
-        }),
-        present: z.array(z.string()),
-        absent: z.array(z.string()).default([]),
-      })
-      .optional(),
   }),
 });
 

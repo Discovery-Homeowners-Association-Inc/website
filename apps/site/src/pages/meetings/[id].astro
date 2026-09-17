@@ -1,7 +1,8 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
+import { org } from "../../lib/data";
 import { longDate } from "../../lib/dates";
 
 export async function getStaticPaths() {
@@ -11,7 +12,6 @@ export async function getStaticPaths() {
 
 const { record } = Astro.props;
 const m = record.data;
-const { Content } = await render(record);
 const typeLabel = {
   board: "Board meeting",
   annual: "Annual meeting",
@@ -21,17 +21,14 @@ const typeLabel = {
 const title = `${typeLabel[m.type]}, ${longDate(m.date)}`;
 ---
 
-<Base
-  title={title}
-  description={`Agenda${m.minutes ? " and approved minutes" : ""} for the ${title.toLowerCase()}.`}
->
+<Base title={title} description={`Agenda for the ${title.toLowerCase()}.`}>
   <PageHead
     title={title}
     summary={`${m.time}, ${m.location}`}
     crumbs={[{ href: "/meetings/", label: "Meetings" }]}
   />
   <div class="prose">
-    {m.agenda && (
+    {m.agenda ? (
       <section aria-labelledby="agenda-title">
         <h2 id="agenda-title" class="first">
           Agenda
@@ -45,31 +42,13 @@ const title = `${typeLabel[m.type]}, ${longDate(m.date)}`;
           ))}
         </ol>
       </section>
-    )}
-    {m.minutes ? (
-      <section aria-labelledby="minutes-title">
-        <h2 id="minutes-title">Minutes</h2>
-        <p class="callout">
-          Approved by the board on {longDate(m.minutes.approved_on)} (
-          {m.minutes.vote.yes} in favor, {m.minutes.vote.no} against,{" "}
-          {m.minutes.vote.abstain} abstaining).
-        </p>
-        <p>
-          <strong>Present:</strong> {m.minutes.present.join(", ")}.
-          {m.minutes.absent.length > 0 && (
-            <>
-              {" "}
-              <strong>Absent:</strong> {m.minutes.absent.join(", ")}.
-            </>
-          )}
-        </p>
-        <Content />
-      </section>
     ) : (
-      <p class="muted">
-        Minutes are posted after the board approves them, usually at the next
-        meeting.
-      </p>
+      <p>The agenda is posted about a week before the meeting.</p>
     )}
+    <p class="callout">
+      Approved minutes are posted in the{" "}
+      <a href={org.external.payhoa.portal_url}>resident portal</a> after the
+      board votes on them.
+    </p>
   </div>
 </Base>
