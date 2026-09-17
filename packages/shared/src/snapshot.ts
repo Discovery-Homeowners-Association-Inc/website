@@ -12,7 +12,7 @@ import {
   PageBody,
   PublicPerson,
 } from "./content.ts";
-import { SETTINGS } from "./settings.ts";
+import { PUBLIC_SETTINGS } from "./settings.ts";
 
 const meta = {
   id: z.string(),
@@ -23,7 +23,7 @@ const meta = {
 
 export const SiteSnapshot = z.object({
   generated_at: z.iso.datetime(),
-  settings: z.object(SETTINGS),
+  settings: z.object(PUBLIC_SETTINGS),
   people: z.array(PublicPerson),
   committees: z.array(Committee),
   news: z.array(z.object({ ...meta, body: NewsBody })),

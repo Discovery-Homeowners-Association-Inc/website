@@ -120,6 +120,95 @@ query to write.
 
 ---
 
+### G. A full code review: duplication, simplification, speed
+
+Nothing left unturned, across `apps/site`, `apps/admin`, `apps/admin-ui`,
+`packages/shared`, `packages/design` and `scripts`.
+
+**What to look for.** Code that exists twice, particularly across the two apps,
+which is where it drifts: they already share a design package and a header, and
+the form controls only stopped disagreeing because somebody measured them.
+Anything that could be simpler at the same behavior. Anything doing work it does
+not need to — repeated queries, work in a request that belongs in a build, a
+whole-site serialization where a row would do.
+
+**How to do it so it is worth having.** Not one pass over forty files forming
+impressions. Go area by area, and for each, say what it is responsible for and
+what else claims the same responsibility. `/code-review` and the
+`code-simplifier` agent are the mechanisms; `just ci` is the safety net that says
+a simplification kept the behavior.
+
+**Known places to start, from this session:**
+
+- The two apps each build a page head their own way: the site has a `PageHead`
+  component, the admin app writes `<h1>` and `<p class="lede">` by hand in twelve
+  components.
+- `apps/admin-ui/src/lib/settings.ts` is one long declarative list; check whether
+  the field kinds it supports are all still used.
+- The minutes and agenda editors both manage a versioned document with items,
+  motions or details, and a save cycle. Some of that is one shape wearing two
+  hats.
+- `scripts/` now holds four one-purpose scripts. They are fine as scripts, but
+  check whether the snapshot and audit ones duplicate fetching logic.
+
+**Done means:** a written list of findings, each marked fixed, kept with a
+reason, or deferred with a reason; the fixes made in separate commits so a
+revert is cheap; and `just ci` green throughout. A finding nobody acts on is
+still a finding — record why it stands.
+
+### H. Exporting the association's data
+
+Wanted: a full export, with a choice of what to take and what format to take it
+in. The association should be able to walk away from this software with
+everything it owns, and a board member should be able to get a spreadsheet
+without asking anyone.
+
+**The constraint that shapes this.** The Worker has 10 ms of CPU per request and
+the whole site snapshot already costs 22 to 35 ms of it. A full export is
+larger than that by an order of magnitude, so **it cannot be assembled in the
+Worker**. Three ways out, in the order they should be tried:
+
+1. **Assemble it in the browser.** The admin app fetches the pieces it is
+   already allowed to read, and builds the file client side. No new server
+   cost at all, and the same approach already chosen for PDF export
+   (DECISIONS #7 keeps CPU-heavy work in the browser).
+2. **Stream it.** A Worker can stream rows out without holding them, which
+   bounds memory but not CPU. Worth measuring before assuming.
+3. **Build it in Actions.** A scheduled or dispatched workflow writes an archive
+   as an artifact. Right for "everything, including files", wrong for "I want
+   this list now".
+
+**What can be taken, and by whom.** This is an access question before it is a
+format question, and it is the part to get right:
+
+| Data                           | Who                                | Notes                                           |
+| ------------------------------ | ---------------------------------- | ----------------------------------------------- |
+| Published site content         | anyone                             | It is already public at `/api/public/site.json` |
+| Roster and committees          | anyone                             | Already public                                  |
+| Meetings and published agendas | anyone                             | Already public                                  |
+| Minutes, including drafts      | board roles                        | Never public: DECISIONS #4                      |
+| Settings                       | admin, secretary                   | Contains contact details                        |
+| Sign-in accounts               | admin                              | Names and email addresses — personal data       |
+| Audit log                      | admin                              | Says who did what and when                      |
+| Uploaded files                 | by the role that can read the item | Bytes live in KV                                |
+
+**Formats, each for a real reason.** JSON for everything and for restoring;
+CSV per collection for spreadsheets, which is what a treasurer actually wants;
+Markdown or PDF for minutes and agendas, which are documents people read. ICS
+already exists for the calendar and should not be reinvented.
+
+**Two things not to overlook.** An export of accounts is personal data, so the
+privacy page has to describe it, and exporting should be written to the audit
+log — an export is the one action that removes everything at once, and the log
+is what makes that visible. Second: a restore is not the same feature. Deciding
+whether this is "take your data" or "back up and restore" changes the format
+choice, because a restore needs ids and relationships that a spreadsheet drops.
+
+**Done means:** a board member can choose data and format in the admin app and
+get a file, without a Worker exceeding its CPU limit, with roles enforced on the
+server rather than by hiding buttons, and with the choice recorded in the audit
+log.
+
 ## Two bugs found while doing the above
 
 ### ~~The seed is not idempotent for roster people~~ — fixed

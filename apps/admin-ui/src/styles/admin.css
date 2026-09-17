@@ -569,3 +569,23 @@ code {
   border-radius: 3px;
   padding: 0 0.25em;
 }
+
+/* Suggested agenda items: an Add button, then what it is and where it came from. */
+.suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.suggestions li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.suggestions .meta {
+  display: block;
+}

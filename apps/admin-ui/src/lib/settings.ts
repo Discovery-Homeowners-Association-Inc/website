@@ -336,6 +336,36 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
     ],
   },
   {
+    key: "agenda-templates",
+    title: "Agenda templates",
+    intro:
+      "What goes on an agenda before anyone types anything. The secretary starts from this and edits; nothing here is compulsory.",
+    fields: (
+      [
+        ["board", "Board meeting"],
+        ["annual", "Annual meeting"],
+        ["special", "Special meeting"],
+        ["pool-rec", "Pool & Recreation Committee"],
+      ] as const
+    ).map(([key, label]) => ({
+      key,
+      label,
+      kind: "list" as const,
+      itemLabel: "Item",
+      summary: (r: Record<string, unknown>) => String(r.title ?? ""),
+      fields: [
+        { key: "title", label: "Title", kind: "text" as const },
+        {
+          key: "detail",
+          label: "Note",
+          kind: "textarea" as const,
+          rows: 2,
+          help: "Shown under the item on the published agenda.",
+        },
+      ],
+    })),
+  },
+  {
     key: "approvals",
     title: "Approvals",
     intro:

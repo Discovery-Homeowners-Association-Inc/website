@@ -232,6 +232,23 @@ export const Approvals = z.object({
   page: z.boolean().default(true),
 });
 
+/**
+ * What goes on an agenda before anyone types anything, per kind of meeting.
+ * The secretary starts from this and edits; nothing here is compulsory.
+ */
+const AgendaTemplateItem = z.object({
+  title: s.min(1).max(200),
+  detail: s.max(2000).default(""),
+});
+const template = z.array(AgendaTemplateItem).max(40).default([]);
+
+export const AgendaTemplates = z.object({
+  board: template,
+  annual: template,
+  special: template,
+  "pool-rec": template,
+});
+
 export const SETTINGS = {
   organization: Organization,
   parks: Parks,
@@ -244,7 +261,22 @@ export const SETTINGS = {
   projects: Projects,
   "architectural-control": ArchitecturalControl,
   approvals: Approvals,
+  "agenda-templates": AgendaTemplates,
 } as const;
+/**
+ * Settings the board edits but the public site never reads. They are left out
+ * of the snapshot entirely rather than published and ignored: the agenda
+ * templates are the board's working notes, not something residents need, and
+ * every key in the snapshot is a key the site has to keep parsing.
+ */
+export const ADMIN_ONLY_SETTINGS = ["agenda-templates"] as const;
+
+export const PUBLIC_SETTINGS = Object.fromEntries(
+  Object.entries(SETTINGS).filter(
+    ([k]) => !(ADMIN_ONLY_SETTINGS as readonly string[]).includes(k),
+  ),
+) as Omit<typeof SETTINGS, (typeof ADMIN_ONLY_SETTINGS)[number]>;
+
 export type SettingsKey = keyof typeof SETTINGS;
 export type Settings = { [K in SettingsKey]: z.infer<(typeof SETTINGS)[K]> };
 export const SETTINGS_KEYS = Object.keys(SETTINGS) as SettingsKey[];

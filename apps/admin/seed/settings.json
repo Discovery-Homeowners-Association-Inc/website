@@ -857,5 +857,111 @@
     "event": false,
     "document": true,
     "page": true
+  },
+  "agenda-templates": {
+    "board": [
+      {
+        "title": "Call to order",
+        "detail": ""
+      },
+      {
+        "title": "Roll call and quorum",
+        "detail": ""
+      },
+      {
+        "title": "Approval of the previous minutes",
+        "detail": ""
+      },
+      {
+        "title": "Treasurer's report",
+        "detail": ""
+      },
+      {
+        "title": "Committee reports",
+        "detail": ""
+      },
+      {
+        "title": "Unfinished business",
+        "detail": "Anything carried over from last month."
+      },
+      {
+        "title": "New business",
+        "detail": ""
+      },
+      {
+        "title": "Homeowner comments",
+        "detail": "Open to all residents."
+      },
+      {
+        "title": "Adjournment",
+        "detail": ""
+      }
+    ],
+    "annual": [
+      {
+        "title": "Call to order",
+        "detail": ""
+      },
+      {
+        "title": "Proof of notice and quorum",
+        "detail": ""
+      },
+      {
+        "title": "President's report for the year",
+        "detail": ""
+      },
+      {
+        "title": "Treasurer's report and the budget",
+        "detail": ""
+      },
+      {
+        "title": "Election of directors",
+        "detail": ""
+      },
+      {
+        "title": "Homeowner comments",
+        "detail": ""
+      },
+      {
+        "title": "Adjournment",
+        "detail": ""
+      }
+    ],
+    "special": [
+      {
+        "title": "Call to order",
+        "detail": ""
+      },
+      {
+        "title": "Purpose of the special meeting",
+        "detail": "A special meeting may only take up the business it was called for."
+      },
+      {
+        "title": "Adjournment",
+        "detail": ""
+      }
+    ],
+    "pool-rec": [
+      {
+        "title": "Call to order",
+        "detail": ""
+      },
+      {
+        "title": "Pool operations",
+        "detail": ""
+      },
+      {
+        "title": "Recreation Center bookings and upkeep",
+        "detail": ""
+      },
+      {
+        "title": "Recommendations to the board",
+        "detail": ""
+      },
+      {
+        "title": "Adjournment",
+        "detail": ""
+      }
+    ]
   }
 }

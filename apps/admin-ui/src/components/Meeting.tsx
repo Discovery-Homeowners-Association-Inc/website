@@ -12,6 +12,18 @@ import {
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 
+type Suggestions = {
+  template: { title: string; detail: string }[];
+  open: {
+    id: string;
+    title: string;
+    outcome: "follow_up" | "deferred";
+    owner: string;
+    note: string;
+    from_date: string;
+  }[];
+};
+
 export default function Meeting() {
   const id = param("id");
   const { me } = useMe();
@@ -20,8 +32,13 @@ export default function Meeting() {
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
 
   const load = async () => {
+    // Offered, never applied: the secretary decides what goes on the agenda.
+    api<Suggestions>("GET", `/meetings/${id}/agenda/suggestions`)
+      .then(setSuggestions)
+      .catch(() => setSuggestions(null));
     const d = await api<AgendaResponse>("GET", `/meetings/${id}/agenda`);
     setData(d);
     setBody(
@@ -93,6 +110,79 @@ export default function Meeting() {
     }
   }
 
+  const addSuggestion = (title: string, detail: string) =>
+    update({ ...body, items: [...body.items, { id: newId(), title, detail }] });
+
+  const onAgenda = (title: string) =>
+    body.items.some((it) => it.title.trim() === title.trim());
+
+  /**
+   * What to put on the agenda, offered rather than applied. Each open item says
+   * which meeting it came from, so it can be checked rather than trusted.
+   */
+  function Suggested() {
+    const template = suggestions!.template.filter((t) => !onAgenda(t.title));
+    const open = suggestions!.open.filter((o) => !onAgenda(o.title));
+    if (template.length === 0 && open.length === 0) return null;
+    return (
+      <details class="help-details" open={open.length > 0}>
+        <summary>Suggested items ({template.length + open.length})</summary>
+        <div>
+          {open.length > 0 && (
+            <>
+              <h3>Left open last meeting</h3>
+              <ul class="suggestions">
+                {open.map((o) => (
+                  <li key={o.id}>
+                    <button
+                      class="button button--quiet button--small"
+                      type="button"
+                      onClick={() => addSuggestion(o.title, o.note)}
+                    >
+                      Add
+                    </button>
+                    <div>
+                      <strong>{o.title}</strong>
+                      <span class="meta">
+                        {o.outcome === "deferred" ? "Deferred" : "Follow up"}
+                        {o.owner && `, ${o.owner}`}
+                        {" — "}
+                        {longDate(o.from_date)}
+                      </span>
+                      {o.note && <span class="meta">{o.note}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {template.length > 0 && (
+            <>
+              <h3>{typeLabel[m.type]} template</h3>
+              <ul class="suggestions">
+                {template.map((t) => (
+                  <li key={t.title}>
+                    <button
+                      class="button button--quiet button--small"
+                      type="button"
+                      onClick={() => addSuggestion(t.title, t.detail)}
+                    >
+                      Add
+                    </button>
+                    <div>
+                      <strong>{t.title}</strong>
+                      {t.detail && <span class="meta">{t.detail}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </details>
+    );
+  }
+
   return (
     <>
       <nav class="crumbs" aria-label="Breadcrumb">
@@ -114,6 +204,7 @@ export default function Meeting() {
       )}
 
       <h2>Agenda</h2>
+      {editable && suggestions && <Suggested />}
       <p class="meta">
         {version === 0 ? "Not saved yet." : `Version ${version}.`}{" "}
         {published === null
