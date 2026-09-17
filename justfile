@@ -30,9 +30,9 @@ security:
 build:
     pnpm -r --if-present run build
 
-# Run the public site locally
+# Run the public site locally, reachable over the LAN and Tailscale
 run:
-    pnpm --filter @dhoa/site run dev
+    pnpm --filter @dhoa/site run dev --host 0.0.0.0
 
 # Remove build output
 clean:
