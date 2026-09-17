@@ -20,9 +20,30 @@ main {
   padding-block: var(--space-4) var(--space-6);
 }
 
+/*
+ * Smaller than the public site's, deliberately: this is a tool people work in
+ * all day, not a front page, and docs/DESIGN.md gives the site the one bold
+ * element. The top margin goes, because a page title is the first thing on the
+ * page in both apps.
+ */
 h1 {
   font-size: clamp(1.75rem, 1.2rem + 2.2vw, var(--step-3));
-  margin-top: var(--space-3);
+  margin-top: 0;
+}
+
+/*
+ * Sections need air between them. base.css gives an h2 a space-5 top margin;
+ * the admin app is denser, so space-4, and nothing at the top of a panel where
+ * the heading is already the first thing.
+ */
+h2 {
+  margin-top: var(--space-4);
+}
+
+h2:first-child,
+.panel > h2:first-of-type,
+fieldset > h2:first-of-type {
+  margin-top: 0;
 }
 
 .notice {
@@ -461,12 +482,17 @@ button[disabled] {
   padding-block: var(--space-1);
 }
 
+/*
+ * Left at the body size, not shrunk. This is the text someone reads when they
+ * are unsure what a screen does, and docs/DESIGN.md picked an 18px base because
+ * many of the people using this are older. The pool background and the
+ * disclosure already mark it as an aside; it does not need to be small as well.
+ */
 .help-details > div,
 .help-details > ul {
   padding: var(--space-2) var(--space-3);
   background: var(--pool);
   border-radius: var(--radius);
-  font-size: var(--step--1);
 }
 
 .help-details p:last-child {
