@@ -120,7 +120,7 @@ query to write.
 
 ---
 
-### G. A full code review: duplication, simplification, speed
+### G. A full code review: duplication, simplification, speed — started
 
 Nothing left unturned, across `apps/site`, `apps/admin`, `apps/admin-ui`,
 `packages/shared`, `packages/design` and `scripts`.
@@ -155,6 +155,10 @@ a simplification kept the behavior.
 reason, or deferred with a reason; the fixes made in separate commits so a
 revert is cheap; and `just ci` green throughout. A finding nobody acts on is
 still a finding — record why it stands.
+
+**In progress:** `2026-09-17-code-review-findings.md`. Two fixed, four deferred
+with reasons, two kept deliberately. Three areas are not yet reviewed, and the
+document says so rather than implying the sweep was complete.
 
 ### H. Exporting the association's data
 

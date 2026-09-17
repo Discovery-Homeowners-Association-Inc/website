@@ -1,5 +1,5 @@
 import { getCollection } from "astro:content";
-import { todayInNewYork } from "@dhoa/shared";
+import { MEETING_LABEL, todayInNewYork } from "@dhoa/shared";
 import { dateOf } from "./dates";
 
 export type CalendarItem = {
@@ -38,7 +38,7 @@ export async function boardMeetings(
     .slice(0, limit)
     .map((r) => ({
       date: r.data.date,
-      title: "Board of directors meeting",
+      title: MEETING_LABEL[r.data.type],
       time: r.data.time,
       location: r.data.location,
       href: `/meetings/${r.id}/`,

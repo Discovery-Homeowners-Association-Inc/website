@@ -43,7 +43,9 @@ export async function api<T>(
 export const can = (me: Me | null, ...roles: Role[]) =>
   !!me?.grants.some((g) => g.scope === "" && roles.includes(g.role));
 
-export type MeetingType = "board" | "annual" | "special" | "pool-rec";
+// The kinds of meeting, defined once with their labels.
+import type { MeetingType } from "@dhoa/shared";
+export type { MeetingType };
 export type Meeting = {
   id: string;
   type: MeetingType;
@@ -134,12 +136,7 @@ export type ExportResponse = {
   vote: Vote;
 };
 
-export const typeLabel: Record<MeetingType, string> = {
-  board: "Board meeting",
-  annual: "Annual meeting",
-  special: "Special meeting",
-  "pool-rec": "Pool & Recreation Committee",
-};
+export { MEETING_LABEL as typeLabel } from "@dhoa/shared";
 
 export const statusLabel: Record<MinutesState, string> = {
   draft: "Draft",
@@ -149,14 +146,8 @@ export const statusLabel: Record<MinutesState, string> = {
   filed: "Filed in PayHOA",
 };
 
-export const longDate = (iso: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${iso}T12:00:00Z`));
+// Shared with the public site: both format the same calendar dates.
+export { longDate } from "@dhoa/shared";
 
 export const when = (iso: string) =>
   new Intl.DateTimeFormat("en-US", {

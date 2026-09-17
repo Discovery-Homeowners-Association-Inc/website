@@ -1,4 +1,5 @@
 ---
+import { MEETING_LABEL } from "@dhoa/shared";
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
@@ -12,13 +13,7 @@ export async function getStaticPaths() {
 
 const { record } = Astro.props;
 const m = record.data;
-const typeLabel = {
-  board: "Board meeting",
-  annual: "Annual meeting",
-  special: "Special meeting",
-  "pool-rec": "Pool & Recreation Committee meeting",
-};
-const title = `${typeLabel[m.type]}, ${longDate(m.date)}`;
+const title = `${MEETING_LABEL[m.type]}, ${longDate(m.date)}`;
 ---
 
 <Base title={title} description={`Agenda for the ${title.toLowerCase()}.`}>

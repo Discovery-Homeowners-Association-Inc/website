@@ -4,8 +4,9 @@
 # The association and its residents are in Maryland, and British spelling in a
 # volunteer board's public documents reads as though someone else wrote them.
 #
-# 0002_app.sql is excluded because a migration that has already run is a record
-# of what happened, not prose; 0006 is what corrects the value it created.
+# The two meetings migrations are excluded: one is the record of a value that
+# was created with the wrong spelling, and the other necessarily names that value
+# in the expression that rewrites it. Both must contain it to do their job.
 #
 # Deliberately not listed: `aria-labelledby`, which is an HTML attribute rather
 # than a spelling; upstream package names such as @img/colour in the lockfile;
@@ -22,6 +23,7 @@ hits=$(
     ':!pnpm-lock.yaml' ':!*.txt' ':!*LICENSE*' ':!scripts/check-english.sh' \
     ':!apps/admin/worker-configuration.d.ts' \
     ':!apps/admin/migrations/0002_app.sql' \
+    ':!apps/admin/migrations/0006_canceled_spelling.sql' \
   | grep -v 'aria-labelledby' || true
 )
 
