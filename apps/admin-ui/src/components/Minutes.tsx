@@ -140,61 +140,7 @@ export default function Minutes() {
       <Saved message={saved} />
 
       <div class="workspace">
-        <div>
-          <p class="meta">
-            Version {d.current.version}, saved {when(d.current.created_at)}.
-          </p>
-          {editable && draft ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void act(async () => {
-                  const r = await api<{ version: number; unchanged?: boolean }>(
-                    "PUT",
-                    `/meetings/${id}/minutes`,
-                    {
-                      base_version: d.current.version,
-                      body: draft,
-                      change_note: changeNote || undefined,
-                    },
-                  );
-                  setChangeNote("");
-                  if (r.unchanged)
-                    throw new Error("Nothing changed since the last version.");
-                }, "Saved a new version.");
-              }}
-            >
-              <MinutesEditor
-                body={draft}
-                onChange={(b) => {
-                  setDraft(b);
-                  setDirty(true);
-                  setSaved("");
-                }}
-              />
-              <div class="field">
-                <label for="change-note">What changed</label>
-                <input
-                  id="change-note"
-                  type="text"
-                  placeholder="For example: added the vendor's name"
-                  value={changeNote}
-                  onInput={(e) => setChangeNote(e.currentTarget.value)}
-                />
-              </div>
-              <div class="actions">
-                <button class="button" type="submit" disabled={!dirty}>
-                  Save a new version
-                </button>
-                {dirty && <span class="meta">Unsaved changes</span>}
-              </div>
-            </form>
-          ) : (
-            <MinutesView body={d.current.body} />
-          )}
-        </div>
-
-        <aside>
+        <aside class="workspace-actions" aria-label="Status and actions">
           <section class="panel">
             <h2>Status: {statusLabel[status]}</h2>
             {status === "draft" && (
@@ -381,7 +327,63 @@ export default function Minutes() {
               )}
             </section>
           )}
+        </aside>
 
+        <div class="workspace-doc">
+          <p class="meta">
+            Version {d.current.version}, saved {when(d.current.created_at)}.
+          </p>
+          {editable && draft ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void act(async () => {
+                  const r = await api<{ version: number; unchanged?: boolean }>(
+                    "PUT",
+                    `/meetings/${id}/minutes`,
+                    {
+                      base_version: d.current.version,
+                      body: draft,
+                      change_note: changeNote || undefined,
+                    },
+                  );
+                  setChangeNote("");
+                  if (r.unchanged)
+                    throw new Error("Nothing changed since the last version.");
+                }, "Saved a new version.");
+              }}
+            >
+              <MinutesEditor
+                body={draft}
+                onChange={(b) => {
+                  setDraft(b);
+                  setDirty(true);
+                  setSaved("");
+                }}
+              />
+              <div class="field">
+                <label for="change-note">What changed</label>
+                <input
+                  id="change-note"
+                  type="text"
+                  placeholder="For example: added the vendor's name"
+                  value={changeNote}
+                  onInput={(e) => setChangeNote(e.currentTarget.value)}
+                />
+              </div>
+              <div class="actions">
+                <button class="button" type="submit" disabled={!dirty}>
+                  Save a new version
+                </button>
+                {dirty && <span class="meta">Unsaved changes</span>}
+              </div>
+            </form>
+          ) : (
+            <MinutesView body={d.current.body} />
+          )}
+        </div>
+
+        <aside class="workspace-discussion" aria-label="Comments and versions">
           <Comments
             d={d}
             canComment={
@@ -474,7 +476,7 @@ function VoteForm({
           onInput={(e) => setV({ ...v, seconded_by: e.currentTarget.value })}
         />
       </div>
-      <div class="row">
+      <div class="row row--counts">
         {(["yes", "no", "abstain"] as const).map((f) => (
           <div class="field">
             <label for={`v-${f}`}>

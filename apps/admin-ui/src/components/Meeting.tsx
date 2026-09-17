@@ -127,7 +127,7 @@ export default function Meeting() {
 
       {editable ? (
         <form onSubmit={(e) => (e.preventDefault(), void save())}>
-          <ol class="prose">
+          <ol class="prose agenda-items">
             {body.items.map((it, i) => (
               <li key={it.id} class="item-card">
                 <div class="field">
@@ -232,7 +232,7 @@ export default function Meeting() {
       ) : body.items.length === 0 ? (
         <p>No agenda yet.</p>
       ) : (
-        <ol class="prose">
+        <ol class="prose agenda-items">
           {body.items.map((it) => (
             <li>
               <strong>{it.title}</strong>

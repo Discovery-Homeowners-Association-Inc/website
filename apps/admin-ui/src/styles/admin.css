@@ -1,12 +1,57 @@
 @import "@dhoa/design/base.css";
 
-/* The admin header keeps the public site's structure; the nav never collapses to a menu. */
+/*
+ * Admin header. There are only three links, so there is no menu button. On a
+ * phone the brand and Sign out share the first row and the links get their own
+ * row underneath. These rules override the public site's collapsing-menu styles.
+ */
+.admin-header .wrap {
+  row-gap: var(--space-2);
+}
+
 .admin-nav {
+  display: block;
   flex-basis: auto;
 }
 
 .admin-nav ul {
   flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}
+
+.admin-nav li a {
+  display: inline-block;
+  padding-block: var(--space-2);
+  border-bottom: 3px solid transparent;
+}
+
+.admin-nav li a:hover,
+.admin-nav li a[aria-current="page"] {
+  border-bottom-color: var(--marigold);
+}
+
+@media (max-width: 52rem) {
+  .admin-header .brand {
+    order: 1;
+  }
+  .admin-header [data-sign-out] {
+    order: 2;
+  }
+  .admin-nav {
+    order: 3;
+    flex-basis: 100%;
+    border-top: 1px solid var(--rule);
+  }
+  .admin-nav ul {
+    gap: 0 var(--space-5);
+  }
+  .admin-header .brand svg {
+    width: 2.25rem;
+  }
+  .admin-header [data-sign-out] .button {
+    padding: 0.45rem 0.8rem;
+  }
 }
 
 main {
@@ -14,7 +59,7 @@ main {
 }
 
 h1 {
-  font-size: var(--step-3);
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, var(--step-3));
   margin-top: var(--space-3);
 }
 
@@ -152,16 +197,41 @@ button[disabled] {
   cursor: not-allowed;
 }
 
-/* Minutes workspace: document on the left, review panel on the right */
+/*
+ * Minutes workspace. On a phone: status and actions first (so the vote and
+ * review buttons are not buried under a long document), then the minutes,
+ * then comments and versions. On a wide screen the document takes the left
+ * column and both side groups stack on the right.
+ */
 .workspace {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
+}
+
+.workspace > aside {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
 }
 
 @media (min-width: 64rem) {
   .workspace {
     grid-template-columns: minmax(0, 1fr) 22rem;
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-5);
     align-items: start;
+  }
+  .workspace-doc {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .workspace-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .workspace-discussion {
+    grid-column: 2;
+    grid-row: 2;
   }
 }
 
@@ -287,5 +357,67 @@ button[disabled] {
   .motion {
     border: 1px solid #999;
     break-inside: avoid;
+  }
+}
+
+/* No trailing gap inside panels, and no empty action rows. */
+.panel > :last-child {
+  margin-bottom: 0;
+}
+
+.actions:empty {
+  display: none;
+}
+
+/* A checkbox with a label and a description underneath it, aligned to the label. */
+.choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2);
+  align-items: start;
+  padding-block: var(--space-1);
+}
+
+.choice input {
+  margin-top: 0.3rem;
+}
+
+.choice label {
+  display: grid;
+}
+
+/* Vote tallies: three short number boxes sit side by side at every width. */
+.row--counts > .field {
+  flex: 0 1 6.5rem;
+}
+
+/*
+ * Phone adjustments. Kept at the end of the file so they override the
+ * component rules above.
+ */
+@media (max-width: 52rem) {
+  .admin-header .wrap {
+    padding-bottom: 0;
+  }
+}
+
+/* Phones: less padding inside panels and fieldsets, and wide tables scroll inside their box. */
+@media (max-width: 40rem) {
+  .panel,
+  fieldset {
+    padding: var(--space-3);
+  }
+  .minutes-facts {
+    grid-template-columns: 1fr;
+    row-gap: 0;
+  }
+  .minutes-facts dd {
+    margin-bottom: var(--space-2);
+  }
+  ol.agenda-items {
+    padding-left: 1.5rem;
+  }
+  .steps {
+    gap: var(--space-1) var(--space-2);
   }
 }

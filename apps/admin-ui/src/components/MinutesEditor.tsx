@@ -184,7 +184,7 @@ export function MinutesEditor({
                   </select>
                 </div>
               </div>
-              <div class="row">
+              <div class="row row--counts">
                 {(["yes", "no", "abstain"] as const).map((f) => (
                   <div class="field">
                     <label for={`m${f}-${it.id}-${k}`}>

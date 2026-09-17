@@ -36,7 +36,7 @@ function RolePicker({
     <fieldset>
       <legend>Roles</legend>
       {ROLES.map((r) => (
-        <div>
+        <div class="choice">
           <input
             id={`${idPrefix}-${r}`}
             type="checkbox"
@@ -48,9 +48,10 @@ function RolePicker({
                   : value.filter((x) => x !== r),
               )
             }
-          />{" "}
+          />
           <label for={`${idPrefix}-${r}`}>
-            <strong>{r}</strong> <span class="meta">{roleHelp[r]}</span>
+            <strong>{r}</strong>
+            <span class="meta">{roleHelp[r]}</span>
           </label>
         </div>
       ))}

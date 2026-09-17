@@ -159,7 +159,7 @@ test("a director comments and marks the version reviewed", async ({
     .getByLabel("About")
     .selectOption({ label: "Item 2: Treasurer's report" });
   await director
-    .getByLabel("Comment")
+    .getByLabel("Comment", { exact: true })
     .fill("Please include the balance amount.");
   await director.getByRole("button", { name: "Add comment" }).click();
   await expect(director.getByRole("status")).toContainText("Comment added.");
@@ -294,4 +294,61 @@ test("removing someone keeps them on record as a former member, and access can b
   );
   const back = await signIn(browser, DIRECTOR);
   await expect(back.getByRole("heading", { name: /^Hello/ })).toBeVisible();
+});
+
+test("works on a phone: readable navigation, no sideways scrolling, actions before the document", async ({
+  browser,
+}) => {
+  const phone = await (
+    await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    })
+  ).newPage();
+  await phone.goto("/sign-in/");
+  await phone.getByLabel("Invited email").fill(ADMIN);
+  await phone.getByRole("button", { name: "Sign in without Google" }).click();
+  await expect(phone.getByRole("heading", { name: /^Hello/ })).toBeVisible();
+
+  for (const path of [
+    "/",
+    "/meetings/",
+    "/people/",
+    minutesUrl.replace(/^https?:\/\/[^/]+/, ""),
+  ]) {
+    await phone.goto(path);
+    await expect(phone.locator("h1")).toBeVisible();
+    const overflow = await phone.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    );
+    expect(overflow, `sideways scroll on ${path}`).toBeLessThanOrEqual(0);
+
+    // Navigation links are laid out side by side with space between them, never overlapping.
+    const nav = phone.getByRole("navigation", { name: "Main" });
+    const boxes = [];
+    for (const name of ["Home", "Meetings", "People"]) {
+      const box = await nav
+        .getByRole("link", { name, exact: true })
+        .boundingBox();
+      expect(box, `${name} link visible on ${path}`).not.toBeNull();
+      boxes.push(box!);
+    }
+    for (let i = 1; i < boxes.length; i++) {
+      expect(
+        boxes[i]!.x,
+        `nav links overlap on ${path}`,
+      ).toBeGreaterThanOrEqual(boxes[i - 1]!.x + boxes[i - 1]!.width + 8);
+    }
+  }
+
+  // On the minutes page the status panel comes before the document.
+  const status = await phone
+    .getByRole("heading", { name: /^Status:/ })
+    .boundingBox();
+  const firstItem = await phone.locator(".workspace-doc").boundingBox();
+  expect(status!.y).toBeLessThan(firstItem!.y);
+  await expectAccessible(phone);
 });
