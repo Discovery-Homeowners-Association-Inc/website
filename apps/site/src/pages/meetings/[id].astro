@@ -28,7 +28,7 @@ const title = `${typeLabel[m.type]}, ${longDate(m.date)}`;
     crumbs={[{ href: "/meetings/", label: "Meetings" }]}
   />
   <div class="prose">
-    {m.agenda ? (
+    {m.agenda.length > 0 ? (
       <section aria-labelledby="agenda-title">
         <h2 id="agenda-title" class="first">
           Agenda

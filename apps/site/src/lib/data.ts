@@ -3,7 +3,7 @@
  * Every page imports from here rather than reaching into the snapshot, so
  * the shapes the templates rely on live in one place.
  */
-import { isServing, type Override, todayInNewYork } from "@dhoa/shared";
+import { isServing, todayInNewYork } from "@dhoa/shared";
 import { settings, snapshot } from "./snapshot.ts";
 
 export const org = settings.organization;
@@ -19,31 +19,6 @@ export const pageData = {
   projects: settings.projects,
   "architectural-control": settings["architectural-control"],
 };
-
-export const meetingOverrides: Override[] = settings[
-  "meeting-overrides"
-].overrides.flatMap((o): Override[] =>
-  o.status === "cancelled"
-    ? [
-        {
-          date: o.date,
-          status: "cancelled" as const,
-          note: o.note || undefined,
-        },
-      ]
-    : o.moved_to
-      ? [
-          {
-            date: o.date,
-            status: "moved" as const,
-            moved_to: o.moved_to,
-            time: o.time || undefined,
-            location: o.location || undefined,
-            note: o.note || undefined,
-          },
-        ]
-      : [],
-);
 
 const today = todayInNewYork();
 const serving = snapshot.people.filter((p) => isServing(p, today));

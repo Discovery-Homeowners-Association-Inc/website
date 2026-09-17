@@ -16,7 +16,16 @@ const MeetingInput = z.object({
   location: z.string().trim().min(1).max(200),
 });
 
-const MeetingPatch = MeetingInput.pick({ time: true, location: true })
+/*
+ * The date is editable, which is how a meeting is moved. The id keeps the date
+ * the schedule originally gave it, so the scheduler still recognises the slot as
+ * filled and does not put the old date back on the calendar.
+ */
+const MeetingPatch = MeetingInput.pick({
+  date: true,
+  time: true,
+  location: true,
+})
   .partial()
   .extend({ status: z.enum(["scheduled", "cancelled", "held"]).optional() });
 
@@ -85,8 +94,8 @@ export function meetingRoutes() {
     const next = { ...m, ...patch };
     await c.env.DB.batch([
       c.env.DB.prepare(
-        "update meetings set time = ?, location = ?, status = ? where id = ?",
-      ).bind(next.time, next.location, next.status, m.id),
+        "update meetings set date = ?, time = ?, location = ?, status = ? where id = ?",
+      ).bind(next.date, next.time, next.location, next.status, m.id),
       auditStatement(
         c.env.DB,
         c.get("user").id,

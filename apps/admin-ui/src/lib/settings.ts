@@ -692,40 +692,4 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
       },
     ],
   },
-  {
-    key: "meeting-overrides",
-    title: "Meeting exceptions",
-    intro:
-      "Board meetings are worked out from the regular schedule. List the months that differ.",
-    fields: [
-      {
-        key: "overrides",
-        label: "Exceptions",
-        kind: "list",
-        itemLabel: "Exception",
-        summary: (r) => `${r.date ?? ""} ${r.status ?? ""}`,
-        fields: [
-          {
-            key: "date",
-            label: "The regular date",
-            kind: "date",
-            help: "The date the meeting would normally fall on.",
-          },
-          {
-            key: "status",
-            label: "What happens",
-            kind: "select",
-            options: [
-              { value: "cancelled", label: "Cancelled" },
-              { value: "moved", label: "Moved" },
-            ],
-          },
-          { key: "moved_to", label: "New date", kind: "date" },
-          { key: "time", label: "New time", kind: "text" },
-          { key: "location", label: "New place", kind: "text" },
-          { key: "note", label: "Note for residents", kind: "text" },
-        ],
-      },
-    ],
-  },
 ];

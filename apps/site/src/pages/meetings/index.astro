@@ -33,7 +33,7 @@ const upcoming = await boardMeetings(todayInNewYork(), 6);
                 </h3>
                 <p>
                   {m.time}, {m.location}
-                  {m.href !== "/meetings/"
+                  {m.agendaPublished
                     ? ". The agenda is posted."
                     : ". The agenda is posted about a week before."}
                   {m.note && ` ${m.note}`}

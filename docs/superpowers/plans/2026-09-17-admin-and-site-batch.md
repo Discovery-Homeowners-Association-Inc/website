@@ -70,7 +70,7 @@ does not re-litigate them.
 the changed ones fixed; and a test in the manner of `forms.spec.ts` covering
 whichever of them can be asserted.
 
-### C. Meetings: materialise records from the recurrence rule
+### ~~C. Meetings: materialise records from the recurrence rule~~ — done
 
 **Decided:** the admin keeps the next N meetings as real records, created from
 the rule, and the site renders records instead of generating dates.
@@ -81,14 +81,27 @@ never reads the meetings table. The admin lists records, of which production has
 exactly one, dated 2026-09-15. So the site advertises meetings that do not exist
 as records, and there is nothing for an agenda to attach to.
 
-**Done means:** one source of truth. The site's upcoming list and the admin's
-list cannot disagree, a generated meeting can be cancelled or moved, and every
-meeting the site shows can carry an agenda.
+**Done.** The daily scheduled job keeps twelve months of board meetings on the
+books, keyed `2026-09-15-board` so a slot the rule has already filled is never
+filled twice. The site reads those records; `occurrences()` is gone from
+`apps/site`.
+
+Overrides were retired rather than kept alongside the records, which turned out
+to be free: the list was empty in the seed, in the snapshot and in production, so
+there was nothing to migrate. A meeting is now cancelled by setting its status
+and moved by editing its date, both in the admin app. The id keeps the date the
+rule gave it, so moving a meeting does not make the scheduler put the old date
+back.
+
+Two things this exposed, both fixed here: the site's meetings collection held
+only meetings with a published agenda, so reading records made the upcoming list
+render empty and every link 404; and the list said "The agenda is posted" for
+every meeting, because it inferred that from a link that now always exists.
 
 ### D. Default agendas per meeting type, with suggestions
 
-Blocked on C: an agenda template has nothing to attach to until meetings are
-records.
+**No longer blocked:** a year of meetings now exists as records, each able to
+carry an agenda.
 
 Wanted: a default agenda per meeting type, items easy to add and remove, and
 suggested topics drawn from prior meetings and from things left needing

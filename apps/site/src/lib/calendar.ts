@@ -1,6 +1,5 @@
 import { getCollection } from "astro:content";
-import { occurrences, todayInNewYork } from "@dhoa/shared";
-import { meetingOverrides, org } from "./data";
+import { todayInNewYork } from "@dhoa/shared";
 import { dateOf } from "./dates";
 
 export type CalendarItem = {
@@ -11,34 +10,41 @@ export type CalendarItem = {
   href: string;
   kind: "meeting" | "event";
   note?: string;
+  /** Meetings only: whether the agenda is up yet, which changes what we say. */
+  agendaPublished?: boolean;
 };
 
-/** Board meetings from the rule plus overrides, merged with any published meeting record. */
+/**
+ * Board meetings, read from the records the admin app keeps.
+ *
+ * These used to be generated here from the recurrence rule, which meant the
+ * site advertised meetings that existed nowhere else and could not carry an
+ * agenda. The rule now produces records (see the admin app's scheduler), and a
+ * meeting is cancelled or moved by editing the record.
+ */
 export async function boardMeetings(
   from: string,
-  months: number,
+  limit: number,
 ): Promise<CalendarItem[]> {
-  const b = org.meetings.board;
   const records = await getCollection("meetings");
-  return occurrences(
-    { ordinal: b.ordinal, weekday: b.weekday },
-    from,
-    months,
-    meetingOverrides,
-  ).map((o) => {
-    const record = records.find(
-      (r) => r.data.date === o.date && r.data.type === "board",
-    );
-    return {
-      date: o.date,
+  return records
+    .filter(
+      (r) =>
+        r.data.type === "board" &&
+        r.data.status !== "cancelled" &&
+        r.data.date >= from,
+    )
+    .toSorted((a, b) => a.data.date.localeCompare(b.data.date))
+    .slice(0, limit)
+    .map((r) => ({
+      date: r.data.date,
       title: "Board of directors meeting",
-      time: o.time ?? record?.data.time ?? b.time,
-      location: o.location ?? record?.data.location ?? b.location,
-      href: record ? `/meetings/${record.id}/` : "/meetings/",
-      kind: "meeting",
-      note: o.note,
-    };
-  });
+      time: r.data.time,
+      location: r.data.location,
+      href: `/meetings/${r.id}/`,
+      kind: "meeting" as const,
+      agendaPublished: r.data.agenda.length > 0,
+    }));
 }
 
 export async function upcoming(
@@ -55,7 +61,7 @@ export async function upcoming(
       href: `/events/${e.id}/`,
       kind: "event",
     }));
-  const meetings = await boardMeetings(today, 3);
+  const meetings = await boardMeetings(today, limit);
   return [...meetings, ...events]
     .toSorted((a, b) => a.date.localeCompare(b.date))
     .slice(0, limit);

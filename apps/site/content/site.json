@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T21:54:49.500Z",
+  "generated_at": "2026-09-17T22:19:57.263Z",
   "settings": {
     "organization": {
       "legal_name": "Discovery Homeowners Association, Inc.",
@@ -855,9 +855,6 @@
         }
       ]
     },
-    "meeting-overrides": {
-      "overrides": []
-    },
     "pool": {
       "season": {
         "year": 2026,
@@ -1712,6 +1709,116 @@
     }
   ],
   "meetings": [
+    {
+      "id": "2027-08-17-board",
+      "type": "board",
+      "date": "2027-08-17",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-07-20-board",
+      "type": "board",
+      "date": "2027-07-20",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-06-15-board",
+      "type": "board",
+      "date": "2027-06-15",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-05-18-board",
+      "type": "board",
+      "date": "2027-05-18",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-04-20-board",
+      "type": "board",
+      "date": "2027-04-20",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-03-16-board",
+      "type": "board",
+      "date": "2027-03-16",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-02-16-board",
+      "type": "board",
+      "date": "2027-02-16",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2027-01-19-board",
+      "type": "board",
+      "date": "2027-01-19",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2026-12-15-board",
+      "type": "board",
+      "date": "2026-12-15",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2026-11-17-board",
+      "type": "board",
+      "date": "2026-11-17",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
+    {
+      "id": "2026-10-20-board",
+      "type": "board",
+      "date": "2026-10-20",
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "status": "scheduled",
+      "agenda": null,
+      "agenda_published_at": null
+    },
     {
       "id": "2026-09-15-board",
       "type": "board",
