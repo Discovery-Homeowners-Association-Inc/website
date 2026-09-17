@@ -40,10 +40,11 @@ run:
     pnpm --filter @dhoa/site run dev --host 0.0.0.0
 
 # Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see docs/RUNBOOK-admin.md)
+# The UI is built into its own folder, so `just build` or `just ci` cannot pull it out from under the server.
 run-admin:
-    pnpm --filter @dhoa/admin-ui run build
+    pnpm --filter @dhoa/admin-ui exec astro build --outDir .dev-dist
     cd apps/admin && pnpm exec wrangler d1 migrations apply dhoa --local
-    cd apps/admin && pnpm exec wrangler dev --ip 0.0.0.0 --port 8787
+    cd apps/admin && pnpm exec wrangler dev --ip 0.0.0.0 --port 8787 --assets ../admin-ui/.dev-dist
 
 # Remove build output
 clean:

@@ -20,9 +20,10 @@ from `apps/admin-ui` and the API under `/api/` from `apps/admin`. Data lives in 
    `BETTER_AUTH_URL` must be the exact address you open in the browser. Sign-in checks the
    request's origin against it.
 
-2. Start the Worker: `just run-admin`. It listens on all interfaces, port 8787. After changing
-   anything in `apps/admin-ui`, stop it and run it again: the UI is served from a build, and
-   rebuilding replaces the folder the running server is watching.
+2. Start the Worker: `just run-admin`. It listens on all interfaces, port 8787. It serves the UI
+   from its own build folder (`apps/admin-ui/.dev-dist`), so running `just build` or `just ci`
+   does not disturb it. After changing anything in `apps/admin-ui`, stop it and run it again to
+   see the change.
 
 3. Create the first administrator in the local database (once):
 
