@@ -43,6 +43,10 @@ e2e:
 run:
     pnpm --filter @dhoa/site run dev --host 0.0.0.0
 
+# Serve the built public site (no dev-server flashes), reachable over the LAN and Tailscale
+preview: build
+    pnpm --filter @dhoa/site exec astro preview --host 0.0.0.0 --port 4323
+
 # Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see docs/RUNBOOK-admin.md)
 # The UI is built into its own folder, so `just build` or `just ci` cannot pull it out from under the server.
 run-admin:

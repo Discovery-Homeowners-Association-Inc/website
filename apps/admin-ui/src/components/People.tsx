@@ -202,7 +202,11 @@ export default function People() {
 
   return (
     <>
-      <h1>People</h1>
+      <h1>Accounts</h1>
+      <p class="lede">
+        Who can sign in to this admin app, and what they may do. For who serves
+        on the board, see <a href="/roster/">the roster</a>.
+      </p>
       <ErrorNotice message={error} />
       <Saved message={saved} />
       <form

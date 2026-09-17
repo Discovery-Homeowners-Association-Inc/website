@@ -1,6 +1,8 @@
 ---
 import "../styles/admin.css";
 import markSvg from "@dhoa/design/dhoa-mark.svg?raw";
+import fontDisplay from "@dhoa/design/fonts/bricolage-grotesque.woff2?url";
+import fontBody from "@dhoa/design/fonts/atkinson-hyperlegible-next.woff2?url";
 
 interface Props {
   title: string;
@@ -10,8 +12,12 @@ const { title, bare = false } = Astro.props;
 const path = Astro.url.pathname;
 const nav = [
   { href: "/", label: "Home" },
+  { href: "/content/", label: "Content" },
   { href: "/meetings/", label: "Meetings" },
-  { href: "/people/", label: "People", adminOnly: true },
+  { href: "/roster/", label: "Roster" },
+  { href: "/people/", label: "Accounts", adminOnly: true },
+  { href: "/settings/", label: "Settings", adminOnly: true },
+  { href: "/help/", label: "Help" },
 ];
 const current = (href: string) =>
   (href === "/" ? path === "/" : path.startsWith(href)) ? "page" : undefined;
@@ -24,6 +30,20 @@ const current = (href: string) =>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <title>{title} | Discovery HOA admin</title>
+    <link
+      rel="preload"
+      href={fontDisplay}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href={fontBody}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -58,11 +78,16 @@ const current = (href: string) =>
               ))}
             </ul>
           </nav>
-          <form method="post" action="/api/auth/sign-out" data-sign-out>
-            <button class="button button--quiet" type="submit">
-              Sign out
-            </button>
-          </form>
+          <div class="admin-you">
+            <a href="/profile/" aria-current={current("/profile/")}>
+              You
+            </a>
+            <form method="post" action="/api/auth/sign-out" data-sign-out>
+              <button class="button button--quiet button--small" type="submit">
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </header>
     )}

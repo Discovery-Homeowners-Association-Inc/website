@@ -114,9 +114,9 @@ describe("slugify", () => {
 });
 
 describe("isServing", () => {
-  it("treats a missing or future end date as serving", () => {
+  it("treats a missing or future end date as serving, and the end date itself as left", () => {
     expect(isServing({ term_end: null }, "2026-09-17")).toBe(true);
     expect(isServing({ term_end: "2026-12-31" }, "2026-09-17")).toBe(true);
-    expect(isServing({ term_end: "2026-09-16" }, "2026-09-17")).toBe(false);
+    expect(isServing({ term_end: "2026-09-17" }, "2026-09-17")).toBe(false);
   });
 });

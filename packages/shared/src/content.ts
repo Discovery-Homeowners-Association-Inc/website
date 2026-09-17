@@ -93,6 +93,7 @@ export type Item<K extends ItemKind = ItemKind> = ItemMeta & {
   slug: string;
   status: ItemState;
   body: z.infer<(typeof ITEM_BODIES)[K]>;
+  author_id: string | null;
   updated_at: string;
 };
 
@@ -194,9 +195,9 @@ export const toPublicPerson = (p: Person & { id: string }): PublicPerson => {
   return { ...rest, email: show_email ? email : "" };
 };
 
-/** Serving today: no end date, or an end date in the future. */
+/** Serving today: no end date, or a leaving date still to come. `term_end` is the day they leave. */
 export const isServing = (p: { term_end: string | null }, today: string) =>
-  !p.term_end || p.term_end >= today;
+  !p.term_end || p.term_end > today;
 
 export const Committee = z.object({
   slug: text(40).regex(/^[a-z-]+$/),

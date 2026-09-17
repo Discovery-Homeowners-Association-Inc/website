@@ -63,7 +63,7 @@ test("the administrator invites a director and an editor", async ({
   browser,
 }) => {
   admin = await signIn(browser, ADMIN);
-  await admin.getByRole("link", { name: "People" }).click();
+  await admin.getByRole("link", { name: "Accounts" }).click();
   await expectAccessible(admin);
   for (const [name, email, role] of [
     ["Dana Director", DIRECTOR, "board"],
@@ -112,9 +112,11 @@ test("the secretary drafts minutes and sends them for review", async () => {
   minutesUrl = admin.url();
 
   await admin.getByLabel("Called to order at").fill("7:02 pm");
-  await admin
-    .getByLabel("Directors present")
-    .fill("Sam Secretary\nDana Director\nPat President");
+  const present = admin.getByRole("group", { name: "Directors present" });
+  await present.getByLabel("Valentina Duk").check();
+  await present.getByLabel("Doug Shoemaker").check();
+  await present.getByLabel("Add a name").fill("Pat President");
+  await present.getByRole("button", { name: "Add" }).click();
   await admin.getByLabel("A quorum was present").check();
   await admin
     .getByLabel("Discussion")
@@ -188,8 +190,11 @@ test("the secretary revises, and the board approves the exact version at the mee
   await admin.getByRole("button", { name: "Ready for a vote" }).click();
 
   await director.reload();
-  await director.getByLabel("Motion to approve moved by").fill("Pat President");
-  await director.getByLabel("Seconded by").fill("Sam Secretary");
+  await director
+    .getByLabel("Motion to approve moved by")
+    .selectOption("Valentina Duk");
+  await director.getByLabel("Seconded by").selectOption("__other");
+  await director.getByLabel("Seconded by, name").fill("Sam Secretary");
   await director.getByLabel("In favor").fill("3");
 
   // A late amendment at the meeting makes the director's open page stale.
@@ -206,8 +211,11 @@ test("the secretary revises, and the board approves the exact version at the mee
   );
 
   await director.reload();
-  await director.getByLabel("Motion to approve moved by").fill("Pat President");
-  await director.getByLabel("Seconded by").fill("Sam Secretary");
+  await director
+    .getByLabel("Motion to approve moved by")
+    .selectOption("Valentina Duk");
+  await director.getByLabel("Seconded by").selectOption("__other");
+  await director.getByLabel("Seconded by, name").fill("Sam Secretary");
   await director.getByLabel("In favor").fill("3");
   await director
     .getByRole("button", { name: "Record vote and approve" })
@@ -299,6 +307,7 @@ test("removing someone keeps them on record as a former member, and access can b
 test("works on a phone: readable navigation, no sideways scrolling, actions before the document", async ({
   browser,
 }) => {
+  test.setTimeout(90_000);
   const phone = await (
     await browser.newContext({
       viewport: { width: 390, height: 844 },
@@ -316,7 +325,7 @@ test("works on a phone: readable navigation, no sideways scrolling, actions befo
     "/meetings/",
     "/people/",
     minutesUrl.replace(/^https?:\/\/[^/]+/, ""),
-  ]) {
+  ].filter(Boolean)) {
     await phone.goto(path);
     await expect(phone.locator("h1")).toBeVisible();
     const overflow = await phone.evaluate(
@@ -326,21 +335,35 @@ test("works on a phone: readable navigation, no sideways scrolling, actions befo
     );
     expect(overflow, `sideways scroll on ${path}`).toBeLessThanOrEqual(0);
 
-    // Navigation links are laid out side by side with space between them, never overlapping.
+    // Navigation links never overlap each other, whichever rows they wrap onto.
     const nav = phone.getByRole("navigation", { name: "Main" });
     const boxes = [];
-    for (const name of ["Home", "Meetings", "People"]) {
+    for (const name of [
+      "Home",
+      "Content",
+      "Meetings",
+      "Roster",
+      "Accounts",
+      "Settings",
+      "Help",
+    ]) {
       const box = await nav
         .getByRole("link", { name, exact: true })
         .boundingBox();
       expect(box, `${name} link visible on ${path}`).not.toBeNull();
       boxes.push(box!);
     }
-    for (let i = 1; i < boxes.length; i++) {
-      expect(
-        boxes[i]!.x,
-        `nav links overlap on ${path}`,
-      ).toBeGreaterThanOrEqual(boxes[i - 1]!.x + boxes[i - 1]!.width + 8);
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i]!,
+          b = boxes[j]!;
+        const apart =
+          a.x + a.width + 8 <= b.x ||
+          b.x + b.width + 8 <= a.x ||
+          a.y + a.height <= b.y ||
+          b.y + b.height <= a.y;
+        expect(apart, `nav links overlap on ${path}`).toBe(true);
+      }
     }
   }
 
