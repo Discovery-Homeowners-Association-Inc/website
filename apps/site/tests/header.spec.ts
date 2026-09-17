@@ -137,3 +137,14 @@ test("an anchored heading is not hidden under the header", async ({ page }) => {
     "the anchor target sits under the sticky header",
   ).toBeGreaterThanOrEqual(headerBottom.y + headerBottom.height - 0.5);
 });
+
+/**
+ * The temporary workers.dev address is kept out of search results until the
+ * board has reviewed the content. This asserts the dangerous direction: that a
+ * build for the real domain carries no noindex, so launch cannot ship one by
+ * accident. The temporary build is checked at build time in astro.config.mjs.
+ */
+test("a build for the real domain is indexable", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+});
