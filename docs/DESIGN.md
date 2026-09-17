@@ -89,6 +89,24 @@ Inlining the fonts as `data:` URIs was considered and rejected: 161.7KB of woff2
 ~221KB of base64 on a 12.4KB stylesheet, and CSS blocks rendering — a blank screen beats
 readable fallback text for nobody.
 
+## Where the admin app differs, and why
+
+The two apps share `packages/design/base.css`, so they agree unless something
+says otherwise. These are the differences that are meant to be there, measured
+on 2026-09-17 with `apps/site/scripts/type-audit.mjs`. Re-run it rather than
+judging by eye, and add a line here before introducing a new difference.
+
+| Role            | Site       | Admin      | Why                                                                                                |
+| --------------- | ---------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| Page title      | up to 68px | up to 35px | The site's front page carries the one bold element; the admin app is a tool people work in all day |
+| Section heading | 28px       | 22.5px     | One step down from each app's own title, so the hierarchy inside each is consistent                |
+
+Everything else the audit found was a difference nobody chose, and was fixed:
+page titles carried a stray top margin in the admin app, sections had no space
+above them, and the "what is this?" explanations were set 4px smaller than body
+text — which is the text someone reads when they are unsure, for an audience the
+18px base was chosen for.
+
 ## Rules we hold ourselves to
 
 - WCAG 2.2 AA: text contrast of at least 4.5:1, a visible focus ring, and full keyboard use.

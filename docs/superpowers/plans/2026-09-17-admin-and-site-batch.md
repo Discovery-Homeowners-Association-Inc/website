@@ -39,7 +39,7 @@ both, and guards its own sample size first.
 
 ## Not done
 
-### F. The typographic and spacing audit — both apps, and between them
+### ~~F. The typographic and spacing audit~~ — done
 
 B fixed the form controls, which is where the reported complaint was. It is not
 the whole of "review all the formatting". This item is the deliberate pass, and
@@ -66,9 +66,18 @@ does not re-litigate them.
 - `.tasks`, `.dated` and the admin's tables are three treatments of the same
   idea — a list of records with a date and a title.
 
-**Done means:** a recorded table of differences, each marked kept or changed;
-the changed ones fixed; and a test in the manner of `forms.spec.ts` covering
-whichever of them can be asserted.
+**Done.** `apps/site/scripts/type-audit.mjs` walks both apps, reads the computed
+style of each element role on comparable interior pages, and prints where they
+disagree. It took three passes to become trustworthy: the first compared the
+site's hero against an admin dashboard, and the second counted a page summary as
+body prose. That is the point of writing it down rather than judging by eye.
+
+Thirteen differing properties became eight. Five were nobody's decision and were
+fixed: a stray top margin on admin page titles, no space above admin sections,
+and explanations set 4px under body size. Of the eight left, three are the
+deliberate density differences now recorded in `docs/DESIGN.md`, and the rest are
+artefacts of the audit picking the first element of a role, where a first-child
+margin of zero is correct.
 
 ### ~~C. Meetings: materialise records from the recurrence rule~~ — done
 
