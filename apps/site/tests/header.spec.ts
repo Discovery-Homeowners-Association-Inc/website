@@ -118,3 +118,22 @@ test.describe("without JavaScript", () => {
     await expect(page.getByRole("link", { name: "Pay dues" })).toBeVisible();
   });
 });
+
+test("the header stays in view while the page scrolls", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await page.goto("/documents/");
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  const box = (await page.locator(".site-header").boundingBox())!;
+  expect(Math.round(box.y), "header top after scrolling").toBe(0);
+});
+
+test("an anchored heading is not hidden under the header", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await page.goto("/documents/#main");
+  const headerBottom = (await page.locator(".site-header").boundingBox())!;
+  const main = (await page.locator("#main").boundingBox())!;
+  expect(
+    main.y,
+    "the anchor target sits under the sticky header",
+  ).toBeGreaterThanOrEqual(headerBottom.y + headerBottom.height - 0.5);
+});

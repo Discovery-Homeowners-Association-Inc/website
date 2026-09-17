@@ -66,6 +66,8 @@
   --space-5: 2.5rem;
   --space-6: 4rem;
 
+  --header-z: 20;
+
   --measure: 68ch;
   --page: 76rem;
   --gutter: clamp(1rem, 4vw, 2.5rem);
@@ -182,7 +184,7 @@ a:hover {
   top: -4rem;
   background: var(--surface);
   padding: var(--space-2) var(--space-3);
-  z-index: 10;
+  z-index: calc(var(--header-z) + 1);
 }
 
 .skip-link:focus {
@@ -207,6 +209,12 @@ a:hover {
 
 main {
   padding-block: var(--space-5) var(--space-6);
+}
+
+/* Anything an anchor can land on clears the sticky header. */
+:target,
+#main {
+  scroll-margin-top: 6rem;
 }
 
 .page-head {
@@ -280,6 +288,9 @@ main {
 }
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--header-z);
   border-bottom: 1px solid var(--rule);
   background: var(--surface);
 }
