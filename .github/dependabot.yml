@@ -11,3 +11,17 @@ updates:
     groups:
       astro:
         patterns: ["astro", "@astrojs/*"]
+    # Major versions held back on purpose; see docs/DECISIONS.md #10.
+    # Remove an entry when its blocker ships support.
+    ignore:
+      # @astrojs/check (astro check) refuses TypeScript 7 in the Astro apps.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # @cloudflare/vitest-pool-workers supports only Vitest 4 (apps/admin).
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
+      # Types track the Node LTS line in mise.toml (24.x) until Node 26 is LTS.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
