@@ -34,6 +34,11 @@ from `apps/admin-ui` and the API under `/api/` from `apps/admin`. Data lives in 
 
 4. Open `http://desktop:8787/`. Use **Developer sign-in** with that email.
 
+If the app answers "Something went wrong on the server" and the server log says `no such table`,
+the local database is empty or stale: stop the server, run `just seed-local`, start it again, and
+repeat step 3. (Wrangler keeps local data per database id, so changing the id in
+`wrangler.jsonc` starts a fresh, empty local database.)
+
 Developer sign-in exists only when `DEV_SIGN_IN=true` **and** the app runs over plain http. It
 cannot be turned on in production, which is served over https.
 
