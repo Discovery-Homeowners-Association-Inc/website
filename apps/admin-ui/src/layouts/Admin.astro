@@ -45,6 +45,15 @@ const current = (href: string) =>
       crossorigin
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>
+      // Before the page is drawn: show admin-only links if this browser last
+      // saw an administrator signed in. Checked again against the API below.
+      try {
+        if (localStorage.getItem("dhoa:is-admin") === "1") {
+          document.documentElement.setAttribute("data-admin", "");
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">
@@ -67,10 +76,7 @@ const current = (href: string) =>
           <nav class="site-nav admin-nav" aria-label="Main">
             <ul>
               {nav.map((n) => (
-                <li
-                  hidden={n.adminOnly}
-                  data-admin-only={n.adminOnly ? "" : undefined}
-                >
+                <li data-admin-only={n.adminOnly ? "" : undefined}>
                   <a href={n.href} aria-current={current(n.href)}>
                     {n.label}
                   </a>
@@ -78,7 +84,7 @@ const current = (href: string) =>
               ))}
             </ul>
           </nav>
-          <div class="admin-you">
+          <div class="admin-you header-action">
             <a href="/profile/" aria-current={current("/profile/")}>
               You
             </a>
@@ -95,22 +101,26 @@ const current = (href: string) =>
       <slot />
     </main>
     <script>
-      // Show admin-only navigation to administrators. The API enforces access either way.
+      // Confirm the remembered role. The API enforces access either way; this
+      // only decides which links to show.
+      const rememberAdmin = (isAdmin: boolean) => {
+        document.documentElement.toggleAttribute("data-admin", isAdmin);
+        try {
+          if (isAdmin) localStorage.setItem("dhoa:is-admin", "1");
+          else localStorage.removeItem("dhoa:is-admin");
+        } catch {}
+      };
       if (document.querySelector("[data-admin-only]")) {
         fetch("/api/me", { credentials: "same-origin" })
           .then((r) => (r.ok ? r.json() : null))
-          .then((me) => {
-            if (
-              me?.grants?.some(
+          .then((me) =>
+            rememberAdmin(
+              !!me?.grants?.some(
                 (g: { role: string; scope: string }) =>
                   g.role === "admin" && g.scope === "",
-              )
-            ) {
-              document
-                .querySelectorAll<HTMLElement>("[data-admin-only]")
-                .forEach((el) => (el.hidden = false));
-            }
-          });
+              ),
+            ),
+          );
       }
       document
         .querySelector<HTMLFormElement>("[data-sign-out]")
@@ -121,6 +131,7 @@ const current = (href: string) =>
             headers: { "content-type": "application/json" },
             body: "{}",
           });
+          rememberAdmin(false);
           location.assign("/sign-in/");
         });
     </script>
