@@ -6,7 +6,7 @@ import { board } from "../../lib/data";
 import { page } from "../../lib/pages";
 
 const p = await page("board");
-const members = board.members.toSorted((a, b) => a.order - b.order);
+const members = board.members;
 ---
 
 <Base title={p.title} description={p.summary}>

@@ -23,9 +23,13 @@ lint:
 test *args:
     pnpm -r --if-present run test {{ args }}
 
-# Audit dependencies for known vulnerabilities
+# Secrets, vulnerable dependencies, and workflow problems. Fails on any finding.
 security:
-    pnpm audit --prod
+    gitleaks git --no-banner --redact
+    gitleaks dir --no-banner --redact .
+    osv-scanner scan --lockfile pnpm-lock.yaml
+    actionlint
+    zizmor --min-severity medium .github/workflows/
 
 # Build every workspace package
 build:
@@ -45,6 +49,17 @@ run-admin:
     pnpm --filter @dhoa/admin-ui exec astro build --outDir .dev-dist
     cd apps/admin && pnpm exec wrangler d1 migrations apply dhoa --local
     cd apps/admin && pnpm exec wrangler dev --ip 0.0.0.0 --port 8787 --assets ../admin-ui/.dev-dist
+
+# Fill the local admin database with the site's starting content (idempotent)
+seed-local:
+    cd apps/admin && node scripts/seed.ts
+    cd apps/admin && pnpm exec wrangler d1 migrations apply dhoa --local
+    cd apps/admin && pnpm exec wrangler d1 execute dhoa --local --file seed/seed.sql
+    cd apps/admin && bash seed/kv.sh --local
+
+# Save what the admin app currently publishes into apps/site/content/, which the site builds from
+snapshot url="http://127.0.0.1:8787":
+    node scripts/snapshot.ts {{ url }}
 
 # Remove build output
 clean:

@@ -1,0 +1,51 @@
+[
+  {
+    "slug": "acc",
+    "name": "Architectural Control Committee",
+    "abbr": "ACC",
+    "email_key": "acc",
+    "purpose": "Reviews applications for exterior changes so the neighborhood stays consistent and property values hold.",
+    "page": "/rules/architectural-control/",
+    "volunteers_wanted": false,
+    "meets": "",
+    "order": 10
+  },
+  {
+    "slug": "pool-rec",
+    "name": "Pool & Recreation Committee",
+    "email_key": "pool_rec",
+    "purpose": "Runs the pool season and the community events calendar — craft days, the ice cream socials, the food truck nights.",
+    "meets": "Second Tuesday of each month, around 6:30 pm, in Walkersville",
+    "page": "/amenities/pool/",
+    "volunteers_wanted": true,
+    "order": 20
+  },
+  {
+    "slug": "welcome",
+    "name": "Welcome Committee",
+    "email_key": "general",
+    "purpose": "Greets new neighbors and helps them find their footing in their first few weeks.",
+    "page": "/about/welcome-committee/",
+    "volunteers_wanted": true,
+    "meets": "",
+    "order": 30
+  },
+  {
+    "slug": "maintenance",
+    "name": "Maintenance Committee",
+    "email_key": "general",
+    "purpose": "Looks after the parks, the Recreation Center and the association's other property.",
+    "page": "/amenities/",
+    "volunteers_wanted": false,
+    "order": 40
+  },
+  {
+    "slug": "website",
+    "name": "Website Committee",
+    "email_key": "general",
+    "purpose": "Keeps this website current.",
+    "page": "/contact/",
+    "volunteers_wanted": false,
+    "order": 50
+  }
+]

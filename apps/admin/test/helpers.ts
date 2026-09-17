@@ -5,20 +5,20 @@ import { createAuth } from "../src/auth.ts";
 
 /**
  * The app under test, with sign-in replaced by an `x-test-user` header naming
- * a user id. Everything after sign-in (roles, D1, the rules) is the real code.
+ * a user id. Everything after sign-in (roles, D1, KV, the rules) is real.
  */
 const auth = createAuth(env);
+export const rebuilds: string[] = [];
 export const app = createApp({
   getAuth: () => auth,
+  siteChanged: async (_env, reason) => void rebuilds.push(reason),
+  currentSessionId: async (request) => request.headers.get("x-test-session"),
   resolveUser: async (request) => {
     const id = request.headers.get("x-test-user");
     if (!id) return null;
-    const u = await env.DB.prepare(
-      'select id, email, name from "user" where id = ?',
-    )
+    return env.DB.prepare('select id, email, name from "user" where id = ?')
       .bind(id)
       .first<{ id: string; email: string; name: string }>();
-    return u;
   },
 });
 
@@ -48,8 +48,9 @@ export async function call(
   method: string,
   path: string,
   body?: unknown,
+  extra: Record<string, string> = {},
 ) {
-  const headers = new Headers({ "content-type": "application/json" });
+  const headers = new Headers({ "content-type": "application/json", ...extra });
   if (userId) headers.set("x-test-user", userId);
   const res = await app.request(
     path,
@@ -62,4 +63,24 @@ export async function call(
   );
   const text = await res.text();
   return { status: res.status, json: text ? JSON.parse(text) : null };
+}
+
+/** Loads the seed settings, so routes that need them (approvals, snapshot) work. */
+export async function seedSettings() {
+  const { SETTINGS } = await import("@dhoa/shared");
+  const seed = (await import("../seed/settings.json")).default as Record<
+    string,
+    unknown
+  >;
+  for (const [key, schema] of Object.entries(SETTINGS)) {
+    await env.DB.prepare(
+      "insert or replace into settings (key, value, updated_at) values (?, ?, ?)",
+    )
+      .bind(
+        key,
+        JSON.stringify(schema.parse(seed[key])),
+        new Date().toISOString(),
+      )
+      .run();
+  }
 }

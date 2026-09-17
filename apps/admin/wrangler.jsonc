@@ -15,14 +15,26 @@
     {
       "binding": "DB",
       "database_name": "dhoa",
-      // Placeholder until the database is created with `wrangler d1 create dhoa`.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "a4a24fd3-be9d-4357-be63-71df5f9865af",
       "migrations_dir": "migrations",
     },
   ],
+  // Uploaded files (PDFs) live in KV: free on the Workers Free plan, values up
+  // to 25 MiB. D1 rows cap at 2 MB and R2 needs a card. See DECISIONS.md #11.
+  "kv_namespaces": [
+    {
+      "binding": "FILES",
+
+      "id": "ececab43630b4e63bcaeb1413b7df71e",
+    },
+  ],
+  // Once a day at 10:00 UTC (6 am New York): delete expired items marked for
+  // deletion. One of the five free cron triggers.
+  "triggers": { "crons": ["0 10 * * *"] },
   "vars": {
     "BETTER_AUTH_URL": "http://localhost:8787",
   },
   // Secrets, set with `wrangler secret put` (or .dev.vars locally):
-  //   BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+  //   BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BOOTSTRAP_TOKEN,
+  //   GITHUB_APP_ID, GITHUB_APP_INSTALLATION_ID, GITHUB_APP_PRIVATE_KEY
 }
