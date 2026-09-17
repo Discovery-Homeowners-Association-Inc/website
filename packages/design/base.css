@@ -262,17 +262,23 @@ main {
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 /*
- * The header's layout is chosen by the width of the screen, never by how wide
- * the text happens to render. Fonts use font-display: optional, so a page can
- * be drawn in the fallback font (Noto Sans on Linux is the widest measured)
- * instead of the web font; every layout below leaves room for that plus 10%.
- * That is what keeps the header the same height on every load.
+ * Every boundary below is measured, not chosen. Fonts use font-display:
+ * optional, so a first visit can legitimately be drawn in the fallback font,
+ * which is wider — so the fallback is what the layout has to survive. At these
+ * sizes one row needs 1090px in the web font and 1120px in the fallback, hence
+ * 71rem (1136px) with 16px of headroom. See docs/DESIGN.md.
  *
- *   wide    brand · links · action        one row
- *   medium  brand · action / links        links on their own row
- *   phone   brand / menu · action / links links behind the Menu button
+ *   >= 71rem  brand · links · action        one row
+ *   medium    brand · action / links        links on their own row
+ *   phone     brand / menu · action / links links behind the Menu button
  *
+ * The links may wrap. They must never clip: see .site-nav ul below.
  */
+/* The header's own controls are compact; buttons in the page keep their size. */
+.site-header .button {
+  padding: 0.55rem 0.9rem;
+}
+
 .site-header {
   border-bottom: 1px solid var(--rule);
   background: var(--surface);
@@ -305,14 +311,15 @@ main {
 }
 
 .brand svg {
-  width: 2.75rem;
+  width: 2.4rem;
   flex: none;
 }
 
 .brand span {
+  min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   line-height: 1.05;
 }
 
@@ -336,15 +343,23 @@ main {
 
 .site-nav ul {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0 var(--space-4);
+  /*
+   * The list may WRAP. It must never clip: an end-justified nowrap flex
+   * container with hidden overflow reports scrollWidth === clientWidth, so a
+   * link that does not fit cannot be reached by any means — it is gone. End
+   * alignment uses an auto margin, which cannot overflow.
+   */
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
   list-style: none;
   margin: 0;
   padding: 0;
+  min-width: 0;
 }
 
 .site-nav a {
   display: inline-block;
+  font-size: 1rem;
   color: var(--ink);
   text-decoration: none;
   font-weight: 600;
@@ -363,13 +378,13 @@ main {
 }
 
 /* Wide: everything on one row. */
-@media (min-width: 72rem) {
+@media (min-width: 71rem) {
   .site-header .wrap {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "brand nav action";
   }
   .site-nav ul {
-    justify-content: flex-end;
+    margin-inline-start: auto;
   }
 }
 
