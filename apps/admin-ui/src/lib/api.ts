@@ -79,6 +79,7 @@ export type Comment = {
   author_id: string;
   created_at: string;
   resolved_at: string | null;
+  author_former: number;
 };
 export type Vote = {
   version: number;
@@ -113,9 +114,15 @@ export type MinutesResponse =
         change_note: string | null;
         created_at: string;
         author: string | null;
+        author_former: number;
       }[];
       comments: Comment[];
-      reviewed_by: { user_id: string; name: string; reviewed_at: string }[];
+      reviewed_by: {
+        user_id: string;
+        name: string;
+        reviewed_at: string;
+        former: number;
+      }[];
       vote: Vote | null;
     };
 
@@ -170,3 +177,7 @@ export const newId = () =>
   Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) =>
     b.toString(16).padStart(2, "0"),
   ).join("");
+
+/** A person's name as history shows it. Former members keep their name, marked as such. */
+export const personName = (name: string | null, former: number | boolean) =>
+  `${name ?? "Unknown"}${former ? " (former member)" : ""}`;

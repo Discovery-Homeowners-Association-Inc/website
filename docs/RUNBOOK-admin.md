@@ -70,8 +70,10 @@ Worker. Update `BETTER_AUTH_URL` and add the new origin and redirect URI to the 
 
 - **Add a board member:** People, then Invite. They sign in with Google using exactly that
   address. If they use a different Google address, they see "has not been invited".
-- **Someone leaves the board:** People, then Remove. Their sessions end immediately. Their comments
-  and versions stay, but show as written by a former member. The audit log keeps their email.
+- **Someone leaves the board:** People, then Remove access. Their sessions end immediately and
+  they cannot sign in. They are kept as a **former member**: their name stays on every comment,
+  version, and review mark, shown as "Name (former member)". To bring them back, Restore access
+  under Former members.
 - **Minutes for a meeting:**
   1. Meetings, pick the meeting, then Minutes for this meeting, then Start minutes from the agenda.
   2. Save versions as you go, then Send for review.

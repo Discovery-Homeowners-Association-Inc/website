@@ -248,3 +248,50 @@ test("approved minutes export for PayHOA and are marked filed", async () => {
     admin.getByRole("heading", { name: "Status: Filed in PayHOA" }),
   ).toBeVisible();
 });
+
+test("removing someone keeps them on record as a former member, and access can be restored", async ({
+  browser,
+}) => {
+  await admin.goto("/people/");
+  admin.once("dialog", (d) => void d.accept());
+  await admin
+    .getByRole("listitem")
+    .filter({ hasText: DIRECTOR })
+    .getByRole("button", { name: "Remove access" })
+    .click();
+  await expect(admin.getByRole("status")).toContainText(
+    "listed under former members",
+  );
+  const former = admin.getByRole("heading", { name: "Former members" });
+  await expect(former).toBeVisible();
+  await expectAccessible(admin);
+
+  // Their review history still carries their name.
+  await admin.goto(minutesUrl);
+  await admin.getByRole("button", { name: "Show resolved" }).click();
+  await expect(
+    admin.getByText("Dana Director (former member)").first(),
+  ).toBeVisible();
+
+  // Their session ended, and signing in again does not give them access.
+  await director.goto("/");
+  await expect(director).toHaveURL(/\/sign-in\//);
+  await director.getByLabel("Invited email").fill(DIRECTOR);
+  await director
+    .getByRole("button", { name: "Sign in without Google" })
+    .click();
+  await expect(director.getByRole("alert")).toContainText(
+    "access has been removed",
+  );
+
+  // Restore.
+  await admin.goto("/people/");
+  const row = admin.getByRole("listitem").filter({ hasText: DIRECTOR });
+  await row.getByRole("button", { name: "Restore access" }).click();
+  await admin.getByRole("button", { name: "Restore access" }).click();
+  await expect(admin.getByRole("status")).toContainText(
+    "Restored Dana Director's access",
+  );
+  const back = await signIn(browser, DIRECTOR);
+  await expect(back.getByRole("heading", { name: /^Hello/ })).toBeVisible();
+});

@@ -14,6 +14,16 @@ export const requireUser = (resolve: ResolveUser) =>
   createMiddleware<AppEnv>(async (c, next) => {
     const who = await resolve(c.req.raw, c.env);
     if (!who) throw new HTTPException(401, { message: "Sign in to continue." });
+    const former = await c.env.DB.prepare(
+      "select 1 from former_members where user_id = ?",
+    )
+      .bind(who.id)
+      .first();
+    if (former)
+      throw new HTTPException(403, {
+        message:
+          "Your access has been removed. Ask an administrator if this is a mistake.",
+      });
     const grants = await grantsFor(c.env.DB, who.id);
     if (grants.length === 0)
       throw new HTTPException(403, {

@@ -69,17 +69,23 @@ export function minutesRoutes() {
     const { current } = await load(c.env.DB, m.id);
     const [versions, comments, reviews, vote] = await Promise.all([
       c.env.DB.prepare(
-        `select v.version, v.sha256, v.change_note, v.created_at, u.name as author from minutes_versions v left join "user" u on u.id = v.author_id where v.meeting_id = ? order by v.version desc`,
+        `select v.version, v.sha256, v.change_note, v.created_at, u.name as author, f.user_id is not null as author_former
+           from minutes_versions v left join "user" u on u.id = v.author_id left join former_members f on f.user_id = v.author_id
+          where v.meeting_id = ? order by v.version desc`,
       )
         .bind(m.id)
         .all(),
       c.env.DB.prepare(
-        `select c.*, u.name as author from review_comments c left join "user" u on u.id = c.author_id where c.meeting_id = ? order by c.created_at`,
+        `select c.*, u.name as author, f.user_id is not null as author_former
+           from review_comments c left join "user" u on u.id = c.author_id left join former_members f on f.user_id = c.author_id
+          where c.meeting_id = ? order by c.created_at`,
       )
         .bind(m.id)
         .all(),
       c.env.DB.prepare(
-        `select r.user_id, u.name, r.reviewed_at from reviews r join "user" u on u.id = r.user_id where r.meeting_id = ? and r.version = ?`,
+        `select r.user_id, u.name, r.reviewed_at, f.user_id is not null as former
+           from reviews r join "user" u on u.id = r.user_id left join former_members f on f.user_id = r.user_id
+          where r.meeting_id = ? and r.version = ?`,
       )
         .bind(m.id, row.current_version)
         .all(),

@@ -35,8 +35,9 @@ export function userRoutes(deps: AppDeps) {
   app.get("/", async (c) => {
     const { results } = await c.env.DB.prepare(
       `select u.id, u.name, u.email, coalesce(json_group_array(json_object('role', r.role, 'scope', r.scope)) filter (where r.role is not null), '[]') as grants,
-              exists (select 1 from account a where a.userId = u.id) as signed_in
-         from "user" u left join user_roles r on r.user_id = u.id
+              exists (select 1 from account a where a.userId = u.id) as signed_in,
+              f.removed_at
+         from "user" u left join user_roles r on r.user_id = u.id left join former_members f on f.user_id = u.id
         group by u.id order by u.name`,
     ).all<{
       id: string;
@@ -44,12 +45,14 @@ export function userRoutes(deps: AppDeps) {
       email: string;
       grants: string;
       signed_in: number;
+      removed_at: string | null;
     }>();
     return c.json(
       results.map((u) => ({
         ...u,
         grants: JSON.parse(u.grants),
         signed_in: u.signed_in === 1,
+        former: u.removed_at !== null,
       })),
     );
   });
@@ -58,9 +61,17 @@ export function userRoutes(deps: AppDeps) {
   app.post("/", async (c) => {
     const input = Invite.parse(await c.req.json());
     const ctx = await deps.getAuth(c.env).$context;
-    if (await ctx.internalAdapter.findUserByEmail(input.email)) {
+    const existing = await ctx.internalAdapter.findUserByEmail(input.email);
+    if (existing) {
+      const former = await c.env.DB.prepare(
+        "select 1 from former_members where user_id = ?",
+      )
+        .bind(existing.user.id)
+        .first();
       throw new HTTPException(409, {
-        message: `${input.email} already has an account.`,
+        message: former
+          ? `${input.email} is a former member. Restore their access from the list of former members.`
+          : `${input.email} already has an account.`,
       });
     }
     const user = await ctx.internalAdapter.createUser(
@@ -103,6 +114,7 @@ export function userRoutes(deps: AppDeps) {
       });
     }
     await c.env.DB.batch([
+      c.env.DB.prepare("delete from former_members where user_id = ?").bind(id),
       c.env.DB.prepare("delete from user_roles where user_id = ?").bind(id),
       ...grants.map((g) =>
         c.env.DB.prepare(
@@ -114,17 +126,33 @@ export function userRoutes(deps: AppDeps) {
     return c.json({ id, grants: await grantsFor(c.env.DB, id) });
   });
 
-  /** Removing someone deletes their account and signs them out everywhere. */
+  /**
+   * Remove someone's access. Their account is kept so their name stays on
+   * everything they did; their roles are revoked and every session ends now.
+   */
   app.delete("/:id", async (c) => {
     const id = c.req.param("id");
     const actor = c.get("user").id;
     if (id === actor)
       throw new HTTPException(422, {
-        message: "You cannot remove your own account.",
+        message: "You cannot remove your own access.",
       });
-    const ctx = await deps.getAuth(c.env).$context;
-    await ctx.internalAdapter.deleteUser(id);
-    await auditStatement(c.env.DB, actor, "remove", "user", id).run();
+    const note = z
+      .object({ note: z.string().trim().max(500).default("") })
+      .parse(await c.req.json().catch(() => ({})));
+    const user = await c.env.DB.prepare('select id from "user" where id = ?')
+      .bind(id)
+      .first();
+    if (!user)
+      throw new HTTPException(404, { message: "That person does not exist." });
+    await c.env.DB.batch([
+      c.env.DB.prepare("delete from user_roles where user_id = ?").bind(id),
+      c.env.DB.prepare('delete from "session" where "userId" = ?').bind(id),
+      c.env.DB.prepare(
+        "insert into former_members (user_id, removed_at, removed_by, note) values (?, ?, ?, ?) on conflict (user_id) do nothing",
+      ).bind(id, nowIso(), actor, note.note),
+      auditStatement(c.env.DB, actor, "remove_access", "user", id, note),
+    ]);
     return c.body(null, 204);
   });
 

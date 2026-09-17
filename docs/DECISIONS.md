@@ -102,3 +102,15 @@ transactional email sender, but no password hashing.
 The admin API runs its tests with `@cloudflare/vitest-pool-workers` against a local D1 database with
 the real migrations applied. Only sign-in is replaced by a test header. That package requires
 Vitest 4, so `apps/admin` uses Vitest 4 while `packages/shared` uses Vitest 5.
+
+## 9. People are never deleted
+
+**Decision.** Removing someone's access does three things: it revokes their roles, ends their
+sessions, and records them as a former member. Their account row is kept.
+
+**Why.** The minutes process is a record: who drafted a version, who commented, who confirmed they
+had read it. Deleting a person would blank their name on all of it. History has to show clearly
+what a former member did.
+
+**Consequence.** An invitation for a former member's email is refused with a pointer to Restore
+access, so there is only ever one record per person.

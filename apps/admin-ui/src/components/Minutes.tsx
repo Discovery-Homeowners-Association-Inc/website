@@ -7,6 +7,7 @@ import {
   longDate,
   type MinutesResponse,
   param,
+  personName,
   statusLabel,
   typeLabel,
   when,
@@ -313,7 +314,7 @@ export default function Minutes() {
               ) : (
                 <ul>
                   {d.reviewed_by.map((r) => (
-                    <li>{r.name}</li>
+                    <li>{personName(r.name, r.former)}</li>
                   ))}
                 </ul>
               )}
@@ -400,7 +401,7 @@ export default function Minutes() {
               {d.versions.map((v) => (
                 <li>
                   Version {v.version}, {when(v.created_at)}
-                  {v.author && ` by ${v.author}`}
+                  {v.author && ` by ${personName(v.author, v.author_former)}`}
                   {v.change_note && <div class="meta">{v.change_note}</div>}
                 </li>
               ))}
@@ -551,7 +552,7 @@ function Comments({
         <div class={c.resolved_at ? "comment comment--resolved" : "comment"}>
           <p>{c.body}</p>
           <p class="meta">
-            {c.author ?? "Former member"}, on version {c.version}
+            {personName(c.author, c.author_former)}, on version {c.version}
             {c.anchor && titleFor(c.anchor)
               ? `, about "${titleFor(c.anchor)}"`
               : ""}

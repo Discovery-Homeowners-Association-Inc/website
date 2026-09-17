@@ -1,6 +1,6 @@
 import { ROLES, type Role } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, type Grant } from "../lib/api.ts";
+import { api, can, type Grant, when } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 
@@ -10,6 +10,8 @@ type Person = {
   email: string;
   grants: Grant[];
   signed_in: boolean;
+  former: boolean;
+  removed_at: string | null;
 };
 
 const roleHelp: Record<Role, string> = {
@@ -76,13 +78,14 @@ export default function People() {
     );
   useEffect(() => void load(), []);
 
+  // Refresh the list first, then confirm. The confirmation is the signal that the page is settled.
   const run = async (fn: () => Promise<unknown>, done: string) => {
     setError("");
     setSaved("");
     try {
       await fn();
-      setSaved(done);
       await load();
+      setSaved(done);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -91,6 +94,110 @@ export default function People() {
   if (me && !can(me, "admin"))
     return <p class="notice">Only administrators can manage people.</p>;
   if (!people) return error ? <ErrorNotice message={error} /> : <Loading />;
+
+  function renderPerson(p: Person) {
+    if (editing?.id === p.id) {
+      return (
+        <li>
+          <strong>{p.name}</strong>
+          <span>{p.email}</span>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const roles = editing.roles;
+              void run(
+                async () => {
+                  await api("PUT", `/users/${p.id}/grants`, {
+                    grants: roles.map((role) => ({ role })),
+                  });
+                  setEditing(null);
+                },
+                p.former
+                  ? `Restored ${p.name}'s access.`
+                  : `Updated ${p.name}'s roles.`,
+              );
+            }}
+          >
+            <RolePicker
+              idPrefix={`edit-${p.id}`}
+              value={editing.roles}
+              onChange={(roles) => setEditing({ id: p.id, roles })}
+            />
+            <div class="actions">
+              <button
+                class="button button--small"
+                type="submit"
+                disabled={editing.roles.length === 0}
+              >
+                {p.former ? "Restore access" : "Save roles"}
+              </button>
+              <button
+                class="button button--quiet button--small"
+                type="button"
+                onClick={() => setEditing(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </li>
+      );
+    }
+    return (
+      <li>
+        <strong>{p.name}</strong>
+        <span>{p.email}</span>
+        <div class="meta">
+          {p.former
+            ? `Access removed ${p.removed_at ? when(p.removed_at) : ""}.`
+            : `${p.grants.map((g) => g.role).join(", ") || "No roles"}. ${p.signed_in ? "Google account linked." : "Has not signed in with Google yet."}`}
+        </div>
+        <div class="actions">
+          {p.former ? (
+            <button
+              class="button button--quiet button--small"
+              type="button"
+              onClick={() => setEditing({ id: p.id, roles: ["board"] })}
+            >
+              Restore access
+            </button>
+          ) : (
+            <>
+              <button
+                class="button button--quiet button--small"
+                type="button"
+                onClick={() =>
+                  setEditing({ id: p.id, roles: p.grants.map((g) => g.role) })
+                }
+              >
+                Change roles
+              </button>
+              {p.id !== me?.id && (
+                <button
+                  class="button button--danger button--small"
+                  type="button"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        `Remove ${p.name}'s access? They will be signed out now. Their name stays on everything they did.`,
+                      )
+                    ) {
+                      void run(
+                        () => api("DELETE", `/users/${p.id}`),
+                        `Removed ${p.name}'s access. They are listed under former members.`,
+                      );
+                    }
+                  }}
+                >
+                  Remove access
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </li>
+    );
+  }
 
   return (
     <>
@@ -103,15 +210,17 @@ export default function People() {
           e.preventDefault();
           if (invite.roles.length === 0)
             return setError("Choose at least one role.");
-          void run(
-            () =>
-              api("POST", "/users", {
-                email: invite.email,
-                name: invite.name,
-                grants: invite.roles.map((role) => ({ role })),
-              }),
-            `Invited ${invite.email}. They can now sign in with Google using that address.`,
-          ).then(() => setInvite({ email: "", name: "", roles: ["board"] }));
+          const sent = invite;
+          // Clear the form as soon as the invite succeeds, before the list
+          // reloads, so nothing typed afterwards is wiped.
+          void run(async () => {
+            await api("POST", "/users", {
+              email: sent.email,
+              name: sent.name,
+              grants: sent.roles.map((role) => ({ role })),
+            });
+            setInvite({ email: "", name: "", roles: ["board"] });
+          }, `Invited ${sent.email}. They can now sign in with Google using that address.`);
         }}
       >
         <h2>Invite someone</h2>
@@ -151,81 +260,23 @@ export default function People() {
         </button>
       </form>
 
+      <h2>Current members</h2>
       <ul class="people">
-        {people.map((p) => (
-          <li>
-            <strong>{p.name}</strong>
-            <span>{p.email}</span>
-            <div class="meta">
-              {p.grants.map((g) => g.role).join(", ") || "No roles"}.{" "}
-              {p.signed_in
-                ? "Google account linked."
-                : "Has not signed in with Google yet."}
-            </div>
-            {editing?.id === p.id ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void run(
-                    () =>
-                      api("PUT", `/users/${p.id}/grants`, {
-                        grants: editing.roles.map((role) => ({ role })),
-                      }),
-                    `Updated ${p.name}'s roles.`,
-                  ).then(() => setEditing(null));
-                }}
-              >
-                <RolePicker
-                  idPrefix={`edit-${p.id}`}
-                  value={editing.roles}
-                  onChange={(roles) => setEditing({ id: p.id, roles })}
-                />
-                <div class="actions">
-                  <button class="button button--small" type="submit">
-                    Save roles
-                  </button>
-                  <button
-                    class="button button--quiet button--small"
-                    type="button"
-                    onClick={() => setEditing(null)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div class="actions">
-                <button
-                  class="button button--quiet button--small"
-                  type="button"
-                  onClick={() =>
-                    setEditing({ id: p.id, roles: p.grants.map((g) => g.role) })
-                  }
-                >
-                  Change roles
-                </button>
-                {p.id !== me?.id && (
-                  <button
-                    class="button button--danger button--small"
-                    type="button"
-                    onClick={() =>
-                      confirm(
-                        `Remove ${p.name}? They will be signed out and lose all access.`,
-                      ) &&
-                      void run(
-                        () => api("DELETE", `/users/${p.id}`),
-                        `Removed ${p.name}.`,
-                      )
-                    }
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            )}
-          </li>
-        ))}
+        {people.filter((p) => !p.former).map((p) => renderPerson(p))}
       </ul>
+
+      {people.some((p) => p.former) && (
+        <>
+          <h2>Former members</h2>
+          <p class="meta">
+            Former members cannot sign in. Their names stay on everything they
+            wrote, reviewed, or voted on.
+          </p>
+          <ul class="people">
+            {people.filter((p) => p.former).map((p) => renderPerson(p))}
+          </ul>
+        </>
+      )}
     </>
   );
 }
