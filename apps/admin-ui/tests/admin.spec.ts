@@ -375,3 +375,42 @@ test("works on a phone: readable navigation, no sideways scrolling, actions befo
   expect(status!.y).toBeLessThan(firstItem!.y);
   await expectAccessible(phone);
 });
+
+test("a remembered administrator's header never changes height while a page loads", async () => {
+  // admin has visited pages already, so the role is remembered in this browser.
+  // Over a real network the role check takes a moment; locally it answers
+  // before the first frame, which would hide the flicker this test is about.
+  await admin.route("**/api/me", async (route) => {
+    await new Promise((r) => setTimeout(r, 500));
+    await route.continue();
+  });
+  await admin.addInitScript(() => {
+    const w = window as unknown as { __heights: number[] };
+    w.__heights = [];
+    const tick = () => {
+      const header = document.querySelector(".site-header");
+      if (header) {
+        const h = Math.round(header.getBoundingClientRect().height);
+        if (w.__heights.at(-1) !== h) w.__heights.push(h);
+      }
+      if (performance.now() < 3000) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  for (const width of [390, 900, 1366]) {
+    await admin.setViewportSize({ width, height: 800 });
+    await admin.goto("/content/");
+    await expect(
+      admin
+        .getByRole("navigation", { name: "Main" })
+        .getByRole("link", { name: "Settings", exact: true }),
+    ).toBeVisible();
+    await admin.waitForTimeout(500);
+    const heights = await admin.evaluate(
+      () => (window as unknown as { __heights: number[] }).__heights,
+    );
+    expect(heights, `header heights while loading at ${width}px`).toHaveLength(
+      1,
+    );
+  }
+});

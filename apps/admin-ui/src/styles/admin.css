@@ -1,50 +1,47 @@
 @import "@dhoa/design/base.css";
 
 /*
- * Admin header. There are only three links, so there is no menu button. On a
- * phone the brand and Sign out share the first row and the links get their own
- * row underneath. These rules override the public site's collapsing-menu styles.
+ * Admin header: the shared width-driven layouts from base.css, with admin
+ * breakpoints (seven short links, no menu button).
+ *
+ *   64rem and wider   brand · links · You/Sign out   one row
+ *   52–64rem          brand · You/Sign out / links   links on their own row
+ *   52rem and narrower  links in a grid whose column count depends only on
+ *                       the screen width, so the rows never change between
+ *                       page loads
+ *
+ * Accounts and Settings show only for administrators. The role is remembered
+ * from the last page (see Admin.astro), so they are in place before the page
+ * is drawn instead of appearing a moment later.
  */
-.admin-header .wrap {
-  row-gap: var(--space-2);
-}
-
-.admin-nav {
-  display: block;
-  flex-basis: auto;
-}
-
-.admin-nav ul {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-}
-
-.admin-nav li a {
-  display: inline-block;
-  padding-block: var(--space-2);
-  border-bottom: 3px solid transparent;
-}
-
-.admin-nav li a:hover,
-.admin-nav li a[aria-current="page"] {
-  border-bottom-color: var(--marigold);
+@media (min-width: 64rem) {
+  .admin-header .wrap {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "brand nav action";
+  }
+  .admin-nav ul {
+    justify-content: flex-end;
+  }
 }
 
 @media (max-width: 52rem) {
-  .admin-header .brand {
-    order: 1;
-  }
-  .admin-header .admin-you {
-    order: 2;
-  }
-  .admin-nav {
-    order: 3;
-    flex-basis: 100%;
-    border-top: 1px solid var(--rule);
+  .admin-header .wrap {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand action"
+      "nav nav";
+    padding-bottom: 0;
   }
   .admin-nav ul {
-    gap: 0 var(--space-5);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+    column-gap: var(--space-3);
+    flex-direction: row;
+    border-top: 1px solid var(--rule);
+  }
+  .admin-nav li a {
+    display: block;
+    border-bottom: 3px solid transparent;
   }
   .admin-header .brand svg {
     width: 2.25rem;
@@ -52,6 +49,10 @@
   .admin-header [data-sign-out] .button {
     padding: 0.45rem 0.8rem;
   }
+}
+
+html:not([data-admin]) [data-admin-only] {
+  display: none;
 }
 
 main {
@@ -395,11 +396,6 @@ button[disabled] {
  * Phone adjustments. Kept at the end of the file so they override the
  * component rules above.
  */
-@media (max-width: 52rem) {
-  .admin-header .wrap {
-    padding-bottom: 0;
-  }
-}
 
 /* Phones: less padding inside panels and fieldsets, and wide tables scroll inside their box. */
 @media (max-width: 40rem) {

@@ -108,3 +108,28 @@ test("every internal link resolves", async ({ page, request }) => {
   }
   expect(broken).toEqual([]);
 });
+
+test("the header is the same height whether the web font or the fallback font draws the page", async ({
+  browser,
+}) => {
+  // Fonts use font-display: optional, so either can draw a given page load.
+  // The header's layout must not depend on which one did.
+  for (const width of [390, 1024, 1366]) {
+    const heights: number[] = [];
+    for (const blockFonts of [false, true]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 800 },
+      });
+      const page = await context.newPage();
+      if (blockFonts) await page.route(/\.woff2$/, (route) => route.abort());
+      await page.goto("/");
+      heights.push(
+        await page
+          .locator(".site-header")
+          .evaluate((el) => Math.round(el.getBoundingClientRect().height)),
+      );
+      await context.close();
+    }
+    expect(heights[1], `header height at ${width}px`).toBe(heights[0]);
+  }
+});
