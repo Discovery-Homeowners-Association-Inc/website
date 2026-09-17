@@ -1,0 +1,26 @@
+{
+  "name": "@dhoa/admin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 0.0.0.0",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "gen:auth-schema": "node scripts/generate-auth-schema.ts",
+    "types": "wrangler types"
+  },
+  "dependencies": {
+    "@dhoa/shared": "workspace:*",
+    "better-auth": "1.7.5",
+    "hono": "4.13.8",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.22.0",
+    "@vitest/runner": "~4.1.11",
+    "@vitest/snapshot": "~4.1.11",
+    "typescript": "~6.0.3",
+    "vitest": "4.1.11",
+    "wrangler": "4.133.0"
+  }
+}

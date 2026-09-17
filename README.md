@@ -15,8 +15,7 @@ Walkersville, Maryland.
 | `docs/DESIGN.md`         | The visual design and why                                                                  |
 | `docs/CONTENT-REVIEW.md` | Content the board needs to confirm before launch                                           |
 
-The admin app (a Cloudflare Worker with sign-in, roles, and the agenda and minutes workflow) is
-next.
+The admin API is built and tested. Its user interface, and deployment to Cloudflare, are next.
 
 ## Develop
 

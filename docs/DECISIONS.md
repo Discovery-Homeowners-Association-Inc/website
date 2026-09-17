@@ -73,3 +73,32 @@ Decide before the domain cutover.
 
 **Decision.** Where the mockup and the live Google Site disagree, the new site uses the mockup's
 value. Every fact still needs board review before launch; see `docs/CONTENT-REVIEW.md`.
+
+## 7. Google sign-in only, with no passwords
+
+**Decision.** People sign in to the admin app with Google. Nobody can sign up. An administrator
+invites a person by email, and that person's first Google sign-in with the same address links to
+the invitation. Emailed one-time codes may be added later for people without a Google account.
+
+**Why.** The association stays on free plans. Storing passwords safely means a deliberately slow
+hash. Measured on a 13th-gen Intel i5:
+
+| Hash                           | Time   |
+| ------------------------------ | ------ |
+| scrypt, N=2^14, r=8            | 23 ms  |
+| Better Auth's default scrypt   | 55 ms  |
+| PBKDF2-SHA256, 600k iterations | 65 ms  |
+| OWASP's recommended scrypt     | 230 ms |
+
+The Workers Free plan allows 10 ms of CPU per request, so password sign-in would fail. Google also
+handles two-factor authentication and account recovery, which the app would otherwise have to
+build.
+
+**Revisit if** a volunteer cannot use Google. Add Better Auth's email OTP plugin; it needs a
+transactional email sender, but no password hashing.
+
+## 8. The Worker's business rules are tested inside the Workers runtime
+
+The admin API runs its tests with `@cloudflare/vitest-pool-workers` against a local D1 database with
+the real migrations applied. Only sign-in is replaced by a test header. That package requires
+Vitest 4, so `apps/admin` uses Vitest 4 while `packages/shared` uses Vitest 5.
