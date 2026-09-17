@@ -1,0 +1,40 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { email, org, problems, telHref } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("report-a-problem");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/rules/", label: "Rules & requests" }]}
+  />
+  <Prose id="report-a-problem" />
+  <ul class="people problems">
+    {problems.map((e) => {
+      const phone = e.phone_key === "office" ? org.office.phone : e.phone;
+      return (
+        <li>
+          <strong>{e.issue}</strong>
+          <span>{e.contact}</span>
+          {phone && (
+            <div>
+              <a href={telHref(phone)}>{phone}</a>
+            </div>
+          )}
+          {e.email_key && (
+            <div>
+              <a href={`mailto:${email(e.email_key)}`}>{email(e.email_key)}</a>
+            </div>
+          )}
+          {e.note && <p class="muted">{e.note}</p>}
+        </li>
+      );
+    })}
+  </ul>
+</Base>

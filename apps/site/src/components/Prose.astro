@@ -1,0 +1,17 @@
+---
+import { getEntry, render } from "astro:content";
+
+interface Props {
+  id: string;
+}
+const entry = await getEntry("pages", Astro.props.id);
+if (!entry)
+  throw new Error(
+    `Missing page content: src/content/pages/${Astro.props.id}.md`,
+  );
+const { Content } = await render(entry);
+---
+
+<div class="prose">
+  <Content />
+</div>

@@ -1,0 +1,90 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import { org, telHref, trash } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("trash-recycling");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/rules/", label: "Rules & requests" }]}
+  />
+  <Prose id="trash-recycling" />
+  <h2>Collection schedule</h2>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Service</th>
+          <th scope="col">When</th>
+          <th scope="col">Zone</th>
+        </tr>
+      </thead>
+      <tbody>
+        {trash.collections.map((c) => (
+          <tr>
+            <td>{c.service}</td>
+            <td>{c.schedule}</td>
+            <td>{c.zone}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Bins out: {trash.setout_rule} {trash.bring_in_rule} Look up your recycling
+    week with the
+    <a href={org.external.county_recycling.url}>
+      {org.external.county_recycling.label}
+    </a>
+    .
+  </p>
+  <p class="prose">{trash.container_rule}</p>
+
+  <h2>Yard waste, {trash.yard_waste.season}</h2>
+  <div class="two-up">
+    <div>
+      <h3>Accepted</h3>
+      <ul class="checklist">
+        {trash.yard_waste.accepted.map((i) => (
+          <li>{i}</li>
+        ))}
+      </ul>
+    </div>
+    <div>
+      <h3>Not accepted</h3>
+      <ul class="checklist">
+        {trash.yard_waste.not_accepted.map((i) => (
+          <li>{i}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  <p class="prose">{trash.yard_waste.bundling}</p>
+
+  <aside class="callout">
+    <p>{trash.tipping_fee_note}</p>
+  </aside>
+
+  <h2>County contacts</h2>
+  <ul class="people">
+    {trash.contacts.map((c) => (
+      <li>
+        <strong>{c.url ? <a href={c.url}>{c.name}</a> : c.name}</strong>
+        {c.address && <span>{c.address}</span>}
+        {c.phones.map((ph) => (
+          <div>
+            {ph.label}: <a href={telHref(ph.number)}>{ph.number}</a>
+          </div>
+        ))}
+      </li>
+    ))}
+  </ul>
+  <DocumentList category="trash" />
+</Base>

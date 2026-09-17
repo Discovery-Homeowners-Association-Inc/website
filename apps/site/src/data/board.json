@@ -1,0 +1,50 @@
+{
+  "term_note": "Directors are elected by the membership at the Annual Meeting.",
+  "members": [
+    {
+      "order": 1,
+      "name": "Valentina Duk",
+      "role": "President",
+      "committees": ["Architectural Control"],
+      "email": "",
+      "photo": "",
+      "note": ""
+    },
+    {
+      "order": 2,
+      "name": "Candice Swet",
+      "role": "Vice President",
+      "committees": ["Architectural Control"]
+    },
+    {
+      "order": 3,
+      "name": "Robert \"Bob\" Thornton",
+      "role": "Treasurer"
+    },
+    {
+      "order": 4,
+      "name": "Doug Shoemaker",
+      "role": "Director",
+      "committees": ["Maintenance"]
+    },
+    {
+      "order": 5,
+      "name": "Robert \"Bobby\" Brown",
+      "role": "Director",
+      "committees": ["Architectural Control"],
+      "note": "Chairs the Architectural Control Committee"
+    },
+    {
+      "order": 6,
+      "name": "Paul Fiumara",
+      "role": "Director"
+    },
+    {
+      "order": 7,
+      "name": "Jennifer Goodman",
+      "role": "Director",
+      "committees": ["Pool & Recreation", "Welcome", "Website"],
+      "note": "Pool applications and the Summer Lunch Program"
+    }
+  ]
+}

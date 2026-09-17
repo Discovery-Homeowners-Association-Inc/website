@@ -1,0 +1,35 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import { page } from "../../lib/pages";
+
+const p = await page("documents");
+const names: Record<string, string> = {
+  governing: "Governing documents",
+  newsletters: "Newsletters",
+  minutes: "Agendas and minutes",
+  acc: "Exterior changes",
+  pool: "Pool",
+  "rec-center": "Recreation Center",
+  "rv-lot": "RV lot",
+  parks: "Parks",
+  trash: "Trash and recycling",
+  general: "General",
+};
+const present = new Set<string>(
+  (await getCollection("documents")).map((d) => d.data.category),
+);
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <Prose id="documents" />
+  {Object.entries(names)
+    .filter(([k]) => present.has(k))
+    .map(([k, label]) => (
+      <DocumentList category={k} heading={label} />
+    ))}
+</Base>

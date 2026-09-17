@@ -1,0 +1,136 @@
+{
+  "legal_name": "Discovery Homeowners Association, Inc.",
+  "short_name": "Discovery HOA",
+  "tagline": "A neighborhood since 1972.",
+  "locality": "Walkersville",
+  "county": "Frederick County",
+  "state": "Maryland",
+  "state_abbr": "MD",
+  "founded": 1972,
+  "office": {
+    "street": "8740 Stauffer Road",
+    "city": "Walkersville",
+    "state": "MD",
+    "zip": "21793",
+    "mailing": "P.O. Box 394, Walkersville, MD 21793",
+    "phone": "301-845-2050",
+    "phone_e164": "+13018452050",
+    "fax": "301-845-6392",
+    "email": "dhoa@verizon.net",
+    "hours": [
+      {
+        "days": "Monday, Wednesday, Friday",
+        "open": "9:00 am",
+        "close": "1:30 pm"
+      },
+      {
+        "days": "Thursday",
+        "open": "3:30 pm",
+        "close": "6:30 pm"
+      }
+    ]
+  },
+  "emails": {
+    "general": "dhoa@verizon.net",
+    "acc": "discoveryacc8740@gmail.com",
+    "pool_rec": "poolrecommittee@gmail.com"
+  },
+  "dues": {
+    "year": 2026,
+    "annual": 776,
+    "quarterly": 194,
+    "due_dates": ["January 1", "April 1", "July 1", "October 1"],
+    "pay_in_full_note": "The full year may be paid during January.",
+    "late_penalty": "1% per month",
+    "water_plant_fee": 50,
+    "water_bill_due": "December 1",
+    "zelle": {
+      "enabled": true,
+      "recipient": "Discovery Homeowners Assoc Inc",
+      "identifier": "dhoa@verizon.net",
+      "memo_instruction": "Put your Discovery property address in the memo line."
+    },
+    "no_cash_dropbox": true
+  },
+  "meetings": {
+    "board": {
+      "rule": "Third Tuesday of every month",
+      "ordinal": 3,
+      "weekday": 2,
+      "time": "7:00 pm",
+      "location": "Discovery Recreation Center",
+      "open_to": "All homeowners and renters are welcome."
+    },
+    "pool_rec": {
+      "rule": "Second Tuesday of every month",
+      "time": "6:30 pm",
+      "location": "Sheetz, Walkersville"
+    }
+  },
+  "external": {
+    "payhoa": {
+      "enabled": true,
+      "is_placeholder": false,
+      "label": "Pay Dues",
+      "portal_label": "Resident Portal",
+      "portal_url": "https://app.payhoa.com/auth/login",
+      "pay_url": "https://app.payhoa.com/auth/login",
+      "signup_url": "https://app.payhoa.com/auth/login",
+      "help_text": "Pay your assessment, see your balance, get documents, and submit ACC applications.",
+      "features": [
+        "Pay your assessment online",
+        "Get association documents",
+        "Submit an Architectural Control (ACC) application",
+        "Send a question to the office",
+        "Report a maintenance concern",
+        "Receive assessment invoices by email instead of by mail"
+      ],
+      "registration_steps": [
+        "Go to payhoa.com and click Login.",
+        "Enter your email address.",
+        "Confirm your name and property address.",
+        "Your request goes to the HOA office for approval.",
+        "Once approved, create a password and sign in."
+      ],
+      "fees": [
+        {
+          "method": "Bank account (ACH)",
+          "amount": "$2.45 per transaction"
+        },
+        {
+          "method": "Credit card",
+          "amount": "3.5% + $0.50 per transaction"
+        }
+      ],
+      "fees_note": "These processing fees are charged by PayHOA, not by the association.",
+      "offline_note": "The office still accepts cash, check, and bank bill-pay."
+    },
+    "governing_documents": {
+      "enabled": false,
+      "is_placeholder": true,
+      "label": "Governing Documents",
+      "url": "https://github.com/Discovery-Homeowners-Association-Inc/governing-documents",
+      "note": "By-Laws, Declaration of Covenants, and Articles of Incorporation."
+    },
+    "pool_registration": {
+      "is_placeholder": false,
+      "label": "Register for a pool pass",
+      "url": "https://swimmingpoolpasses.net/discovery-community-pool/",
+      "vendor": "Access Granted Systems"
+    },
+    "county_recycling": {
+      "is_placeholder": false,
+      "label": "Frederick County collection schedule",
+      "url": "https://frederickcountymd.gov/3447/Curbside-Collection-Schedule"
+    },
+    "water_bill": {
+      "is_placeholder": false,
+      "label": "Pay your Walkersville water bill",
+      "url": "https://www.walkersvillemd.gov/"
+    }
+  },
+  "newsletter": {
+    "enabled": false,
+    "provider": "sender"
+  }
+}

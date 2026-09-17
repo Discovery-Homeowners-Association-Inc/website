@@ -1,0 +1,31 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import { dateOf, newsDate } from "../../lib/dates";
+
+export async function getStaticPaths() {
+  return (await getCollection("news")).map((n) => ({
+    params: { id: n.id },
+    props: { item: n },
+  }));
+}
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+---
+
+<Base title={item.data.title} description={item.data.summary}>
+  <PageHead
+    title={item.data.title}
+    summary={item.data.summary}
+    crumbs={[{ href: "/news/", label: "News and events" }]}
+  />
+  <p class="muted">
+    Posted{" "}
+    <time datetime={dateOf(item.data.date)}>{newsDate(item.data.date)}</time>
+  </p>
+  <div class="prose">
+    <Content />
+  </div>
+</Base>

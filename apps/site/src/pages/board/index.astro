@@ -1,0 +1,32 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { board } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("board");
+const members = board.members.toSorted((a, b) => a.order - b.order);
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <Prose id="board" />
+  <h2>Directors</h2>
+  <ul class="people">
+    {members.map((m) => (
+      <li>
+        <strong>{m.name}</strong>
+        <span>{m.role}</span>
+        {m.committees && m.committees.length > 0 && (
+          <div class="muted">{m.committees.join(", ")}</div>
+        )}
+      </li>
+    ))}
+  </ul>
+  <p class="muted">{board.term_note}</p>
+  <p>
+    <a href="/meetings/">Meeting dates, agendas, and minutes</a>.{" "}
+    <a href="/board/projects/">What the board is working on</a>.
+  </p>
+</Base>

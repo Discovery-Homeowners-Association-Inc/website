@@ -1,0 +1,198 @@
+{
+  "pool": {
+    "season": {
+      "year": 2026,
+      "opens": "2026-05-23",
+      "closes": "2026-09-07",
+      "closed_weekday": "Mondays",
+      "open_days": "Tuesday through Sunday on non-school days",
+      "registration_note": "Registration is handled online by Access Granted Systems. You can pay by card when you register, or print a paper application and mail it with a check.",
+      "prerequisite": "You must be current on your assessment to buy a pool membership.",
+      "no_cash": true
+    },
+    "hours": [
+      {
+        "period": "Opening weekend — May 23, 24, 25",
+        "time": "Noon – 8:00 pm"
+      },
+      {
+        "period": "June and July, non-school days",
+        "time": "12:00 pm – 8:00 pm"
+      },
+      {
+        "period": "August, Friday–Sunday until school starts Aug 18",
+        "time": "11:00 am – 7:00 pm"
+      },
+      {
+        "period": "Labor Day weekend",
+        "time": "11:00 am – 7:00 pm"
+      }
+    ],
+    "fees_resident": [
+      {
+        "label": "Early bird, on or before April 15",
+        "amount": "$35.00",
+        "unit": "per person"
+      },
+      {
+        "label": "After April 15",
+        "amount": "$45.00",
+        "unit": "per person"
+      },
+      {
+        "label": "Children 5 and under",
+        "amount": "Free"
+      }
+    ],
+    "fees_nonresident": [
+      {
+        "label": "Single adult",
+        "amount": "$175.00"
+      },
+      {
+        "label": "Single child, ages 14–17",
+        "amount": "$125.00"
+      },
+      {
+        "label": "Senior single, 65+",
+        "amount": "$85.00"
+      },
+      {
+        "label": "Senior couple, 65+",
+        "amount": "$150.00"
+      },
+      {
+        "label": "Family, whole season",
+        "amount": "$375.00"
+      }
+    ],
+    "rules": [
+      "Children under 14 must be with an adult 18 or older.",
+      "There is a 250-pound weight limit on the diving board. No back flips, and no more than two bounces.",
+      "No smoking anywhere on the pool premises, or within 50 feet of the Recreation Center.",
+      "Headphones only — nobody else at the pool should be able to hear your music."
+    ],
+    "guest_passes": "Guest and day passes are punch tickets, sold in the Marketplace section of the registration site in books of 1, 5, 10, 15 and 20."
+  },
+  "recreation-center": {
+    "capacity": 49,
+    "notice_days": 7,
+    "deposit": "$100.00",
+    "rental_fees": [
+      {
+        "label": "Minimum booking",
+        "amount": "$60.00",
+        "unit": "2 hours"
+      },
+      {
+        "label": "Each additional hour",
+        "amount": "$20.00",
+        "unit": "per hour"
+      },
+      {
+        "label": "Setup and clean-up",
+        "amount": "1 hour free",
+        "note": "Additional setup time is charged at the hourly rate."
+      }
+    ],
+    "eligibility": "Discovery residents who are current on their assessments. Renters need written permission from their landlord.",
+    "rules": [
+      "Whoever signs the contract has to be there for the whole rental.",
+      "No smoking and no alcohol, anywhere on the premises or the grounds.",
+      "You cannot sub-let the Center to someone else.",
+      "Do not tape or staple decorations to the walls, floors, or ceilings.",
+      "Maximum occupancy is 49 people. This is Frederick County Fire Code, not a house rule.",
+      "No open flames, and no cooking, heating, or reheating equipment.",
+      "No animals except genuine service animals.",
+      "No bicycles, skateboards, roller blades, or anything else with wheels on the premises.",
+      "Keep music and noise inside the building.",
+      "Do not park on the grass or on the driveway beside the Center."
+    ],
+    "before_leaving": [
+      "Wrap up by 12:30 am and vacate the building.",
+      "Empty every trash can and take the bags out to the outside containers.",
+      "Put the furniture back where you found it.",
+      "Sweep the floor.",
+      "Set the thermostat to 60°F in winter, 85°F in summer.",
+      "Lock all the doors and windows, and turn off the lights."
+    ]
+  },
+  "rv-lot": {
+    "fees": {
+      "effective": "October 1, 2025",
+      "monthly": "$50.00",
+      "monthly_note": "due at the beginning of each month",
+      "quarterly": "$150.00",
+      "quarterly_note": "due with your quarterly assessment",
+      "payment": "Pay by Zelle to the association's usual address, with “RV Lot Payment” in the memo line."
+    },
+    "registration_requirements": [
+      "The completed registration form",
+      "The vehicle's current registration certificate",
+      "A photograph of the vehicle"
+    ],
+    "rules": [
+      "One vehicle per household.",
+      "Every vehicle must carry current registration.",
+      "Vehicles must be clean and well maintained.",
+      "Keep the area around your space clear."
+    ],
+    "planned_improvements": "The lot stays as it is for now. Once enough has been collected, the plan is to repair the fence, repaint the lines and space numbers, and improve security."
+  },
+  "projects": {
+    "projects": [
+      {
+        "name": "Water main replacement — Phase 1",
+        "status": "in-progress",
+        "timing": "Began spring 2025",
+        "summary": "Replacing aging water main along six streets. Residents on the affected streets should watch for notices about construction timelines and temporary service interruptions.",
+        "streets": [
+          "Inspiration Court",
+          "Inspiration Avenue, from Imagination Court to Stauffer Road",
+          "Inspiration Avenue, from Stauffer Road to Discovery Boulevard",
+          "Triumphant Court",
+          "Successful Way",
+          "Curiosity Court"
+        ]
+      },
+      {
+        "name": "Grant applications",
+        "status": "ongoing",
+        "summary": "Pursuing outside grant money for community improvements, so more of the work gets done without raising the assessment."
+      },
+      {
+        "name": "Park assessment",
+        "status": "ongoing",
+        "summary": "Inspecting all twenty parks and working out which equipment should be repaired, which should be replaced, and which should be removed."
+      },
+      {
+        "name": "Sidewalks in the townhouse area",
+        "status": "exploring",
+        "summary": "Early-stage: looking at whether sidewalks in the townhouse section are feasible and what they would cost."
+      }
+    ]
+  },
+  "architectural-control": {
+    "requires_approval": [
+      "Fences",
+      "Patios and decks",
+      "Windows",
+      "Front doors and screen doors",
+      "Sliding doors",
+      "Solar panels",
+      "Siding",
+      "Roofing and gutters",
+      "Garage doors"
+    ],
+    "bylaw_excerpts": [
+      {
+        "cite": "Amended By-Laws, Article XVIII (Vehicles and Parking), Section 2",
+        "text": "No trailers, campers, recreational vehicles, boat trailers, boats, tractors, or trucks in excess of 6,500 pounds gross vehicle weight, or other large vehicles may be parked, stored, maintained or repaired upon any portion of the Property of the Association, upon any streets (including County-owned streets), lots or common areas in the community except in such locations, if any, as may be designated for the parking of such vehicles by the Board."
+      },
+      {
+        "cite": "Declaration of Covenants, Exhibit A, Section 8 (Use Restrictions)",
+        "text": "No boats on cradles or trailers may be parked in streets, driveways, yards, or common areas for more than twenty-four hours. No vehicles except those classified as passenger cars or station wagons shall be regularly parked in residential areas."
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { links, telHref } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("community-links");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/contact/", label: "Contact" }]}
+  />
+  <Prose id="community-links" />
+  {links.map((c) => (
+    <details class="group">
+      <summary>{c.category}</summary>
+      <ul>
+        {c.links.map((l) => (
+          <li class="entry">
+            <p>
+              <strong>{l.url ? <a href={l.url}>{l.name}</a> : l.name}</strong>
+            </p>
+            {l.note && <p class="muted">{l.note}</p>}
+            {l.address && <p>{l.address}</p>}
+            {l.hours && <p>{l.hours}</p>}
+            {l.phone && (
+              <p>
+                <a href={telHref(l.phone)}>{l.phone}</a>
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
+  ))}
+</Base>

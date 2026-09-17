@@ -1,0 +1,104 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import OfficePanel from "../../components/OfficePanel.astro";
+import { org } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("dues");
+const d = org.dues;
+const portal = org.external.payhoa;
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <div class="with-aside">
+    <div>
+      <Prose id="dues" />
+
+      <h2>{d.year} assessment</h2>
+      <div class="table-scroll">
+        <table>
+          <tbody>
+            <tr>
+              <th scope="row">Each quarter</th>
+              <td class="amount">${d.quarterly}</td>
+            </tr>
+            <tr>
+              <th scope="row">Whole year</th>
+              <td class="amount">${d.annual}</td>
+            </tr>
+            <tr>
+              <th scope="row">Due dates</th>
+              <td>{d.due_dates.join(", ")}</td>
+            </tr>
+            <tr>
+              <th scope="row">Late penalty</th>
+              <td>{d.late_penalty}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>{d.pay_in_full_note}</p>
+
+      {portal.enabled && (
+        <>
+          <h2>Pay online</h2>
+          <p>{portal.help_text}</p>
+          <p>
+            <a class="button" href={portal.portal_url}>
+              Sign in to the resident portal
+            </a>
+          </p>
+          <h3>First time? Set up your account</h3>
+          <ol class="checklist">
+            {portal.registration_steps.map((s) => (
+              <li>{s}</li>
+            ))}
+          </ol>
+          <h3>Processing fees</h3>
+          <ul>
+            {portal.fees.map((f) => (
+              <li>
+                {f.method}: {f.amount}
+              </li>
+            ))}
+          </ul>
+          <p class="muted">{portal.fees_note}</p>
+        </>
+      )}
+
+      {d.zelle.enabled && (
+        <>
+          <h2>Pay by Zelle</h2>
+          <p>
+            Send to <strong>{d.zelle.identifier}</strong> ({d.zelle.recipient}).{" "}
+            {d.zelle.memo_instruction}
+          </p>
+        </>
+      )}
+
+      <h2>Pay by check or in person</h2>
+      <p>
+        Mail a check to {org.office.mailing}, or bring it to the office at{" "}
+        {org.office.street}. Include the bottom part of your bill.
+        {d.no_cash_dropbox && " Please do not put cash in the drop box."}
+      </p>
+
+      <h2>Water bill</h2>
+      <p>
+        The yearly water plant fee of ${d.water_plant_fee} is due{" "}
+        {d.water_bill_due}. Your household water bill comes from the Town of
+        Walkersville:
+        <a href={org.external.water_bill.url}>
+          {org.external.water_bill.label}
+        </a>
+        .
+      </p>
+    </div>
+    <aside>
+      <OfficePanel />
+    </aside>
+  </div>
+</Base>

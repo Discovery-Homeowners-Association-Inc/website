@@ -1,0 +1,29 @@
+---
+import { org, telHref } from "../lib/data";
+---
+
+<section class="panel" aria-labelledby="office-panel">
+  <h2 id="office-panel">The office</h2>
+  <dl>
+    <dt>Hours</dt>
+    {org.office.hours.map((h) => (
+      <dd>
+        {h.days}: {h.open} to {h.close}
+      </dd>
+    ))}
+    <dt>Phone</dt>
+    <dd>
+      <a href={telHref(org.office.phone)}>{org.office.phone}</a>
+    </dd>
+    <dt>Email</dt>
+    <dd>
+      <a href={`mailto:${org.office.email}`}>{org.office.email}</a>
+    </dd>
+    <dt>Visit</dt>
+    <dd>
+      {org.office.street}, {org.office.city}
+    </dd>
+    <dt>Mail</dt>
+    <dd>{org.office.mailing}</dd>
+  </dl>
+</section>

@@ -1,8 +1,29 @@
 ---
+import "../styles/global.css";
+import markSvg from "../assets/dhoa-mark.svg?raw";
+import { org, telHref } from "../lib/data";
+
 interface Props {
   title: string;
+  description?: string;
 }
-const { title } = Astro.props;
+const {
+  title,
+  description = `${org.legal_name} in ${org.locality}, ${org.state}.`,
+} = Astro.props;
+const path = Astro.url.pathname;
+const fullTitle =
+  path === "/" ? org.legal_name : `${title} | ${org.short_name}`;
+
+const nav = [
+  { href: "/meetings/", label: "Meetings" },
+  { href: "/amenities/", label: "Amenities" },
+  { href: "/rules/", label: "Rules & requests" },
+  { href: "/documents/", label: "Documents" },
+  { href: "/news/", label: "News & events" },
+  { href: "/contact/", label: "Contact" },
+];
+const current = (href: string) => (path.startsWith(href) ? "page" : undefined);
 ---
 
 <!doctype html>
@@ -10,9 +31,136 @@ const { title } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · Discovery Homeowners Association</title>
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(path, Astro.site)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#1f4fa8" />
+    <link
+      rel="alternate"
+      type="text/calendar"
+      title="Discovery HOA calendar"
+      href="/calendar.ics"
+    />
   </head>
   <body>
-    <slot />
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">
+          <Fragment
+            set:html={markSvg.replace(
+              /role="img"\s+aria-label="[^"]*"/,
+              'aria-hidden="true" focusable="false"',
+            )}
+          />
+          <span>
+            Discovery Homeowners
+            <small>
+              {org.locality}, {org.state}
+            </small>
+          </span>
+        </a>
+        <button
+          class="button button--quiet nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+        >
+          Menu
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Main" data-open="false">
+          <ul>
+            {nav.map((item) => (
+              <li>
+                <a href={item.href} aria-current={current(item.href)}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <a class="button" href="/dues/">
+          Pay dues
+        </a>
+      </div>
+    </header>
+
+    <main id="main" class="wrap">
+      <slot />
+    </main>
+
+    <slot name="after-main" />
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div>
+          <h2>{org.legal_name}</h2>
+          <address>
+            Office:{" "}
+            {`${org.office.street}, ${org.office.city}, ${org.office.state} ${org.office.zip}`}
+            <br />
+            Mail: {org.office.mailing}
+            <br />
+            Phone: <a href={telHref(org.office.phone)}>{org.office.phone}</a>.
+            Fax: {org.office.fax}
+            <br />
+            Email: <a href={`mailto:${org.office.email}`}>{org.office.email}</a>
+          </address>
+        </div>
+        <div>
+          <h2>The neighborhood</h2>
+          <ul>
+            <li>
+              <a href="/about/">About Discovery</a>
+            </li>
+            <li>
+              <a href="/about/history/">History</a>
+            </li>
+            <li>
+              <a href="/board/">The board</a>
+            </li>
+            <li>
+              <a href="/board/projects/">Projects</a>
+            </li>
+            <li>
+              <a href="/contact/committees/">Committees</a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h2>Help</h2>
+          <ul>
+            <li>
+              <a href="/rules/report-a-problem/">Report a problem</a>
+            </li>
+            <li>
+              <a href="/contact/community-links/">Community links</a>
+            </li>
+            <li>
+              <a href="/calendar.ics">Subscribe to the calendar</a>
+            </li>
+            <li>
+              <a href="/rss.xml">News feed (RSS)</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+      const nav = document.getElementById("site-nav");
+      toggle?.addEventListener("click", () => {
+        const open = toggle.getAttribute("aria-expanded") !== "true";
+        toggle.setAttribute("aria-expanded", String(open));
+        nav?.setAttribute("data-open", String(open));
+      });
+    </script>
   </body>
 </html>

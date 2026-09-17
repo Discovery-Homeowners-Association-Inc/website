@@ -1,0 +1,102 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import { email, org, pageData } from "../../lib/data";
+import { longDate } from "../../lib/dates";
+import { page } from "../../lib/pages";
+
+const p = await page("pool");
+const d = pageData.pool;
+const reg = org.external.pool_registration;
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/amenities/", label: "Amenities" }]}
+  />
+  <div class="with-aside">
+    <div>
+      <h2 class="first">{d.season.year} season</h2>
+      <p>
+        Open {longDate(d.season.opens)} to {longDate(d.season.closes)}.{" "}
+        {d.season.open_days}; closed {d.season.closed_weekday}.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <caption class="visually-hidden">Pool hours</caption>
+          <tbody>
+            {d.hours.map((h) => (
+              <tr>
+                <th scope="row">{h.period}</th>
+                <td>{h.time}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Memberships</h2>
+      <p>
+        {d.season.prerequisite} {d.season.registration_note}
+      </p>
+      <p>
+        <a class="button" href={reg.url}>
+          {reg.label}
+        </a>
+      </p>
+
+      <h3>Residents</h3>
+      <div class="table-scroll">
+        <table>
+          <tbody>
+            {d.fees_resident.map((f) => (
+              <tr>
+                <th scope="row">{f.label}</th>
+                <td class="amount">
+                  {f.amount}
+                  {f.unit && ` ${f.unit}`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <h3>Non-residents</h3>
+      <div class="table-scroll">
+        <table>
+          <tbody>
+            {d.fees_nonresident.map((f) => (
+              <tr>
+                <th scope="row">{f.label}</th>
+                <td class="amount">{f.amount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <h3>Guests and day passes</h3>
+      <p>{d.guest_passes}</p>
+      {d.season.no_cash && <p>No cash is accepted at the pool.</p>}
+
+      <h2>Rules</h2>
+      <Prose id="pool" />
+      <ul class="checklist">
+        {d.rules.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+      <DocumentList category="pool" />
+    </div>
+    <aside class="panel">
+      <h2>Questions about the pool</h2>
+      <p>
+        Email the Pool &amp; Recreation Committee at{" "}
+        <a href={`mailto:${email("pool_rec")}`}>{email("pool_rec")}</a>.
+      </p>
+    </aside>
+  </div>
+</Base>

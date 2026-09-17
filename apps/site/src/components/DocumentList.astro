@@ -1,0 +1,31 @@
+---
+import { getCollection } from "astro:content";
+
+interface Props {
+  category?: string;
+  heading?: string;
+}
+const { category, heading = "Forms and documents" } = Astro.props;
+const docs = (
+  await getCollection(
+    "documents",
+    (d) => !category || d.data.category === category,
+  )
+).toSorted((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+{docs.length > 0 && (
+  <section>
+    <h2>{heading}</h2>
+    <ul class="tasks">
+      {docs.map((d) => (
+        <li>
+          <a href={d.data.file}>
+            <strong>{d.data.title}</strong>
+            <span>{d.data.summary} (PDF)</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

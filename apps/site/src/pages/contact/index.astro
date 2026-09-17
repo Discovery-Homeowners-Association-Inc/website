@@ -1,0 +1,38 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import OfficePanel from "../../components/OfficePanel.astro";
+import { committees, email } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("contact");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <div class="with-aside">
+    <div>
+      <Prose id="contact" />
+      <h2>Committees</h2>
+      <ul class="people">
+        {committees.map((c) => (
+          <li>
+            <strong>{c.name}</strong>
+            <a href={`mailto:${email(c.email_key)}`}>{email(c.email_key)}</a>
+          </li>
+        ))}
+      </ul>
+      <p>
+        <a href="/contact/committees/">More about the committees</a>.{" "}
+        <a href="/contact/community-links/">
+          Schools, utilities, and county services
+        </a>
+        .
+      </p>
+    </div>
+    <aside>
+      <OfficePanel />
+    </aside>
+  </div>
+</Base>

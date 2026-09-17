@@ -1,0 +1,17 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { page } from "../../lib/pages";
+
+const p = await page("welcome-committee");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/about/", label: "About" }]}
+  />
+  <Prose id="welcome-committee" />
+</Base>

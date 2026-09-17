@@ -1,0 +1,59 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import { committees, email, pageData } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("architectural-control");
+const d = pageData["architectural-control"];
+const acc = committees.find((c) => c.slug === "acc");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/rules/", label: "Rules & requests" }]}
+  />
+  <div class="with-aside">
+    <div>
+      <Prose id="architectural-control" />
+      {d.bylaw_excerpts.map((b) => (
+        <blockquote class="callout">
+          <p>{b.text}</p>
+          <footer class="muted">{b.cite}</footer>
+        </blockquote>
+      ))}
+      <DocumentList category="acc" />
+    </div>
+    <aside class="panel">
+      <h2>Needs approval</h2>
+      <ul class="checklist">
+        {d.requires_approval.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+      <p>
+        Anything else visible from outside counts too. If you are not sure, ask.
+      </p>
+      <p>
+        <a href={`mailto:${email("acc")}`}>{email("acc")}</a>
+      </p>
+      {acc && (
+        <>
+          <h2>Committee members</h2>
+          <ul>
+            {acc.members.map((m) => (
+              <li>
+                {m.name}
+                {m.role && `, ${m.role}`}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </aside>
+  </div>
+</Base>

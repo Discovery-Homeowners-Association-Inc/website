@@ -1,0 +1,63 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import { email } from "../../lib/data";
+import { dateOf, longDate, timeOf } from "../../lib/dates";
+
+export async function getStaticPaths() {
+  return (await getCollection("events")).map((e) => ({
+    params: { id: e.id },
+    props: { item: e },
+  }));
+}
+
+const { item } = Astro.props;
+const e = item.data;
+const { Content } = await render(item);
+---
+
+<Base title={e.title} description={e.summary}>
+  <PageHead
+    title={e.title}
+    summary={e.summary}
+    crumbs={[{ href: "/news/#events", label: "Events" }]}
+  />
+  <div class="with-aside">
+    <div class="prose">
+      <Content />
+    </div>
+    <aside class="panel">
+      <dl>
+        <dt>When</dt>
+        <dd>
+          {longDate(dateOf(e.start))}, {timeOf(e.start)} to {timeOf(e.end)}
+        </dd>
+        <dt>Where</dt>
+        <dd>{e.location}</dd>
+        {e.cost && (
+          <>
+            <dt>Cost</dt>
+            <dd>{e.cost}</dd>
+          </>
+        )}
+        {e.audience && (
+          <>
+            <dt>For</dt>
+            <dd>{e.audience}</dd>
+          </>
+        )}
+        {e.contact_email_key && (
+          <>
+            <dt>Questions</dt>
+            <dd>
+              <a href={`mailto:${email(e.contact_email_key)}`}>
+                {email(e.contact_email_key)}
+              </a>
+            </dd>
+          </>
+        )}
+      </dl>
+    </aside>
+  </div>
+</Base>

@@ -1,0 +1,29 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import OfficePanel from "../../components/OfficePanel.astro";
+import { parks } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("parks");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/amenities/", label: "Amenities" }]}
+  />
+  <div class="with-aside">
+    <div>
+      <Prose id="parks" />
+      <h2>Inspections</h2>
+      <p class="prose">{parks.inspection_note}</p>
+      <p class="prose">{parks.report_note}</p>
+    </div>
+    <aside>
+      <OfficePanel />
+    </aside>
+  </div>
+</Base>

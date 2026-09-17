@@ -1,0 +1,61 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import OfficePanel from "../../components/OfficePanel.astro";
+import { pageData } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("rv-lot");
+const d = pageData["rv-lot"];
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/amenities/", label: "Amenities" }]}
+  />
+  <div class="with-aside">
+    <div>
+      <Prose id="rv-lot" />
+      <h2>Fees from {d.fees.effective}</h2>
+      <div class="table-scroll">
+        <table>
+          <tbody>
+            <tr>
+              <th scope="row">Monthly</th>
+              <td class="amount">{d.fees.monthly}</td>
+              <td>{d.fees.monthly_note}</td>
+            </tr>
+            <tr>
+              <th scope="row">Quarterly</th>
+              <td class="amount">{d.fees.quarterly}</td>
+              <td>{d.fees.quarterly_note}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>{d.fees.payment}</p>
+      <h2>To register, send</h2>
+      <ul class="checklist">
+        {d.registration_requirements.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+      <h2>Lot rules</h2>
+      <ul class="checklist">
+        {d.rules.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+      <h2>What the fee pays for</h2>
+      <p class="prose">{d.planned_improvements}</p>
+      <DocumentList category="rv-lot" />
+    </div>
+    <aside>
+      <OfficePanel />
+    </aside>
+  </div>
+</Base>

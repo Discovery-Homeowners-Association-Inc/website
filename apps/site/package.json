@@ -8,8 +8,12 @@
     "lint": "astro check"
   },
   "dependencies": {
+    "@astrojs/markdown-remark": "7.3.1",
+    "@dhoa/shared": "workspace:*",
+    "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
+    "@fontsource-variable/bricolage-grotesque": "5.3.0",
     "astro": "7.3.3",
-    "@dhoa/shared": "workspace:*"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

@@ -1,0 +1,71 @@
+{
+  "collections": [
+    {
+      "service": "Trash",
+      "schedule": "Tuesdays and Fridays, mornings",
+      "zone": ""
+    },
+    {
+      "service": "Recycling — north of Stauffer Road",
+      "schedule": "Alternating Mondays",
+      "zone": "Yellow zone"
+    },
+    {
+      "service": "Recycling — south of Stauffer Road",
+      "schedule": "Alternating Tuesdays",
+      "zone": "Pink zone"
+    },
+    {
+      "service": "Yard waste",
+      "schedule": "Second and fourth Wednesday, April 1 through December 10",
+      "zone": ""
+    }
+  ],
+  "setout_rule": "Not before 6:00 pm the evening before your pickup day.",
+  "bring_in_rule": "Bring containers back in as soon as you can after collection.",
+  "container_rule": "Trash needs to go in a rodent-proof container with a lid that closes, kept out of sight. Bags on their own do not survive the night — animals get into them and the mess ends up on the street.",
+  "yard_waste": {
+    "season": "April 1 – December 10",
+    "accepted": [
+      "Leaves",
+      "Grass clippings",
+      "Plants and shrubs",
+      "Tree prunings and trimmings"
+    ],
+    "not_accepted": [
+      "Rocks",
+      "Loose dirt or mulch",
+      "Fruit and vegetable scraps",
+      "Stumps",
+      "Limbs over 4 feet long or 4 inches thick"
+    ],
+    "bundling": "Bundle branches with rope or string, or put them in paper yard-waste bags. Nothing longer than 4 feet or thicker than 4 inches."
+  },
+  "tipping_fee_note": "The association pays Frederick County by the ton for everything sent to the transfer station. Those tipping fees are the single largest line item in the budget, which means recycling is not just tidy — it directly holds your assessment down.",
+  "contacts": [
+    {
+      "name": "Frederick County Solid Waste Management",
+      "address": "9031 Reich's Ford Road, Frederick, MD 21704",
+      "phones": [
+        {
+          "label": "Landfill",
+          "number": "301-600-2890"
+        },
+        {
+          "label": "Recycling",
+          "number": "301-600-2960"
+        }
+      ]
+    },
+    {
+      "name": "Frederick County Recycling Services",
+      "url": "https://www.frederickcountymd.gov/recycling",
+      "phones": [
+        {
+          "label": "Phone",
+          "number": "301-600-2960"
+        }
+      ]
+    }
+  ]
+}

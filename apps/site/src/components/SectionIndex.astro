@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "./PageHead.astro";
+import Prose from "./Prose.astro";
+import { page } from "../lib/pages";
+
+interface Props {
+  id: string;
+  items: { href: string; label: string; note: string }[];
+}
+const { id, items } = Astro.props;
+const p = await page(id);
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <Prose id={id} />
+  <ul class="tasks">
+    {items.map((s) => (
+      <li>
+        <a href={s.href}>
+          <strong>{s.label}</strong>
+          <span>{s.note}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>

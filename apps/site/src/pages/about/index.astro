@@ -1,0 +1,45 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { page } from "../../lib/pages";
+
+const p = await page("about");
+const sub = [
+  {
+    href: "/about/history/",
+    label: "History",
+    note: "Frederick County's first planned community, 1972",
+  },
+  {
+    href: "/about/welcome-committee/",
+    label: "Welcome Committee",
+    note: "A friendly face for new neighbors",
+  },
+  {
+    href: "/board/",
+    label: "The board",
+    note: "Seven neighbors, elected by the membership",
+  },
+  {
+    href: "/board/projects/",
+    label: "Projects",
+    note: "What the association is working on",
+  },
+];
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <Prose id="about" />
+  <ul class="tasks">
+    {sub.map((s) => (
+      <li>
+        <a href={s.href}>
+          <strong>{s.label}</strong>
+          <span>{s.note}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>

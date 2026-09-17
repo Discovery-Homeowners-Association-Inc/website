@@ -1,0 +1,99 @@
+---
+import { getCollection } from "astro:content";
+import { todayInNewYork } from "@dhoa/shared";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import { dateOf, dayOfMonth, monthShort, newsDate } from "../../lib/dates";
+import { upcoming } from "../../lib/calendar";
+
+const news = (await getCollection("news")).toSorted(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const today = todayInNewYork();
+const coming = await upcoming(12, today);
+const past = (await getCollection("events"))
+  .filter((e) => dateOf(e.data.end) < today)
+  .toSorted((a, b) => b.data.start.valueOf() - a.data.start.valueOf())
+  .slice(0, 6);
+---
+
+<Base
+  title="News and events"
+  description="Announcements from the board and what is happening in the neighborhood."
+>
+  <PageHead
+    title="News and events"
+    summary="Announcements from the board, and what is happening in the neighborhood."
+  />
+  <div class="two-up">
+    <section aria-labelledby="news-title">
+      <h2 id="news-title" class="first">
+        News
+      </h2>
+      <ul class="dated">
+        {news.map((n) => {
+          const d = dateOf(n.data.date);
+          return (
+            <li>
+              <time datetime={d}>
+                {monthShort(d)}
+                <span>{dayOfMonth(d)}</span>
+              </time>
+              <div>
+                <h3>
+                  <a href={`/news/${n.id}/`}>{n.data.title}</a>
+                </h3>
+                <p>
+                  {n.data.summary}{" "}
+                  <span class="visually-hidden">
+                    Posted {newsDate(n.data.date)}.
+                  </span>
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p>
+        <a href="/rss.xml">Follow with a news reader (RSS)</a>
+      </p>
+    </section>
+    <section aria-labelledby="events-title" id="events">
+      <h2 id="events-title" class="first">
+        Coming up
+      </h2>
+      <ul class="dated">
+        {coming.map((c) => (
+          <li>
+            <time datetime={c.date}>
+              {monthShort(c.date)}
+              <span>{dayOfMonth(c.date)}</span>
+            </time>
+            <div>
+              <h3>
+                <a href={c.href}>{c.title}</a>
+              </h3>
+              <p>{[c.time, c.location].filter(Boolean).join(", ")}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p>
+        <a href="/calendar.ics">Subscribe to the calendar</a>
+      </p>
+      {past.length > 0 && (
+        <>
+          <h3>Recent events</h3>
+          <ul>
+            {past.map((e) => (
+              <li>
+                <a href={`/events/${e.id}/`}>{e.data.title}</a>,{" "}
+                {newsDate(e.data.start)}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  </div>
+</Base>

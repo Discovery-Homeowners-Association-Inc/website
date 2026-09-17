@@ -1,0 +1,20 @@
+{
+  "name": "Discovery Homeowners Association",
+  "short_name": "Discovery HOA",
+  "description": "Discovery Homeowners Association, Inc. — Walkersville, Maryland.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f5",
+  "theme_color": "#1f4fa8",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    { "src": "/apple-touch-icon.png", "type": "image/png", "sizes": "180x180" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}

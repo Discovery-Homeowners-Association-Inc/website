@@ -1,0 +1,67 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import OfficePanel from "../../components/OfficePanel.astro";
+import { pageData } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("recreation-center");
+const d = pageData["recreation-center"];
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/amenities/", label: "Amenities" }]}
+  />
+  <div class="with-aside">
+    <div>
+      <Prose id="recreation-center" />
+      <h2>Rental fees</h2>
+      <div class="table-scroll">
+        <table>
+          <tbody>
+            {d.rental_fees.map((f) => (
+              <tr>
+                <th scope="row">{f.label}</th>
+                <td class="amount">
+                  {f.amount}
+                  {f.unit && `, ${f.unit}`}
+                </td>
+                <td>{f.note}</td>
+              </tr>
+            ))}
+            <tr>
+              <th scope="row">Refundable deposit</th>
+              <td class="amount">{d.deposit}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        {d.eligibility} Book at least {d.notice_days} days ahead. Capacity is{" "}
+        {d.capacity} people.
+      </p>
+      <h2>House rules</h2>
+      <ul class="checklist">
+        {d.rules.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+      <h2>Before you leave</h2>
+      <ul class="checklist">
+        {d.before_leaving.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+      <DocumentList category="rec-center" />
+    </div>
+    <aside>
+      <OfficePanel />
+    </aside>
+  </div>
+</Base>

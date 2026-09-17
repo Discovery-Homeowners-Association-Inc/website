@@ -1,0 +1,129 @@
+---
+import { getCollection } from "astro:content";
+import { todayInNewYork } from "@dhoa/shared";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import DocumentList from "../../components/DocumentList.astro";
+import { email, org } from "../../lib/data";
+import { boardMeetings } from "../../lib/calendar";
+import { dayOfMonth, longDate, monthShort } from "../../lib/dates";
+import { page } from "../../lib/pages";
+
+const p = await page("meetings");
+const today = todayInNewYork();
+const upcoming = await boardMeetings(today, 6);
+const records = (await getCollection("meetings")).toSorted((a, b) =>
+  b.data.date.localeCompare(a.data.date),
+);
+const withMinutes = records.filter((r) => r.data.minutes);
+const years = [...new Set(withMinutes.map((r) => r.data.date.slice(0, 4)))];
+const typeLabel = {
+  board: "Board meeting",
+  annual: "Annual meeting",
+  special: "Special meeting",
+  "pool-rec": "Pool & Recreation Committee",
+};
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead title={p.title} summary={p.summary} />
+  <div class="with-aside">
+    <div>
+      <section aria-labelledby="upcoming-title">
+        <h2 id="upcoming-title" class="first">
+          Upcoming board meetings
+        </h2>
+        <ul class="dated">
+          {upcoming.map((m) => (
+            <li>
+              <time datetime={m.date}>
+                {monthShort(m.date)}
+                <span>{dayOfMonth(m.date)}</span>
+              </time>
+              <div>
+                <h3>
+                  <a href={m.href}>{longDate(m.date)}</a>
+                </h3>
+                <p>
+                  {m.time}, {m.location}
+                  {m.href !== "/meetings/"
+                    ? ". The agenda is posted."
+                    : ". The agenda is posted about a week before."}
+                  {m.note && ` ${m.note}`}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="minutes-title">
+        <h2 id="minutes-title">Approved minutes</h2>
+        <p class="prose">
+          Minutes are posted here after the board votes to approve them, usually
+          at the following month's meeting. Drafts are not published.
+        </p>
+        {years.length === 0 ? (
+          <p class="muted">
+            No approved minutes have been posted to this site yet.
+          </p>
+        ) : (
+          years.map((y) => (
+            <>
+              <h3>{y}</h3>
+              <ul class="dated">
+                {withMinutes
+                  .filter((r) => r.data.date.startsWith(y))
+                  .map((r) => (
+                    <li>
+                      <time datetime={r.data.date}>
+                        {monthShort(r.data.date)}
+                        <span>{dayOfMonth(r.data.date)}</span>
+                      </time>
+                      <div>
+                        <h3>
+                          <a href={`/meetings/${r.id}/`}>
+                            {typeLabel[r.data.type]}
+                          </a>
+                        </h3>
+                        <p>Approved {longDate(r.data.minutes!.approved_on)}</p>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </>
+          ))
+        )}
+        <DocumentList
+          category="minutes"
+          heading="Earlier agendas and minutes (PDF)"
+        />
+      </section>
+
+      <Prose id="meetings" />
+    </div>
+    <aside class="panel">
+      <h2>Attending</h2>
+      <dl>
+        <dt>When</dt>
+        <dd>
+          {org.meetings.board.rule}, {org.meetings.board.time}
+        </dd>
+        <dt>Where</dt>
+        <dd>
+          {org.meetings.board.location}, {org.office.street}
+        </dd>
+        <dt>Who</dt>
+        <dd>{org.meetings.board.open_to}</dd>
+        <dt>Add an item to the agenda</dt>
+        <dd>
+          <a href={`mailto:${email("general")}`}>{email("general")}</a>
+        </dd>
+      </dl>
+      <p>
+        <a href="/calendar.ics">Add meetings to your calendar</a>
+      </p>
+    </aside>
+  </div>
+</Base>

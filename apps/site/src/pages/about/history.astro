@@ -1,0 +1,41 @@
+---
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import aerial from "../../assets/media/1972-aerial-construction.jpg";
+import sign from "../../assets/media/discovery-entrance-sign.jpg";
+import { page } from "../../lib/pages";
+
+const p = await page("history");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/about/", label: "About" }]}
+  />
+  <figure class="figure">
+    <Image
+      src={aerial}
+      widths={[480, 960, 1440]}
+      sizes="(min-width: 76rem) 72rem, 100vw"
+      alt="Aerial photograph of Discovery in 1972. The first rows of townhouses and detached houses stand on bare graded ground, surrounded by open farmland and ploughed fields."
+    />
+    <figcaption>
+      Discovery under construction in 1972. Photograph courtesy of the Maryland
+      Room, C. Burr Artz Public Library, Frederick County Public Libraries.
+    </figcaption>
+  </figure>
+  <Prose id="history" />
+  <figure class="figure figure--narrow">
+    <Image
+      src={sign}
+      widths={[480, 960]}
+      sizes="(min-width: 48rem) 40rem, 100vw"
+      alt="The Discovery entrance sign: white letters on a dark green board, set on a low clipped hedge behind a split-rail fence."
+    />
+    <figcaption>The entrance sign on Discovery Boulevard.</figcaption>
+  </figure>
+</Base>

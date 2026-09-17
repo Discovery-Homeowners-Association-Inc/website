@@ -1,0 +1,43 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { pageData } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("projects");
+const label = {
+  "in-progress": "In progress",
+  ongoing: "Ongoing",
+  exploring: "Being explored",
+  done: "Done",
+} as const;
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/board/", label: "The board" }]}
+  />
+  <Prose id="projects" />
+  {pageData.projects.projects.map((pr) => (
+    <section class="project">
+      <h2>{pr.name}</h2>
+      <p>
+        <span class={pr.status === "in-progress" ? "tag tag--marigold" : "tag"}>
+          {label[pr.status]}
+        </span>
+        {pr.timing && <span class="muted"> {pr.timing}</span>}
+      </p>
+      <p class="prose">{pr.summary}</p>
+      {pr.streets && (
+        <ul class="checklist">
+          {pr.streets.map((s) => (
+            <li>{s}</li>
+          ))}
+        </ul>
+      )}
+    </section>
+  ))}
+</Base>

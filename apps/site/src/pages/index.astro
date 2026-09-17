@@ -1,10 +1,246 @@
 ---
+import { getCollection } from "astro:content";
+import { todayInNewYork } from "@dhoa/shared";
 import Base from "../layouts/Base.astro";
+import Prose from "../components/Prose.astro";
+import mapSvg from "../assets/discovery-map.svg?raw";
+import { newsletter, org, trash } from "../lib/data";
+import { boardMeetings, upcoming } from "../lib/calendar";
+import { dayOfMonth, longDate, monthShort } from "../lib/dates";
+
+const today = todayInNewYork();
+const [nextMeeting] = await boardMeetings(today, 2);
+const coming = await upcoming(4, today);
+const news = (await getCollection("news"))
+  .toSorted(
+    (a, b) =>
+      Number(b.data.pinned) - Number(a.data.pinned) ||
+      b.data.date.valueOf() - a.data.date.valueOf(),
+  )
+  .slice(0, 3);
+
+const nextDue = (() => {
+  const year = Number(today.slice(0, 4));
+  const quarters = ["01-01", "04-01", "07-01", "10-01"].map(
+    (md) => `${year}-${md}`,
+  );
+  return quarters.find((d) => d >= today) ?? `${year + 1}-01-01`;
+})();
+
+const tasks = [
+  {
+    href: "/dues/",
+    label: "Pay your assessment",
+    note: `$${org.dues.quarterly} a quarter, or $${org.dues.annual} for the year`,
+  },
+  {
+    href: "/rules/architectural-control/",
+    label: "Change the outside of your home",
+    note: "Get approval before the work starts",
+  },
+  {
+    href: "/amenities/pool/",
+    label: "Swim at the pool",
+    note: "Season dates, hours, and passes",
+  },
+  {
+    href: "/amenities/recreation-center/",
+    label: "Rent the Recreation Center",
+    note: "Parties and meetings, up to 49 people",
+  },
+  {
+    href: "/rules/trash-recycling/",
+    label: "Put the bins out",
+    note: "Collection days and yard waste",
+  },
+  {
+    href: "/rules/report-a-problem/",
+    label: "Report a problem",
+    note: "Who to call, most urgent first",
+  },
+];
+
+const streets = [
+  "Revelation",
+  "Inquiry",
+  "Dream",
+  "Seekers",
+  "Daring",
+  "Inspiration",
+  "Eureka",
+  "Imagination",
+  "Curiosity",
+  "Triumphant",
+  "Adventure",
+  "Beacon",
+];
 ---
 
 <Base title="Home">
-  <main>
-    <h1>Discovery Homeowners Association</h1>
-    <p>Walkersville, Maryland. A neighborhood since 1972.</p>
-  </main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div>
+      <h1 id="hero-title">Discovery</h1>
+      <p class="hero__lede">
+        A neighborhood in {org.locality}, planned in 1972 as {org.county}'s
+        first planned community, and still run by the people who live here.
+      </p>
+      <p class="hero__streets">{streets.join(", ")}.</p>
+    </div>
+    <figure
+      class="hero__map"
+      aria-label="Street map of Discovery, with the neighborhood's own streets drawn in blue"
+    >
+      <Fragment
+        set:html={mapSvg.replace(
+          /viewBox="[^"]*"/,
+          'viewBox="100 120 900 1125" preserveAspectRatio="xMidYMid slice"',
+        )}
+      />
+    </figure>
+  </section>
+
+  <h2 class="visually-hidden">At a glance</h2>
+  <dl class="glance">
+    <div>
+      <dt>Next board meeting</dt>
+      <dd>
+        {nextMeeting ? longDate(nextMeeting.date) : "To be announced"}
+        <small>
+          {nextMeeting
+            ? `${nextMeeting.time}, ${nextMeeting.location}. Everyone is welcome.`
+            : ""}
+        </small>
+      </dd>
+    </div>
+    <div>
+      <dt>Trash pickup</dt>
+      <dd>
+        {trash.collections[0]?.schedule}
+        <small>
+          Bins out{" "}
+          {trash.setout_rule.charAt(0).toLowerCase() +
+            trash.setout_rule.slice(1)}
+        </small>
+      </dd>
+    </div>
+    <div>
+      <dt>Next assessment due</dt>
+      <dd>
+        {longDate(nextDue)}
+        <small>${org.dues.quarterly} per quarter</small>
+      </dd>
+    </div>
+    <div>
+      <dt>Office</dt>
+      <dd>
+        <a href={`tel:${org.office.phone_e164}`}>{org.office.phone}</a>
+        <small>
+          {org.office.hours
+            .map((h) => `${h.days}, ${h.open} to ${h.close}`)
+            .join("; ")}
+        </small>
+      </dd>
+    </div>
+  </dl>
+
+  <section aria-labelledby="tasks-title">
+    <h2 id="tasks-title">Get something done</h2>
+    <ul class="tasks">
+      {tasks.map((t) => (
+        <li>
+          <a href={t.href}>
+            <strong>{t.label}</strong>
+            <span>{t.note}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <div class="two-up">
+    <section aria-labelledby="coming-title">
+      <h2 id="coming-title">Coming up</h2>
+      <ul class="dated">
+        {coming.map((c) => (
+          <li>
+            <time datetime={c.date}>
+              {monthShort(c.date)}
+              <span>{dayOfMonth(c.date)}</span>
+            </time>
+            <div>
+              <h3>
+                <a href={c.href}>{c.title}</a>
+              </h3>
+              <p>{[c.time, c.location].filter(Boolean).join(", ")}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p>
+        <a href="/news/#events">All events</a>, or{" "}
+        <a href="/calendar.ics">add the calendar to your phone</a>.
+      </p>
+    </section>
+    <section aria-labelledby="news-title">
+      <h2 id="news-title">News from the board</h2>
+      <ul class="dated">
+        {news.map((n) => (
+          <li>
+            <time datetime={n.data.date.toISOString()}>
+              {monthShort(n.data.date.toISOString().slice(0, 10))}
+              <span>{dayOfMonth(n.data.date.toISOString().slice(0, 10))}</span>
+            </time>
+            <div>
+              <h3>
+                <a href={`/news/${n.id}/`}>{n.data.title}</a>
+              </h3>
+              <p>{n.data.summary}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p>
+        <a href="/news/">All news</a>
+      </p>
+    </section>
+  </div>
+
+  <section aria-labelledby="welcome-title">
+    <h2 id="welcome-title" class="visually-hidden">
+      About the neighborhood
+    </h2>
+    <Prose id="home" />
+  </section>
+
+  <section class="signup" slot="after-main" aria-labelledby="signup-title">
+    <div class="wrap">
+      <div>
+        <h2 id="signup-title">Get board news by email</h2>
+        <p>
+          Meeting agendas, approved minutes, and notices about the pool and
+          projects. About one email a month. Unsubscribe any time.
+        </p>
+      </div>
+      {newsletter.enabled ? (
+        <form method="post" action="/api/newsletter">
+          <label for="signup-email">Email address</label>
+          <input
+            id="signup-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+          />
+          <button class="button" type="submit">
+            Subscribe
+          </button>
+        </form>
+      ) : (
+        <p>
+          Email sign-up is being set up. Until then, new agendas and minutes
+          appear on the <a href="/meetings/">meetings page</a>.
+        </p>
+      )}
+    </div>
+  </section>
 </Base>

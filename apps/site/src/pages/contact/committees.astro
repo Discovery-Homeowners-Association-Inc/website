@@ -1,0 +1,44 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Prose from "../../components/Prose.astro";
+import { committees, email } from "../../lib/data";
+import { page } from "../../lib/pages";
+
+const p = await page("committees");
+---
+
+<Base title={p.title} description={p.summary}>
+  <PageHead
+    title={p.title}
+    summary={p.summary}
+    crumbs={[{ href: "/contact/", label: "Contact" }]}
+  />
+  <Prose id="committees" />
+  {committees.map((c) => (
+    <section>
+      <h2>{c.name}</h2>
+      <p class="prose">{c.purpose}</p>
+      {c.meets && <p>Meets: {c.meets}</p>}
+      <p>
+        Email <a href={`mailto:${email(c.email_key)}`}>{email(c.email_key)}</a>.{" "}
+        {c.volunteers_wanted && (
+          <span class="tag tag--marigold">Looking for volunteers</span>
+        )}
+      </p>
+      {c.members.length > 0 && (
+        <ul class="checklist">
+          {c.members.map((m) => (
+            <li>
+              {m.name}
+              {m.role && `, ${m.role}`}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p>
+        <a href={c.page}>Related page</a>
+      </p>
+    </section>
+  ))}
+</Base>
