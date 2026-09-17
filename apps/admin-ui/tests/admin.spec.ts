@@ -335,6 +335,8 @@ test("works on a phone: readable navigation, no sideways scrolling, actions befo
     );
     expect(overflow, `sideways scroll on ${path}`).toBeLessThanOrEqual(0);
 
+    // On a phone the links sit behind the Menu button, as on the public site.
+    await phone.locator(".nav-toggle").click();
     // Navigation links never overlap each other, whichever rows they wrap onto.
     const nav = phone.getByRole("navigation", { name: "Main" });
     const boxes = [];
@@ -400,6 +402,10 @@ test("a remembered administrator's header never changes height while a page load
   for (const width of [390, 900, 1366]) {
     await admin.setViewportSize({ width, height: 800 });
     await admin.goto("/content/");
+    // Below 44rem the links sit behind the Menu button. Opening the panel
+    // cannot change the header's height: the panel is positioned over the page.
+    const toggle = admin.locator(".nav-toggle");
+    if (await toggle.isVisible()) await toggle.click();
     await expect(
       admin
         .getByRole("navigation", { name: "Main" })

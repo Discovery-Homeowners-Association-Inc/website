@@ -72,14 +72,18 @@ test("dark mode passes accessibility checks on the home page", async ({
 test("the menu button opens the navigation on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  const menu = page.getByRole("button", { name: "Menu" });
+  // Located by class, not by name: the label swaps to "Close" when it opens.
+  const menu = page.locator(".nav-toggle");
   const nav = page.getByRole("navigation", { name: "Main" });
   await expect(nav).toBeHidden();
   await menu.click();
   await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await expect(menu).toHaveText("Close");
   await expect(
     nav.getByRole("link", { name: "Meetings", exact: true }),
   ).toBeVisible();
+  // The action moved into the panel, so it is reachable there too.
+  await expect(page.getByRole("link", { name: "Pay dues" })).toBeVisible();
 });
 
 test("the calendar feed is valid iCalendar", async ({ request }) => {

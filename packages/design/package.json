@@ -2,6 +2,7 @@
   "name": "@dhoa/design",
   "private": true,
   "exports": {
+    "./SiteHeader.astro": "./SiteHeader.astro",
     "./base.css": "./base.css",
     "./dhoa-mark.svg": "./dhoa-mark.svg",
     "./fonts/*": "./fonts/*"

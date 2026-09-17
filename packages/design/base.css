@@ -1,31 +1,81 @@
 /* Shared design system for the public site and the admin app. See docs/DESIGN.md. */
 /*
  * Fonts are self-hosted (SIL Open Font License; see fonts/). Both layouts
- * preload them. font-display: optional means text is drawn once and never
- * reflows: if a font has not arrived within about 100 ms on a first visit the
- * fallback stays for that page, and the cached font is used from then on.
+ * preload them.
+ *
+ * font-display: swap, not optional. Optional lets the browser keep the fallback
+ * for a whole page load and never swap, so a slow first visit could show the
+ * wrong typeface start to finish. Swap always arrives at the real font.
+ *
+ * The reflow swap would normally cause is reduced instead by naming the local
+ * fonts a visitor actually has and scaling them with size-adjust. Every ratio
+ * below was measured in a browser against what actually renders, never
+ * estimated:
+ *
+ *   body font, prose at weight 400   98.83%
+ *   body font, nav links at 600     103.79%
+ *   display font, the brand at 700  108.94%
+ *
+ * One ratio per family cannot serve every weight, so each is set to the value
+ * that keeps the fallback no WIDER than the web font. A narrower fallback
+ * cannot clip anything and cannot push the header past a breakpoint; a wider
+ * one is what broke it. Body text is therefore matched at prose weight, where
+ * it is within 1.2%, and the display face is left at 100%, which keeps the
+ * brand 16px narrower in the fallback rather than 9% wider everywhere.
+ *
+ * Vertical metrics are not overridden: every line-height here is unitless, so
+ * the line box follows font-size rather than the font's own ascent.
  */
 @font-face {
   font-family: "Bricolage Grotesque Variable";
   font-style: normal;
   font-weight: 200 800;
   font-stretch: 75% 100%;
-  font-display: optional;
+  font-display: swap;
   src: url("./fonts/bricolage-grotesque.woff2") format("woff2-variations");
+}
+
+/* Metric-matched stand-ins for the display font. Each group's ratio was
+ * measured against its first member; the rest are metric-compatible with it. */
+@font-face {
+  font-family: "Display fallback Arial";
+  src:
+    local("Arial"), local("Liberation Sans"), local("Helvetica Neue"),
+    local("Helvetica");
+  size-adjust: 100%;
+}
+@font-face {
+  font-family: "Display fallback Noto";
+  src: local("Noto Sans"), local("Roboto"), local("DejaVu Sans");
+  size-adjust: 97%;
 }
 @font-face {
   font-family: "Atkinson Hyperlegible Next Variable";
   font-style: normal;
   font-weight: 200 800;
-  font-display: optional;
+  font-display: swap;
   src: url("./fonts/atkinson-hyperlegible-next.woff2")
     format("woff2-variations");
+}
+
+/* Metric-matched stand-ins for the body font. */
+@font-face {
+  font-family: "Body fallback Arial";
+  src:
+    local("Arial"), local("Liberation Sans"), local("Helvetica Neue"),
+    local("Helvetica");
+  size-adjust: 98.83%;
+}
+@font-face {
+  font-family: "Body fallback Noto";
+  src: local("Noto Sans"), local("Roboto"), local("DejaVu Sans");
+  size-adjust: 97.2%;
 }
 @font-face {
   font-family: "Atkinson Hyperlegible Next Variable";
   font-style: italic;
   font-weight: 200 800;
-  font-display: optional;
+  font-display: swap;
   src: url("./fonts/atkinson-hyperlegible-next-italic.woff2")
     format("woff2-variations");
 }
@@ -47,10 +97,11 @@
   --warn-soft: #fbe6d4;
 
   --font-display:
-    "Bricolage Grotesque Variable", "Arial Narrow", system-ui, sans-serif;
+    "Bricolage Grotesque Variable", "Display fallback Arial",
+    "Display fallback Noto", system-ui, sans-serif;
   --font-body:
-    "Atkinson Hyperlegible Next Variable", system-ui, -apple-system, "Segoe UI",
-    sans-serif;
+    "Atkinson Hyperlegible Next Variable", "Body fallback Arial",
+    "Body fallback Noto", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --step--1: 0.889rem;
   --step-0: 1.125rem;
@@ -65,6 +116,8 @@
   --space-4: 1.5rem;
   --space-5: 2.5rem;
   --space-6: 4rem;
+
+  --header-z: 20;
 
   --measure: 68ch;
   --page: 76rem;
@@ -182,7 +235,7 @@ a:hover {
   top: -4rem;
   background: var(--surface);
   padding: var(--space-2) var(--space-3);
-  z-index: 10;
+  z-index: calc(var(--header-z) + 1);
 }
 
 .skip-link:focus {
@@ -207,6 +260,12 @@ a:hover {
 
 main {
   padding-block: var(--space-5) var(--space-6);
+}
+
+/* Anything an anchor can land on clears the sticky header. */
+:target,
+#main {
+  scroll-margin-top: 6rem;
 }
 
 .page-head {
@@ -262,18 +321,27 @@ main {
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 /*
- * The header's layout is chosen by the width of the screen, never by how wide
- * the text happens to render. Fonts use font-display: optional, so a page can
- * be drawn in the fallback font (Noto Sans on Linux is the widest measured)
- * instead of the web font; every layout below leaves room for that plus 10%.
- * That is what keeps the header the same height on every load.
+ * Every boundary below is measured, not chosen. Fonts use font-display:
+ * optional, so a first visit can legitimately be drawn in the fallback font,
+ * which is wider — so the fallback is what the layout has to survive. At these
+ * sizes one row needs 1090px in the web font and 1120px in the fallback, hence
+ * 71rem (1136px) with 16px of headroom. See docs/DESIGN.md.
  *
- *   wide    brand · links · action        one row
- *   medium  brand · action / links        links on their own row
- *   phone   brand / menu · action / links links behind the Menu button
+ *   >= 71rem       brand · links · action   one row
+ *   44rem–71rem    brand · action / links   links on one further row
+ *   < 44rem        brand · Menu             links and action in a panel
  *
+ * The links may wrap. They must never clip: see .site-nav ul below.
  */
+/* The header's own controls are compact; buttons in the page keep their size. */
+.site-header .button {
+  padding: 0.55rem 0.9rem;
+}
+
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--header-z);
   border-bottom: 1px solid var(--rule);
   background: var(--surface);
 }
@@ -305,14 +373,15 @@ main {
 }
 
 .brand svg {
-  width: 2.75rem;
+  width: 2.4rem;
   flex: none;
 }
 
 .brand span {
+  min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   line-height: 1.05;
 }
 
@@ -329,6 +398,16 @@ main {
   justify-self: end;
 }
 
+/*
+ * The panel wraps the links AND the action so a phone can show both behind the
+ * Menu button. Above the phone band it is not a box at all: `display: contents`
+ * hands its children straight to the header's grid. The wrapper is a plain div,
+ * never the <nav>, whose landmark role must survive.
+ */
+.site-nav-panel {
+  display: contents;
+}
+
 .site-nav {
   grid-area: nav;
   min-width: 0;
@@ -336,15 +415,23 @@ main {
 
 .site-nav ul {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0 var(--space-4);
+  /*
+   * The list may WRAP. It must never clip: an end-justified nowrap flex
+   * container with hidden overflow reports scrollWidth === clientWidth, so a
+   * link that does not fit cannot be reached by any means — it is gone. End
+   * alignment uses an auto margin, which cannot overflow.
+   */
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
   list-style: none;
   margin: 0;
   padding: 0;
+  min-width: 0;
 }
 
 .site-nav a {
   display: inline-block;
+  font-size: 1rem;
   color: var(--ink);
   text-decoration: none;
   font-weight: 600;
@@ -363,39 +450,75 @@ main {
 }
 
 /* Wide: everything on one row. */
-@media (min-width: 72rem) {
+@media (min-width: 71rem) {
   .site-header .wrap {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "brand nav action";
   }
   .site-nav ul {
-    justify-content: flex-end;
+    margin-inline-start: auto;
   }
 }
 
-/* Phone: links behind the Menu button. */
-@media (max-width: 52rem) {
+/* Phone: one row, with the links and the action in a panel over the page. */
+@media (max-width: 43.99rem) {
   .site-header .wrap {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      "brand brand"
-      "toggle action"
-      "nav nav";
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand toggle";
+    padding-block: var(--space-2);
+  }
+  .brand svg {
+    width: 2.1rem;
   }
   .button.nav-toggle {
     grid-area: toggle;
     display: inline-flex;
-    justify-self: start;
+    justify-self: end;
   }
-  .site-nav[data-open="false"] {
+  .site-nav-panel {
+    display: block;
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 15%);
+    padding: 0 var(--gutter) var(--space-3);
+  }
+  /*
+   * Closed only where a script can open it again. With no script the links
+   * stay on the page: a phone visitor must never be left with no navigation.
+   */
+  html[data-js] .nav-toggle[aria-expanded="false"] + .site-nav-panel {
     display: none;
   }
   .site-nav ul {
     flex-direction: column;
+    gap: 0;
   }
   .site-nav li a {
     display: block;
     border-bottom: 1px solid var(--rule);
+    border-left: 3px solid transparent;
+    padding-inline-start: var(--space-2);
+  }
+  .site-nav a:hover,
+  .site-nav a[aria-current="page"] {
+    border-bottom-color: var(--rule);
+    border-left-color: var(--marigold);
+  }
+  .header-action {
+    justify-self: stretch;
+    margin-top: var(--space-3);
+  }
+}
+
+/* Narrowest phones: the locality line is decoration, and dropping it keeps the
+ * brand to one row beside the Menu button instead of three. */
+@media (max-width: 23rem) {
+  .brand small {
+    display: none;
   }
 }
 

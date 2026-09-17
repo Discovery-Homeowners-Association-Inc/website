@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import markSvg from "@dhoa/design/dhoa-mark.svg?raw";
+import SiteHeader from "@dhoa/design/SiteHeader.astro";
 import fontDisplay from "@dhoa/design/fonts/bricolage-grotesque.woff2?url";
 import fontBody from "@dhoa/design/fonts/atkinson-hyperlegible-next.woff2?url";
 import { org, telHref } from "../lib/data";
@@ -25,7 +25,6 @@ const nav = [
   { href: "/news/", label: "News & events" },
   { href: "/contact/", label: "Contact" },
 ];
-const current = (href: string) => (path.startsWith(href) ? "page" : undefined);
 ---
 
 <!doctype html>
@@ -66,46 +65,16 @@ const current = (href: string) => (path.startsWith(href) ? "page" : undefined);
     <a class="skip-link" href="#main">
       Skip to content
     </a>
-    <header class="site-header">
-      <div class="wrap">
-        <a class="brand" href="/">
-          <Fragment
-            set:html={markSvg.replace(
-              /role="img"\s+aria-label="[^"]*"/,
-              'aria-hidden="true" focusable="false"',
-            )}
-          />
-          <span>
-            Discovery Homeowners
-            <small>
-              {org.locality}, {org.state}
-            </small>
-          </span>
-        </a>
-        <button
-          class="button button--quiet nav-toggle"
-          type="button"
-          aria-expanded="false"
-          aria-controls="site-nav"
-        >
-          Menu
-        </button>
-        <nav class="site-nav" id="site-nav" aria-label="Main" data-open="false">
-          <ul>
-            {nav.map((item) => (
-              <li>
-                <a href={item.href} aria-current={current(item.href)}>
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <a class="button header-action" href="/dues/">
-          Pay dues
-        </a>
-      </div>
-    </header>
+    <SiteHeader
+      title="Discovery Homeowners"
+      subtitle={`${org.locality}, ${org.state}`}
+      nav={nav}
+      path={path}
+    >
+      <a class="button" href="/dues/" slot="action">
+        Pay dues
+      </a>
+    </SiteHeader>
 
     <main id="main" class="wrap">
       <slot />
@@ -168,15 +137,5 @@ const current = (href: string) => (path.startsWith(href) ? "page" : undefined);
         </div>
       </div>
     </footer>
-
-    <script>
-      const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
-      const nav = document.getElementById("site-nav");
-      toggle?.addEventListener("click", () => {
-        const open = toggle.getAttribute("aria-expanded") !== "true";
-        toggle.setAttribute("aria-expanded", String(open));
-        nav?.setAttribute("data-open", String(open));
-      });
-    </script>
   </body>
 </html>

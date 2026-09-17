@@ -247,6 +247,9 @@
 
 /* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
+  .site-header {
+    position: static;
+  }
   .site-header nav,
   .nav-toggle,
   .signup,
