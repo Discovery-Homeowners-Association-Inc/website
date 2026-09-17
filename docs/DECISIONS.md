@@ -57,17 +57,32 @@ intends to keep doing so. PayHOA has no upload API that we know of, so the hand-
 **Revisit if** PayHOA offers an API for documents, or the board decides minutes should also be
 public.
 
-## 5. Hosting the public site: not yet decided
+## 5. The public site is a Cloudflare assets-only Worker
 
-GitHub Pages (the stated preference) and Cloudflare Workers Static Assets both serve static files
-for free, and the build output works on either.
+**Decision.** `apps/site` deploys as its own Worker, `dhoa-site`, carrying nothing but static
+files: no `main`, so no Worker code ever runs for a page view. GitHub Actions builds it and runs
+`wrangler deploy`.
 
-- **Workers Static Assets:** HTTPS can be validated all the way to the origin (Full (strict)), and
-  everything lives on one platform.
-- **GitHub Pages behind the Cloudflare proxy:** the Cloudflare-to-GitHub hop cannot be validated
-  (see the mockup's decision #6).
+**Why.** Cloudflare documents that "requests to static assets are free and unlimited" and never
+invoke the Worker, so the public site cannot cost anything or eat into the 100,000 requests a day
+the admin Worker needs, however busy it gets. That makes decision #2 a property of the platform
+rather than of our discipline. Beyond that:
 
-Decide before the domain cutover.
+- HTTPS can be validated all the way to the origin (Full (strict)). GitHub Pages behind the
+  Cloudflare proxy cannot validate the Cloudflare-to-GitHub hop (see the mockup's decision #6).
+- Everything lives on one platform, with one deploy mechanism we already run for the admin Worker.
+- Pages' free build allowance would go unused: the site has to be built in Actions anyway, to fetch
+  published content from `SITE_CONTENT_URL` before building.
+
+**What this costs.** A second Worker to deploy. Pages keeps three things we are giving up:
+per-branch preview URLs, Early Hints, and custom domains on nameservers outside Cloudflare — the
+last is irrelevant because the domain is moving to Cloudflare.
+
+**The domain is no longer on the critical path.** The site is reachable at
+`dhoa-site.<account>.workers.dev` from the first deploy, which is enough for the board's content
+review (`docs/CONTENT-REVIEW.md`). The custom domain is added on top whenever the transfer
+completes. Until then the `SITE_URL` repository variable holds the workers.dev address so canonical
+URLs and the feeds point at where the site really is; delete the variable at the cutover.
 
 ## 6. The mockup's content is the baseline
 

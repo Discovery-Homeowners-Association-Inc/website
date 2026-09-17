@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "dhoa-site",
+  "compatibility_date": "2026-08-15",
+  "observability": { "enabled": true },
+  // There is no "main": the public site is nothing but files. Requests to static
+  // assets never invoke Worker code, and Cloudflare bills none of them -- "requests
+  // to static assets are free and unlimited" -- so however busy the site gets it
+  // costs nothing and cannot eat into the 100,000 requests a day the admin Worker
+  // needs. That is docs/DECISIONS.md #2 held up by the platform rather than by
+  // discipline.
+  "assets": {
+    "directory": "./dist",
+    // Astro writes 404.html; serve it with a real 404 instead of a 200.
+    "not_found_handling": "404-page",
+  },
+}
