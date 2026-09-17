@@ -550,6 +550,10 @@ button[disabled] {
 }
 
 .admin-you a {
+  /* The same size as the navigation links beside it: at the inherited body
+   * size this link alone stood 48px tall and set the header's height. */
+  font-size: 1rem;
+  line-height: 1.2;
   font-weight: 600;
   text-decoration: none;
   color: var(--ink);
