@@ -304,15 +304,16 @@ figcaption {
 
 /*
  * The parks map: the neighborhood map with a marker for each park and shared
- * amenity, and a list beside it carrying the same information as text. The
- * markers are laid over the picture, positioned as a percentage of it, so
- * they follow it at any width.
+ * amenity. The markers are laid over the picture, positioned as a percentage
+ * of it, so they follow it at any width. Picking one fills the panel beside
+ * the map; the full list is folded away under it rather than spelled out
+ * twice at full length.
  */
 .parkmap {
   margin: var(--space-5) 0;
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(13rem, 1fr);
   align-items: start;
 }
 
@@ -321,13 +322,13 @@ figcaption {
   border-radius: var(--radius);
   border: 1px solid var(--rule);
   background: var(--surface);
-  overflow: hidden;
 }
 
 .parkmap__picture svg {
   display: block;
   width: 100%;
   height: auto;
+  border-radius: inherit;
 }
 
 .parkmap__marks {
@@ -343,6 +344,7 @@ figcaption {
   display: grid;
   place-items: center;
   translate: -50% -50%;
+  /* 24px at the smallest, so a finger can hit one (WCAG 2.2 2.5.8). */
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
@@ -353,70 +355,133 @@ figcaption {
   font-size: var(--step--1);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .parkmap__mark--amenity {
-  width: 1rem;
-  height: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
   background: var(--ink);
+  /* Reads as a dot, but stays a 24px target. */
+  box-shadow: inset 0 0 0 0.3rem var(--surface);
 }
 
+.parkmap__mark:hover,
 .parkmap__mark.is-lit {
   background: var(--ink);
-  scale: 1.2;
+  scale: 1.15;
 }
 
+.parkmap__mark--amenity:hover,
 .parkmap__mark--amenity.is-lit {
   background: var(--plan);
 }
 
-.parkmap__key h3 {
-  margin: 0 0 var(--space-1);
-  font-size: var(--step-0);
+/* The chosen marker sits above its neighbors, which crowd in places. */
+.parkmap__mark:hover,
+.parkmap__mark:focus-visible,
+.parkmap__mark.is-lit {
+  z-index: 1;
 }
 
-/*
- * Two columns of short rows, so the key stands about as tall as the map
- * beside it and both are on screen at once -- which is the whole point of
- * lighting one up from the other.
- */
-.parkmap__list {
+.parkmap__detail {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  /* Two lines whether or not anything is picked, so nothing jumps. */
+  min-height: 5.5rem;
+}
+
+.parkmap__detail b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+}
+
+.parkmap__detail.is-chosen b {
+  color: var(--plan);
+}
+
+.parkmap__legend {
   list-style: none;
   margin: 0 0 var(--space-3);
   padding: 0;
-  columns: 2;
-  column-gap: var(--space-3);
-}
-
-.parkmap__list li {
-  break-inside: avoid;
-}
-
-.parkmap__list li {
   display: grid;
-  grid-template-columns: 1.75rem 1fr;
+  gap: var(--space-2);
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+.parkmap__legend li {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.parkmap__swatch {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--plan);
+  color: var(--surface);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.parkmap__swatch--amenity {
+  width: 0.7rem;
+  height: 0.7rem;
+  background: var(--ink);
+}
+
+/*
+ * The shared disclosure is sized for a page's worth of links. Here it is a
+ * footnote under a panel, so it is set at body size rather than shouting.
+ */
+.parkmap__all {
+  margin-bottom: var(--space-3);
+}
+
+details.group.parkmap__all > summary {
+  font-size: var(--step-0);
+  padding-block: var(--space-2);
+}
+
+details.group.parkmap__all > ul {
+  padding-bottom: var(--space-2);
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.parkmap__entry {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
   gap: var(--space-2);
   align-items: baseline;
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius);
 }
 
-.parkmap__list li.is-lit {
+.parkmap__entry.is-lit {
   background: var(--paper);
 }
 
-.parkmap__list b {
+.parkmap__entry b {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   text-align: end;
   color: var(--plan);
 }
 
-.parkmap__list--amenities b {
-  color: var(--ink);
-}
-
-.parkmap__list small {
+.parkmap__entry small {
   display: block;
   color: var(--ink-muted);
 }
@@ -430,9 +495,5 @@ figcaption {
 @media (width < 52rem) {
   .parkmap {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .parkmap__list {
-    columns: 1;
   }
 }

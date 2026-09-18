@@ -5,24 +5,23 @@ import { expect, test } from "@playwright/test";
  * percentage of the picture's box. That only works while the percentages and
  * the picture's viewBox agree, and nothing in the page itself would complain
  * if they stopped agreeing -- the markers would quietly drift off the
- * neighborhood, or off the picture entirely. So these check where they land.
+ * neighborhood, or off the picture entirely. So these check where they land,
+ * and that picking one says which park it is.
  */
 test.beforeEach(async ({ page }) => {
   await page.goto("/amenities/parks/");
   await expect(page.locator(".parkmap")).toBeVisible();
 });
 
-test("draws a marker for every place in the key", async ({ page }) => {
-  const rows = await page.locator(".parkmap__list li").count();
-  expect(rows).toBeGreaterThan(20);
-  await expect(page.locator(".parkmap__mark")).toHaveCount(rows);
+test("draws a marker for every place in the list", async ({ page }) => {
+  const entries = await page.locator(".parkmap__entry").count();
+  expect(entries).toBeGreaterThan(20);
+  await expect(page.locator(".parkmap__mark")).toHaveCount(entries);
 });
 
 test("numbers the parks 1 to 20, in order", async ({ page }) => {
-  const numbers = await page
-    .locator(".parkmap__list:not(.parkmap__list--amenities) li b")
-    .allInnerTexts();
-  expect(numbers.map(Number)).toEqual(
+  const numbers = await page.locator(".parkmap__mark--park").allInnerTexts();
+  expect(numbers.map((t) => Number(t.trim()))).toEqual(
     Array.from({ length: 20 }, (_, i) => i + 1),
   );
 });
@@ -33,7 +32,7 @@ test("keeps every marker on the map", async ({ page }) => {
   const marks = page.locator(".parkmap__mark");
   for (let i = 0; i < (await marks.count()); i++) {
     const box = await marks.nth(i).boundingBox();
-    const label = await marks.nth(i).getAttribute("title");
+    const label = await marks.nth(i).getAttribute("aria-label");
     expect(box, `${label} has no box`).not.toBeNull();
     // Centres, so a marker half over the edge still counts as on the map.
     const x = box!.x + box!.width / 2;
@@ -51,13 +50,41 @@ test("keeps every marker on the map", async ({ page }) => {
   }
 });
 
-test("lights a park on the map when you point at it in the key", async ({
+test("says which park it is when you pick a marker", async ({ page }) => {
+  const detail = page.locator(".parkmap__detail");
+  await expect(detail).toContainText("Pick a marker");
+
+  const mark = page.locator('.parkmap__mark[data-label="Park 12"]');
+  await mark.click();
+  await expect(detail).toContainText("Park 12");
+  await expect(detail).toContainText("Off Treasure Avenue");
+  await expect(mark).toHaveClass(/is-lit/);
+
+  // Picking the same one again lets go of it.
+  await mark.click();
+  await expect(detail).toContainText("Pick a marker");
+});
+
+test("names a marker when it is reached by keyboard", async ({ page }) => {
+  await page.locator('.parkmap__mark[data-label="Park 1"]').focus();
+  await expect(page.locator(".parkmap__detail")).toContainText("Park 1");
+});
+
+test("every marker links to its own entry, for when scripts do not run", async ({
   page,
 }) => {
-  const row = page.locator(".parkmap__list li").first();
-  const id = await row.getAttribute("data-place");
-  const mark = page.locator(`.parkmap__mark[data-place="${id}"]`);
-  await expect(mark).not.toHaveClass(/is-lit/);
-  await row.hover();
-  await expect(mark).toHaveClass(/is-lit/);
+  const marks = page.locator(".parkmap__mark");
+  for (let i = 0; i < (await marks.count()); i++) {
+    const href = await marks.nth(i).getAttribute("href");
+    expect(href, "a marker with no link").toMatch(/^#place-\d+$/);
+    await expect(page.locator(href!)).toHaveCount(1);
+  }
+});
+
+test("folds the full list away, and opens it on request", async ({ page }) => {
+  const list = page.locator(".parkmap__all");
+  await expect(list).not.toHaveAttribute("open", /.*/);
+  await list.locator("summary").click();
+  await expect(list).toHaveAttribute("open", /.*/);
+  await expect(page.locator(".parkmap__entry").first()).toBeVisible();
 });

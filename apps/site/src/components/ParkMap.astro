@@ -15,12 +15,13 @@ interface Props {
  * ordinary elements laid over it rather than shapes spliced into it: the SVG
  * scales to the width of its box, so a marker placed at a percentage of that
  * box lands on the spot the projection gives, and stays an element that can
- * be styled and pointed at.
+ * be styled, focused and clicked.
  *
- * The map is a picture -- it carries role="img", and the overlay is hidden
- * from assistive technology, because the list beside it holds the same parks
- * in the same order with their notes. Lighting up a park in both at once is
- * an enhancement; with no JavaScript both still say everything.
+ * Each marker is a link to its entry in the full list. Pick one and the panel
+ * beside the map says which park it is; with no JavaScript the link still
+ * works, jumping to the same park in the list below. The list is the thing
+ * that holds the information -- the map is a nicer way to get at it -- so it
+ * is always there, folded away rather than spelled out twice.
  */
 const { places } = Astro.props;
 
@@ -32,74 +33,122 @@ const { places } = Astro.props;
  */
 const VIEW = { x: 50, y: 110, width: 790, height: 1150 };
 
-const marked = places.map((place, index) => {
-  const { x, y } = project(place.lat, place.lon);
-  return {
-    ...place,
-    id: `place-${index}`,
-    drawn: onTheMap(place.lat, place.lon),
-    left: ((x - VIEW.x) / VIEW.width) * 100,
-    top: ((y - VIEW.y) / VIEW.height) * 100,
-  };
-});
+/*
+ * Two markers can sit closer together than a marker is wide -- the two parks
+ * off Foresight Lane are 31m apart, and the pool and the court beside it 37m.
+ * Drawn where they are, each eats into the other's target, which is both a
+ * nuisance to tap and a failure of WCAG 2.2's 24px minimum.
+ *
+ * So markers that collide are eased apart until they do not, by the least
+ * that works. This moves the drawing, never the coordinate: the setting the
+ * board edits still says where the park is. Seventeen of the twenty-eight do
+ * not move at all and the furthest goes 20m, which is inside the error these
+ * positions already carry -- see apps/site/scripts/park-positions.mjs -- so
+ * the drawing claims no more precision than it did before.
+ */
+const APART = 58; // in the picture's own units; a marker is about 55 across
+
+const placed = places.map((place) => project(place.lat, place.lon));
+for (let pass = 0; pass < 100; pass++) {
+  let collided = false;
+  for (let a = 0; a < placed.length; a++) {
+    for (let b = a + 1; b < placed.length; b++) {
+      const dx = placed[b].x - placed[a].x;
+      const dy = placed[b].y - placed[a].y;
+      const gap = Math.hypot(dx, dy);
+      if (gap >= APART) continue;
+      collided = true;
+      // Straight apart, or along x when they are exactly on top of each other.
+      const ux = gap === 0 ? 1 : dx / gap;
+      const uy = gap === 0 ? 0 : dy / gap;
+      const push = (APART - gap) / 2;
+      placed[a].x -= ux * push;
+      placed[a].y -= uy * push;
+      placed[b].x += ux * push;
+      placed[b].y += uy * push;
+    }
+  }
+  if (!collided) break;
+}
+
+const marked = places.map((place, index) => ({
+  ...place,
+  id: `place-${index}`,
+  drawn: onTheMap(place.lat, place.lon),
+  left: ((placed[index].x - VIEW.x) / VIEW.width) * 100,
+  top: ((placed[index].y - VIEW.y) / VIEW.height) * 100,
+}));
+
+/** "Park 4, off Vision Lane" -- what the marker is called out loud. */
+const spoken = (place: { label: string; note: string }) =>
+  place.note
+    ? `${place.label}, ${place.note[0].toLowerCase()}${place.note.slice(1)}`
+    : place.label;
 
 const cropped = mapSvg.replace(
   /viewBox="[^"]*"/,
   `viewBox="${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}"`,
 );
-
-const parks = marked.filter((p) => p.kind === "park");
-const amenities = marked.filter((p) => p.kind === "amenity");
 ---
 
 <figure class="parkmap">
   <div class="parkmap__picture">
     <Fragment set:html={cropped} />
-    <ul class="parkmap__marks" aria-hidden="true">
+    <ul class="parkmap__marks">
       {marked
         .filter((p) => p.drawn)
         .map((p) => (
-          <li
-            id={p.id}
-            data-place={p.id}
-            title={p.label}
-            class:list={["parkmap__mark", `parkmap__mark--${p.kind}`]}
-            style={`left:${p.left.toFixed(2)}%;top:${p.top.toFixed(2)}%`}
-          >
-            {p.kind === "park" ? p.number : ""}
+          <li>
+            <a
+              href={`#${p.id}`}
+              data-place={p.id}
+              data-label={p.label}
+              data-note={p.note}
+              aria-label={spoken(p)}
+              class:list={["parkmap__mark", `parkmap__mark--${p.kind}`]}
+              style={`left:${p.left.toFixed(2)}%;top:${p.top.toFixed(2)}%`}
+            >
+              {p.kind === "park" ? p.number : ""}
+            </a>
           </li>
         ))}
     </ul>
   </div>
+
   <figcaption class="parkmap__key">
-    <h3>The parks</h3>
-    <ol class="parkmap__list">
-      {parks.map((p) => (
-        <li data-place={p.id}>
-          <b>{p.number}</b>
-          <span>
-            {p.label}
-            {p.note && <small>{p.note}</small>}
-          </span>
-        </li>
-      ))}
-    </ol>
-    {amenities.length > 0 && (
-      <Fragment>
-        <h3>Also on the map</h3>
-        <ul class="parkmap__list parkmap__list--amenities">
-          {amenities.map((p) => (
-            <li data-place={p.id}>
-              <b aria-hidden="true">&#8226;</b>
-              <span>
-                {p.label}
-                {p.note && <small>{p.note}</small>}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Fragment>
-    )}
+    <p class="parkmap__detail" data-detail>
+      <b data-detail-label>Pick a marker</b>
+      <span data-detail-note>to see which park it is.</span>
+    </p>
+    <ul class="parkmap__legend">
+      <li>
+        <span class="parkmap__swatch parkmap__swatch--park" aria-hidden="true">
+          7
+        </span>
+        The twenty parks, numbered as on the association's own map
+      </li>
+      <li>
+        <span
+          class="parkmap__swatch parkmap__swatch--amenity"
+          aria-hidden="true"
+        />
+        What the neighborhood shares
+      </li>
+    </ul>
+    <details class="group parkmap__all">
+      <summary>Every park and amenity</summary>
+      <ul>
+        {marked.map((p) => (
+          <li id={p.id} data-place={p.id} class="parkmap__entry">
+            <b>{p.kind === "park" ? p.number : "•"}</b>
+            <span>
+              {p.label}
+              {p.note && <small>{p.note}</small>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
     <p class="parkmap__note">
       Positions are approximate, taken from the association's own park map.
     </p>
@@ -108,20 +157,50 @@ const amenities = marked.filter((p) => p.kind === "amenity");
 
 <script>
   /*
-   * Point at a park in the list and it lights up on the map, and the other
-   * way about. Nothing here is needed to read the page -- it only saves
-   * counting markers to find the one you have just read about.
+   * Pick a marker and the panel says which park it is. Pointing at one shows
+   * it without committing, so a mouse can read the whole map without clicking
+   * twenty times; moving away falls back to whatever was actually picked.
+   *
+   * None of this is needed to read the page. With no JavaScript every marker
+   * is still a link to the same park in the list below it.
    */
   for (const figure of document.querySelectorAll(".parkmap")) {
-    const light = (id: string, on: boolean) => {
-      for (const el of figure.querySelectorAll(`[data-place="${id}"]`))
-        el.classList.toggle("is-lit", on);
+    const detail = figure.querySelector("[data-detail]");
+    const name = figure.querySelector("[data-detail-label]");
+    const note = figure.querySelector("[data-detail-note]");
+    if (!detail || !name || !note) continue;
+
+    const prompt = {
+      label: name.textContent ?? "",
+      note: note.textContent ?? "",
     };
-    for (const el of figure.querySelectorAll<HTMLElement>("[data-place]")) {
-      const id = el.dataset.place;
-      if (!id) continue;
-      el.addEventListener("pointerenter", () => light(id, true));
-      el.addEventListener("pointerleave", () => light(id, false));
+    const marks = figure.querySelectorAll<HTMLElement>(".parkmap__mark");
+    let picked: HTMLElement | null = null;
+
+    const show = (mark: HTMLElement | null) => {
+      name.textContent = mark?.dataset.label ?? prompt.label;
+      note.textContent = mark?.dataset.note ?? prompt.note;
+      detail.classList.toggle("is-chosen", Boolean(mark));
+      for (const other of marks)
+        other.classList.toggle("is-lit", other === mark);
+      for (const entry of figure.querySelectorAll(".parkmap__entry"))
+        entry.classList.toggle(
+          "is-lit",
+          Boolean(mark) &&
+            entry.getAttribute("data-place") === mark?.dataset.place,
+        );
+    };
+
+    for (const mark of marks) {
+      mark.addEventListener("click", (event) => {
+        event.preventDefault();
+        picked = mark === picked ? null : mark;
+        show(picked);
+      });
+      mark.addEventListener("pointerenter", () => show(mark));
+      mark.addEventListener("pointerleave", () => show(picked));
+      mark.addEventListener("focus", () => show(mark));
+      mark.addEventListener("blur", () => show(picked));
     }
   }
 </script>
