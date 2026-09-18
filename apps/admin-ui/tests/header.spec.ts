@@ -54,13 +54,15 @@ test.beforeAll(async ({ request }) => {
   expect([201, 409]).toContain(res.status());
 });
 
-test("an administrator's seven links fit every width", async ({ browser }) => {
+test("every link an administrator has fits at every width", async ({
+  browser,
+}) => {
   const page = await signIn(browser, ADMIN);
-  await expect(
-    page
-      .getByRole("navigation", { name: "Main" })
-      .getByRole("link", { name: "Settings", exact: true }),
-  ).toBeVisible();
+  const nav = page.getByRole("navigation", { name: "Main" });
+  // Named rather than counted, and the last two named on purpose: a link
+  // added to the end is the one the header runs out of room for first.
+  for (const name of ["Settings", "Export", "Help"])
+    await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
   await walkTheLadder(page);
 });
 

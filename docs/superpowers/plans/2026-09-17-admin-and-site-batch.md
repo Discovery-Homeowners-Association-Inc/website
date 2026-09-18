@@ -160,7 +160,7 @@ still a finding — record why it stands.
 with reasons, two kept deliberately. Three areas are not yet reviewed, and the
 document says so rather than implying the sweep was complete.
 
-### H. Exporting the association's data
+### ~~H. Exporting the association's data~~ — done
 
 Wanted: a full export, with a choice of what to take and what format to take it
 in. The association should be able to walk away from this software with
@@ -212,6 +212,26 @@ choice, because a restore needs ids and relationships that a spreadsheet drops.
 get a file, without a Worker exceeding its CPU limit, with roles enforced on the
 server rather than by hiding buttons, and with the choice recorded in the audit
 log.
+
+**Built as option 1, assembled in the browser.** `/export/` in the admin app.
+Each dataset is read through the endpoint that already owns it, so the Worker
+does no export work and the roles are enforced where they always were -- the
+browser test proves it by having an editor ask `/api/users` directly and get a
+403, rather than only checking that the checkbox is hidden.
+
+Formats are JSON, which keeps each thing's own shape and is the copy to keep,
+and CSV, which is one table at a time because a spreadsheet is one rectangle.
+No zip: it would have meant either a dependency or hand-rolling the format, and
+"one table at a time" is what a treasurer is asking for anyway.
+
+Uploaded files are deliberately out. They are the documents rather than a
+record of them, each already has a link, and streaming KV bytes through the
+browser to build an archive is the part that wanted option 3.
+
+`POST /api/audit/export` records what was taken; the action name is the
+server's and only the list of datasets comes from the caller. `GET /api/audit`
+is new and admin-only. The privacy page now says the board can take a copy that
+includes names and email addresses, and that every copy is logged.
 
 ## Two bugs found while doing the above
 
