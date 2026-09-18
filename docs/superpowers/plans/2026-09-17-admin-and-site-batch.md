@@ -76,10 +76,10 @@ Thirteen differing properties became eight. Five were nobody's decision and were
 fixed: a stray top margin on admin page titles, no space above admin sections,
 and explanations set 4px under body size. Of the eight left, three are the
 deliberate density differences now recorded in `docs/DESIGN.md`, and the rest are
-artefacts of the audit picking the first element of a role, where a first-child
+artifacts of the audit picking the first element of a role, where a first-child
 margin of zero is correct.
 
-### ~~C. Meetings: materialise records from the recurrence rule~~ — done
+### ~~C. Meetings: materialize records from the recurrence rule~~ — done
 
 **Decided:** the admin keeps the next N meetings as real records, created from
 the rule, and the site renders records instead of generating dates.
