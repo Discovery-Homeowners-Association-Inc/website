@@ -1,7 +1,7 @@
 import { Committee, Person } from "@dhoa/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { requireRole } from "../access.ts";
+import { hasRole, requireRole } from "../access.ts";
 import { auditStatement, nowIso } from "../db.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -37,7 +37,27 @@ export async function listCommittees(db: D1Database) {
 /** The roster: directors and committee members. Editing is for admins and the secretary. */
 export function rosterRoutes(deps: AppDeps) {
   const app = new Hono<AppEnv>();
-  app.get("/people", async (c) => c.json(await listPeople(c.env.DB)));
+  /*
+   * Everyone signed in needs the names -- minutes take attendance from this
+   * list. Nobody but the people who can edit the roster needs a director's
+   * phone number, or the address of one who chose not to publish theirs.
+   *
+   * `toPublicPerson` already draws that line for the website; this draws the
+   * same one for the admin app, rather than handing an editor who writes news
+   * posts the private contact details of the whole board.
+   */
+  app.get("/people", async (c) => {
+    const people = await listPeople(c.env.DB);
+    if (hasRole(c.get("user").grants, "admin", "secretary"))
+      return c.json(people);
+    return c.json(
+      people.map((p) => ({
+        ...p,
+        phone: "",
+        email: p.show_email ? p.email : "",
+      })),
+    );
+  });
   app.get("/committees", async (c) => c.json(await listCommittees(c.env.DB)));
 
   app.post("/people", requireRole("admin", "secretary"), async (c) => {

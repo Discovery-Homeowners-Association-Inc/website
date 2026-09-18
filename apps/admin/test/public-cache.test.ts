@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { beforeAll, expect, test } from "vitest";
 import { invalidateSnapshot } from "../src/routes/public.ts";
-import { call, seedSettings, snapshotCache } from "./helpers.ts";
+import { call, makeUser, seedSettings, snapshotCache } from "./helpers.ts";
 
 /**
  * The public snapshot builds the whole site in one request: five queries and
@@ -52,4 +52,49 @@ test("clearing the cache makes the next request see the change", async () => {
   const fresh = await officeName();
   expect(fresh).not.toBe(stale);
   expect(fresh).toBe("Visible After Invalidation");
+});
+
+test("publishing an agenda and canceling a meeting both reach the site", async () => {
+  // The meetings routes had no way to say the site had changed, so a published
+  // agenda or a called-off meeting sat behind the cache until some unrelated
+  // edit happened to clear it. Residents were told a canceled meeting was on.
+  const secretary = await makeUser(["secretary"]);
+  const made = await call(secretary, "POST", "/api/meetings", {
+    type: "board",
+    date: "2029-09-19",
+    time: "7:00 pm",
+    location: "Discovery Recreation Center",
+  });
+  expect(made.status).toBe(201);
+  const id = made.json.id as string;
+
+  await call(secretary, "PUT", `/api/meetings/${id}/agenda`, {
+    base_version: 0,
+    body: { items: [{ id: "x", title: "Call to order" }] },
+  });
+
+  const onTheSite = async () => {
+    const site = await call(null, "GET", "/api/public/site.json");
+    return (site.json.meetings as { id: string; status: string }[]).find(
+      (m) => m.id === id,
+    );
+  };
+
+  // Warm the cache so a stale entry would be the failure mode.
+  await onTheSite();
+  expect(
+    (await call(secretary, "POST", `/api/meetings/${id}/agenda/publish`))
+      .status,
+  ).toBe(200);
+  expect(await onTheSite()).toBeTruthy();
+
+  await onTheSite();
+  expect(
+    (
+      await call(secretary, "PATCH", `/api/meetings/${id}`, {
+        status: "canceled",
+      })
+    ).status,
+  ).toBe(200);
+  expect((await onTheSite())?.status).toBe("canceled");
 });

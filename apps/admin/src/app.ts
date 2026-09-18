@@ -63,7 +63,7 @@ export function createApp(deps: AppDeps) {
   api.use("*", requireUser(deps.resolveUser));
   api.route("/me", profileRoutes(deps));
   api.route("/users", userRoutes(deps));
-  api.route("/meetings", meetingRoutes());
+  api.route("/meetings", meetingRoutes(deps));
   api.route("/meetings", minutesRoutes());
   api.route("/items", itemRoutes(deps));
   api.route("/settings", settingsRoutes(deps));

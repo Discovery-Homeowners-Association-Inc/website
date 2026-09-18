@@ -5,8 +5,8 @@ import { requireRole } from "../access.ts";
 import { auditStatement, nowIso } from "../db.ts";
 import type { AppEnv } from "../types.ts";
 
-/** Enough to cover years of a volunteer board without unbounded work. */
-const LIMIT = 2000;
+/** One page. Older entries are reached with `before`, not by raising this. */
+const PAGE = 200;
 
 type Row = {
   id: number;
@@ -28,17 +28,30 @@ export function auditRoutes() {
    */
   app.get("/", requireRole("admin"), async (c) => {
     const limit = Math.min(
-      LIMIT,
-      z.coerce.number().int().min(1).catch(LIMIT).parse(c.req.query("limit")),
+      PAGE,
+      z.coerce.number().int().min(1).catch(PAGE).parse(c.req.query("limit")),
     );
+    /*
+     * Paged backwards from an id rather than capped at a fixed depth. A fixed
+     * cap made everything older than the newest N rows unreachable through the
+     * API at all, which is a poor property for the record of who did what:
+     * anyone could push an entry out of sight by writing N of their own.
+     */
+    const before = z.coerce
+      .number()
+      .int()
+      .min(1)
+      .catch(0)
+      .parse(c.req.query("before"));
     const { results } = await c.env.DB.prepare(
       `select a.id, a.at, a.actor_id, u.name as actor, a.action, a.entity,
               a.entity_id, a.detail
          from audit_log a left join "user" u on u.id = a.actor_id
+        where ? = 0 or a.id < ?
         order by a.id desc
         limit ?`,
     )
-      .bind(limit)
+      .bind(before, before, limit)
       .all<Row>();
     // `detail` goes out as the JSON text it is stored as, rather than parsed
     // here. Parsing two thousand of them is work this Worker has 10 ms to do,

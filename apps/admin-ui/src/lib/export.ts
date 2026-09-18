@@ -97,9 +97,20 @@ export async function collect(key: ExportDataset): Promise<Collected> {
       return { json: accounts, tables: { accounts } };
     }
     case "audit": {
-      // The server sends `detail` as the JSON text it stores, to keep the
-      // parsing off a Worker that has 10 ms per request.
-      const rows = await api<Rows>("GET", "/audit");
+      // Paged: the endpoint answers one page at a time so that nothing can
+      // push older entries out of reach, which means an export that wants the
+      // whole log has to walk it. The browser is the right place for that loop.
+      const rows: Rows = [];
+      // A stop, so a log far larger than anyone expects cannot spin the tab.
+      for (let page = 0; page < 500; page++) {
+        const last = rows.at(-1);
+        const got = await api<Rows>(
+          "GET",
+          last ? `/audit?before=${String(last.id)}` : "/audit",
+        );
+        if (got.length === 0) break;
+        rows.push(...got);
+      }
       const audit = rows.map((r) => ({
         ...r,
         detail:
