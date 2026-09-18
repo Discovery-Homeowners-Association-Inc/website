@@ -35,6 +35,26 @@ describe("toCsv", () => {
     );
   });
 
+  it("stops a spreadsheet running what someone typed", () => {
+    // An editor picks the title of a news item; an administrator exports
+    // content and opens it. Without the quote, Excel runs this.
+    expect(toCsv([{ title: '=HYPERLINK("https://evil.test","click")' }])).toBe(
+      'title\r\n"\'=HYPERLINK(""https://evil.test"",""click"")"',
+    );
+    for (const lead of ["=", "+", "-", "@", "\t", "\r"]) {
+      const out = toCsv([{ a: `${lead}danger` }]);
+      expect(out.split("\r\n")[1]?.replace(/^"|"$/g, "")).toBe(
+        `'${lead}danger`,
+      );
+    }
+  });
+
+  it("leaves numbers alone, including negative ones", () => {
+    // A guarded "-5" would stop being a number in the spreadsheet.
+    expect(toCsv([{ balance: -5 }])).toBe("balance\r\n-5");
+    expect(toCsv([{ balance: 0 }])).toBe("balance\r\n0");
+  });
+
   it("has nothing to say about no rows", () => {
     expect(toCsv([])).toBe("");
   });

@@ -10,11 +10,28 @@
  * readable and, more importantly, keeps it -- a CSV export that silently drops
  * the nested half of a record is worse than one that looks a bit technical.
  */
+
+/**
+ * Text a spreadsheet would run instead of showing.
+ *
+ * Excel, LibreOffice and Sheets treat a cell beginning with =, +, - or @ as a
+ * formula, and a leading tab or carriage return can smuggle one in. That
+ * matters here because the data is typed by people: an editor chooses the
+ * title of a news item, and an administrator is the one who later exports
+ * content to CSV and opens it. Without this, an editor could write a formula
+ * into a title and have it run on someone else's machine.
+ */
+const FORMULA = /^[=+\-@\t\r]/;
+
 const cell = (value: unknown): string => {
   if (value === null || value === undefined) return "";
+  // Numbers are not guarded: a number cannot be a formula, and "-5" has to
+  // stay a negative five rather than become text.
   const text =
     typeof value === "string"
-      ? value
+      ? FORMULA.test(value)
+        ? `'${value}`
+        : value
       : typeof value === "number" || typeof value === "boolean"
         ? String(value)
         : JSON.stringify(value);

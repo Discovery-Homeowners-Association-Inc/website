@@ -146,7 +146,7 @@ export default function Export() {
           <span class="hint">
             {format === "json"
               ? "One file holding everything you ticked. This is the one to keep."
-              : "A spreadsheet is one rectangle, so a CSV holds one table at a time."}
+              : "A spreadsheet is one rectangle, so a CSV holds one table at a time. Text a spreadsheet would run as a formula is marked with a quote so that it shows instead; choose JSON if you need the wording untouched."}
           </span>
         </div>
 
