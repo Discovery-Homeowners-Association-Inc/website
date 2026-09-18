@@ -19,7 +19,7 @@ Inquiry, Eureka, Imagination. The site borrows from that plan rather than from a
 
 | Token        | Light     | Dark      | Role                                                                         |
 | ------------ | --------- | --------- | ---------------------------------------------------------------------------- |
-| `--paper`    | `#F4F6F5` | `#101A22` | Page ground: a cool grey-white, not cream                                    |
+| `--paper`    | `#F4F6F5` | `#101A22` | Page ground: a cool gray-white, not cream                                    |
 | `--ink`      | `#1A2530` | `#E4EAEE` | Text                                                                         |
 | `--plan`     | `#1F4FA8` | `#8DB2F7` | Links, primary actions, Discovery's streets on the map                       |
 | `--marigold` | `#F2B43A` | `#F2B43A` | The sun from the association mark. Used for highlight fills only, never text |
@@ -88,6 +88,35 @@ the header past a breakpoint, and a wider one is precisely what broke it. Prose 
 Inlining the fonts as `data:` URIs was considered and rejected: 161.7KB of woff2 becomes
 ~221KB of base64 on a 12.4KB stylesheet, and CSS blocks rendering — a blank screen beats
 readable fallback text for nobody.
+
+## Maps
+
+There is one map drawing, `apps/site/src/assets/discovery-map.svg`, rendered from
+OpenStreetMap geometry by `render-neighborhood-map.py` in the association's tools
+repository. It carries CSS classes rather than baked-in colors, so it follows the palette
+into dark mode, weighs about 11KB, and asks nothing of any third party at runtime. No tile
+service, no map library, no runtime fetch: the same reasons the rest of the site is static.
+
+Two pages use it. The home page crops it to the neighborhood as a backdrop. The parks page
+(`ParkMap.astro`) crops it tighter and lays a marker over each park and shared amenity,
+with a key beside it.
+
+The markers are ordinary elements positioned as a percentage of the picture's box, not
+shapes spliced into the SVG. The SVG scales to its box, so a percentage lands on the spot
+the projection gives at any width; and a marker stays something CSS can style and a pointer
+can find. `apps/site/src/lib/map.ts` holds the projection, which is a copy of the renderer's
+— a unit test checks it against the asset's own viewBox, because if the map is ever
+re-rendered from different data every marker silently shifts.
+
+The map is a picture: it carries `role="img"`, and the marker overlay is `aria-hidden`,
+because the key beside it lists the same places in the same order with the same notes.
+Lighting up a park in both at once is an enhancement; with no JavaScript both still say
+everything.
+
+Where the positions come from is a separate question, answered in
+`apps/site/scripts/park-positions.mjs`: the association's only record of its parks is a
+hand drawing that is not to scale. They are estimates good to something like the width of a
+house, the page says so, and the board corrects any of them in Settings.
 
 ## Where the admin app differs, and why
 

@@ -4,13 +4,15 @@ import {
   api,
   can,
   longDate,
-  type MeetingListItem,
+  messageFrom,
   statusLabel,
+  type MeetingListItem,
   typeLabel,
 } from "../lib/api.ts";
 import { KINDS } from "../lib/content.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 export default function Dashboard() {
   const { me, error: meError } = useMe();
@@ -20,8 +22,8 @@ export default function Dashboard() {
   >([]);
   const [error, setError] = useState("");
   useEffect(() => {
-    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: Error) =>
-      setError(e.message),
+    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: unknown) =>
+      setError(messageFrom(e)),
     );
     void Promise.all(
       Object.keys(KINDS).map((k) =>
@@ -39,7 +41,7 @@ export default function Dashboard() {
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = meetings
-    .filter((m) => m.date >= today && m.status !== "cancelled")
+    .filter((m) => m.date >= today && m.status !== "canceled")
     .reverse();
   const inReview = meetings.filter(
     (m) =>
@@ -50,7 +52,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <h1>Hello, {me.name.split(" ")[0]}</h1>
+      <PageHead title={`Hello, ${me.name.split(" ")[0]}`} />
       <p class="meta">
         Your roles:{" "}
         {me.grants

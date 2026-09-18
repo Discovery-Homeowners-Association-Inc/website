@@ -135,7 +135,7 @@ const meetings = defineCollection({
     type: z.enum(["board", "annual", "special", "pool-rec"]),
     time: z.string(),
     location: z.string(),
-    status: z.enum(["scheduled", "cancelled", "held"]),
+    status: z.enum(["scheduled", "canceled", "held"]),
     agenda: z.array(
       z.object({ id: z.string(), title: z.string(), detail: z.string() }),
     ),

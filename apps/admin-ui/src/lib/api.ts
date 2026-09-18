@@ -43,14 +43,16 @@ export async function api<T>(
 export const can = (me: Me | null, ...roles: Role[]) =>
   !!me?.grants.some((g) => g.scope === "" && roles.includes(g.role));
 
-export type MeetingType = "board" | "annual" | "special" | "pool-rec";
+// The kinds of meeting, defined once with their labels.
+import type { MeetingType } from "@dhoa/shared";
+export type { MeetingType };
 export type Meeting = {
   id: string;
   type: MeetingType;
   date: string;
   time: string;
   location: string;
-  status: "scheduled" | "cancelled" | "held";
+  status: "scheduled" | "canceled" | "held";
 };
 export type MeetingListItem = Meeting & {
   agenda_status: "draft" | "published" | null;
@@ -134,12 +136,7 @@ export type ExportResponse = {
   vote: Vote;
 };
 
-export const typeLabel: Record<MeetingType, string> = {
-  board: "Board meeting",
-  annual: "Annual meeting",
-  special: "Special meeting",
-  "pool-rec": "Pool & Recreation Committee",
-};
+export { MEETING_LABEL as typeLabel } from "@dhoa/shared";
 
 export const statusLabel: Record<MinutesState, string> = {
   draft: "Draft",
@@ -149,14 +146,8 @@ export const statusLabel: Record<MinutesState, string> = {
   filed: "Filed in PayHOA",
 };
 
-export const longDate = (iso: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${iso}T12:00:00Z`));
+// Shared with the public site: both format the same calendar dates.
+export { longDate } from "@dhoa/shared";
 
 export const when = (iso: string) =>
   new Intl.DateTimeFormat("en-US", {
@@ -164,6 +155,19 @@ export const when = (iso: string) =>
     timeStyle: "short",
     timeZone: "America/New_York",
   }).format(new Date(iso));
+
+/**
+ * What to show a volunteer when something throws.
+ *
+ * A catch binding is `unknown`: a rejected value need not be an Error. Ten
+ * places cast it to one and read `.message`, which prints "undefined" if
+ * anything ever rejects with a string or a number -- rare, and exactly the
+ * moment when a useful message matters most.
+ */
+export const messageFrom = (e: unknown) =>
+  e instanceof Error && e.message
+    ? e.message
+    : "Something went wrong. Please try again.";
 
 export const param = (name: string) =>
   new URLSearchParams(location.search).get(name) ?? "";

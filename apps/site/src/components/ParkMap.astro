@@ -1,0 +1,127 @@
+---
+import type { MapPlace } from "@dhoa/shared";
+import mapSvg from "../assets/discovery-map.svg?raw";
+import { onTheMap, project } from "../lib/map.ts";
+
+interface Props {
+  places: MapPlace[];
+}
+
+/*
+ * The parks, drawn on the neighborhood map.
+ *
+ * The map itself is the same SVG the home page uses, so this costs no extra
+ * download and follows the site's palette into dark mode. The markers are
+ * ordinary elements laid over it rather than shapes spliced into it: the SVG
+ * scales to the width of its box, so a marker placed at a percentage of that
+ * box lands on the spot the projection gives, and stays an element that can
+ * be styled and pointed at.
+ *
+ * The map is a picture -- it carries role="img", and the overlay is hidden
+ * from assistive technology, because the list beside it holds the same parks
+ * in the same order with their notes. Lighting up a park in both at once is
+ * an enhancement; with no JavaScript both still say everything.
+ */
+const { places } = Astro.props;
+
+/*
+ * The map is drawn to hold the whole street network with room to spare. The
+ * parks sit inside x 110-781, y 180-1184 of it, so the picture is cropped to
+ * them with a margin: the same drawing, closer in, which is what makes twenty
+ * markers legible rather than crowded into the middle.
+ */
+const VIEW = { x: 50, y: 110, width: 790, height: 1150 };
+
+const marked = places.map((place, index) => {
+  const { x, y } = project(place.lat, place.lon);
+  return {
+    ...place,
+    id: `place-${index}`,
+    drawn: onTheMap(place.lat, place.lon),
+    left: ((x - VIEW.x) / VIEW.width) * 100,
+    top: ((y - VIEW.y) / VIEW.height) * 100,
+  };
+});
+
+const cropped = mapSvg.replace(
+  /viewBox="[^"]*"/,
+  `viewBox="${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}"`,
+);
+
+const parks = marked.filter((p) => p.kind === "park");
+const amenities = marked.filter((p) => p.kind === "amenity");
+---
+
+<figure class="parkmap">
+  <div class="parkmap__picture">
+    <Fragment set:html={cropped} />
+    <ul class="parkmap__marks" aria-hidden="true">
+      {marked
+        .filter((p) => p.drawn)
+        .map((p) => (
+          <li
+            id={p.id}
+            data-place={p.id}
+            title={p.label}
+            class:list={["parkmap__mark", `parkmap__mark--${p.kind}`]}
+            style={`left:${p.left.toFixed(2)}%;top:${p.top.toFixed(2)}%`}
+          >
+            {p.kind === "park" ? p.number : ""}
+          </li>
+        ))}
+    </ul>
+  </div>
+  <figcaption class="parkmap__key">
+    <h3>The parks</h3>
+    <ol class="parkmap__list">
+      {parks.map((p) => (
+        <li data-place={p.id}>
+          <b>{p.number}</b>
+          <span>
+            {p.label}
+            {p.note && <small>{p.note}</small>}
+          </span>
+        </li>
+      ))}
+    </ol>
+    {amenities.length > 0 && (
+      <Fragment>
+        <h3>Also on the map</h3>
+        <ul class="parkmap__list parkmap__list--amenities">
+          {amenities.map((p) => (
+            <li data-place={p.id}>
+              <b aria-hidden="true">&#8226;</b>
+              <span>
+                {p.label}
+                {p.note && <small>{p.note}</small>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Fragment>
+    )}
+    <p class="parkmap__note">
+      Positions are approximate, taken from the association's own park map.
+    </p>
+  </figcaption>
+</figure>
+
+<script>
+  /*
+   * Point at a park in the list and it lights up on the map, and the other
+   * way about. Nothing here is needed to read the page -- it only saves
+   * counting markers to find the one you have just read about.
+   */
+  for (const figure of document.querySelectorAll(".parkmap")) {
+    const light = (id: string, on: boolean) => {
+      for (const el of figure.querySelectorAll(`[data-place="${id}"]`))
+        el.classList.toggle("is-lit", on);
+    };
+    for (const el of figure.querySelectorAll<HTMLElement>("[data-place]")) {
+      const id = el.dataset.place;
+      if (!id) continue;
+      el.addEventListener("pointerenter", () => light(id, true));
+      el.addEventListener("pointerleave", () => light(id, false));
+    }
+  }
+</script>

@@ -1,4 +1,5 @@
 import {
+  ADMIN_ONLY_SETTINGS,
   ITEM_BODIES,
   type SiteSnapshot,
   isVisible,
@@ -18,7 +19,7 @@ export async function buildSnapshot(
   now: Date,
   fileUrl: (id: string, slug: string) => string,
 ): Promise<SiteSnapshot> {
-  const [settings, people, committees, items, meetings] = await Promise.all([
+  const [allSettings, people, committees, items, meetings] = await Promise.all([
     readSettings(db),
     listPeople(db),
     listCommittees(db),
@@ -41,7 +42,7 @@ export async function buildSnapshot(
         date: string;
         time: string;
         location: string;
-        status: "scheduled" | "cancelled" | "held";
+        status: "scheduled" | "canceled" | "held";
         published_at: string | null;
         agenda: string | null;
       }>(),
@@ -61,7 +62,12 @@ export async function buildSnapshot(
       }));
   return {
     generated_at: now.toISOString(),
-    settings,
+    // The board's own settings stay in the admin app; see ADMIN_ONLY_SETTINGS.
+    settings: Object.fromEntries(
+      Object.entries(allSettings).filter(
+        ([k]) => !(ADMIN_ONLY_SETTINGS as readonly string[]).includes(k),
+      ),
+    ) as SiteSnapshot["settings"],
     people: people.map(toPublicPerson),
     committees,
     news: of("news"),

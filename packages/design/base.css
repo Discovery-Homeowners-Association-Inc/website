@@ -755,6 +755,17 @@ textarea:focus-visible {
   border-left-color: var(--warn);
 }
 
+/*
+ * Page content in the database asks for this modifier -- the Architectural
+ * Control page uses it for "if you need help with the application" -- and it
+ * was never defined, so that aside rendered as a plain callout. Pool is the
+ * quiet surface the tokens already reserve for exactly this.
+ */
+.callout--note {
+  background: var(--pool);
+  border-left-color: var(--plan);
+}
+
 section[lang="es"] {
   border-top: 1px solid var(--rule);
   margin-top: var(--space-5);

@@ -92,7 +92,9 @@ test("the calendar feed is valid iCalendar", async ({ request }) => {
   const body = await res.text();
   expect(body.startsWith("BEGIN:VCALENDAR\r\n")).toBe(true);
   expect(body.trimEnd().endsWith("END:VCALENDAR")).toBe(true);
-  expect(body).toContain("SUMMARY:Board of directors meeting");
+  // One name for a board meeting everywhere: the feed, the meetings page and
+  // the meeting's own page all read it from MEETING_LABEL.
+  expect(body).toContain("SUMMARY:Board meeting");
 });
 
 test("every internal link resolves", async ({ page, request }) => {

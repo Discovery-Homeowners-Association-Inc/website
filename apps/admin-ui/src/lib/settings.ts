@@ -336,6 +336,36 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
     ],
   },
   {
+    key: "agenda-templates",
+    title: "Agenda templates",
+    intro:
+      "What goes on an agenda before anyone types anything. The secretary starts from this and edits; nothing here is compulsory.",
+    fields: (
+      [
+        ["board", "Board meeting"],
+        ["annual", "Annual meeting"],
+        ["special", "Special meeting"],
+        ["pool-rec", "Pool & Recreation Committee"],
+      ] as const
+    ).map(([key, label]) => ({
+      key,
+      label,
+      kind: "list" as const,
+      itemLabel: "Item",
+      summary: (r: Record<string, unknown>) => String(r.title ?? ""),
+      fields: [
+        { key: "title", label: "Title", kind: "text" as const },
+        {
+          key: "detail",
+          label: "Note",
+          kind: "textarea" as const,
+          rows: 2,
+          help: "Shown under the item on the published agenda.",
+        },
+      ],
+    })),
+  },
+  {
     key: "approvals",
     title: "Approvals",
     intro:
@@ -484,6 +514,39 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
       { key: "count", label: "Number of parks", kind: "number", step: 1 },
       { key: "inspection_note", label: "Inspections", kind: "textarea" },
       { key: "report_note", label: "Reporting a problem", kind: "textarea" },
+      {
+        key: "places",
+        label: "Map markers",
+        help:
+          "Where each park and amenity sits on the parks map. The positions " +
+          "are estimates read off the association's hand-drawn map; correct " +
+          "one by nudging its latitude and longitude.",
+        kind: "list",
+        itemLabel: "Marker",
+        summary: label,
+        fields: [
+          { key: "label", label: "Name", kind: "text", required: true },
+          {
+            key: "kind",
+            label: "Shown as",
+            kind: "select",
+            options: [
+              { value: "park", label: "Numbered park" },
+              { value: "amenity", label: "Amenity" },
+            ],
+          },
+          {
+            key: "number",
+            label: "Park number",
+            kind: "number",
+            step: 1,
+            help: "Shown inside the marker. Leave at 0 for an amenity.",
+          },
+          { key: "lat", label: "Latitude", kind: "number", step: 0.000001 },
+          { key: "lon", label: "Longitude", kind: "number", step: 0.000001 },
+          { key: "note", label: "Note", kind: "text" },
+        ],
+      },
     ],
   },
   {

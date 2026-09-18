@@ -301,3 +301,138 @@ figcaption {
   display: inline-block;
   padding-block: 0.2rem;
 }
+
+/*
+ * The parks map: the neighborhood map with a marker for each park and shared
+ * amenity, and a list beside it carrying the same information as text. The
+ * markers are laid over the picture, positioned as a percentage of it, so
+ * they follow it at any width.
+ */
+.parkmap {
+  margin: var(--space-5) 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.parkmap__picture {
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.parkmap__picture svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.parkmap__marks {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parkmap__mark {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  translate: -50% -50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--plan);
+  color: var(--surface);
+  border: 2px solid var(--surface);
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.parkmap__mark--amenity {
+  width: 1rem;
+  height: 1rem;
+  background: var(--ink);
+}
+
+.parkmap__mark.is-lit {
+  background: var(--ink);
+  scale: 1.2;
+}
+
+.parkmap__mark--amenity.is-lit {
+  background: var(--plan);
+}
+
+.parkmap__key h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--step-0);
+}
+
+/*
+ * Two columns of short rows, so the key stands about as tall as the map
+ * beside it and both are on screen at once -- which is the whole point of
+ * lighting one up from the other.
+ */
+.parkmap__list {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  columns: 2;
+  column-gap: var(--space-3);
+}
+
+.parkmap__list li {
+  break-inside: avoid;
+}
+
+.parkmap__list li {
+  display: grid;
+  grid-template-columns: 1.75rem 1fr;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+}
+
+.parkmap__list li.is-lit {
+  background: var(--paper);
+}
+
+.parkmap__list b {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  color: var(--plan);
+}
+
+.parkmap__list--amenities b {
+  color: var(--ink);
+}
+
+.parkmap__list small {
+  display: block;
+  color: var(--ink-muted);
+}
+
+.parkmap__note {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+@media (width < 52rem) {
+  .parkmap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .parkmap__list {
+    columns: 1;
+  }
+}

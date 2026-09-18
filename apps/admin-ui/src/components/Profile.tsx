@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
-import { api, type Me, when } from "../lib/api.ts";
+import { api, messageFrom, type Me, when } from "../lib/api.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 type Profile = Me & {
   provider: string | null;
@@ -45,13 +46,13 @@ export default function ProfilePage() {
   const load = () =>
     api<Profile>("GET", "/me").then(
       (x) => (setP(x), setName(x.name)),
-      (e: Error) => setError(e.message),
+      (e: unknown) => setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
   if (!p) return error ? <ErrorNotice message={error} /> : <Loading />;
   return (
     <>
-      <h1>Your profile</h1>
+      <PageHead title="Your profile" />
       <ErrorNotice message={error} />
       <Saved message={saved} />
       <form
@@ -60,7 +61,7 @@ export default function ProfilePage() {
           e.preventDefault();
           void api("PATCH", "/me", { name }).then(
             () => (load(), setSaved("Name saved.")),
-            (err: Error) => setError(err.message),
+            (err: unknown) => setError(messageFrom(err)),
           );
         }}
       >
@@ -117,7 +118,7 @@ export default function ProfilePage() {
             onClick={() =>
               void api("POST", "/me/sign-out-others").then(
                 () => (load(), setSaved("Signed out everywhere else.")),
-                (e: Error) => setError(e.message),
+                (e: unknown) => setError(messageFrom(e)),
               )
             }
           >

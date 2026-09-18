@@ -569,3 +569,31 @@ code {
   border-radius: 3px;
   padding: 0 0.25em;
 }
+
+/* Suggested agenda items: an Add button, then what it is and where it came from. */
+.suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.suggestions li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.suggestions .meta {
+  display: block;
+}
+
+/* A section heading inside the meetings table, so the groups read as groups. */
+.group-head {
+  padding-top: var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+  text-align: left;
+}

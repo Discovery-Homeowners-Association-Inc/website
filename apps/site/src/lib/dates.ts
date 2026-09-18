@@ -1,22 +1,10 @@
+/**
+ * Date helpers for the site. The calendar-date formatters are shared with the
+ * admin app, which formats the same dates for the same readers.
+ */
+export { dayOfMonth, longDate, monthShort } from "@dhoa/shared";
+
 const TZ = "America/New_York";
-
-/** Parse a YYYY-MM-DD calendar date at noon UTC so formatting never shifts the day. */
-const civil = (iso: string) => new Date(`${iso}T12:00:00Z`);
-
-export const longDate = (iso: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(civil(iso));
-
-export const monthShort = (iso: string) =>
-  new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" }).format(
-    civil(iso),
-  );
-export const dayOfMonth = (iso: string) => String(civil(iso).getUTCDate());
 
 export const dateOf = (d: Date) =>
   new Intl.DateTimeFormat("en-CA", {

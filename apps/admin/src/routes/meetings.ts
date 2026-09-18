@@ -1,9 +1,10 @@
-import { AgendaBody } from "@dhoa/shared";
+import { AgendaBody, MinutesBody } from "@dhoa/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, isConstraintError, nowIso } from "../db.ts";
+import { readSettings } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 
 const MeetingInput = z.object({
@@ -27,7 +28,7 @@ const MeetingPatch = MeetingInput.pick({
   location: true,
 })
   .partial()
-  .extend({ status: z.enum(["scheduled", "cancelled", "held"]).optional() });
+  .extend({ status: z.enum(["scheduled", "canceled", "held"]).optional() });
 
 export async function meetingOr404(db: D1Database, id: string) {
   const m = await db
@@ -35,7 +36,9 @@ export async function meetingOr404(db: D1Database, id: string) {
     .bind(id)
     .first<{
       id: string;
-      type: string;
+      // The column has a check constraint, so this is the whole set. Typing it
+      // as a string made callers reach for a cast to look anything up by kind.
+      type: "board" | "annual" | "special" | "pool-rec";
       date: string;
       time: string;
       location: string;
@@ -106,6 +109,48 @@ export function meetingRoutes() {
       ),
     ]);
     return c.json(next);
+  });
+
+  /*
+   * What to put on this agenda, so building one is not a memory test.
+   *
+   * Two sources, both explicit: the template for this kind of meeting, and
+   * whatever the previous meeting of the same kind left unfinished. Each open
+   * item says which meeting it came from, so the secretary can check it rather
+   * than trust it. Nothing is inferred from titles.
+   */
+  app.get("/:id/agenda/suggestions", async (c) => {
+    const m = await meetingOr404(c.env.DB, c.req.param("id"));
+    const settings = await readSettings(c.env.DB);
+    const template = settings["agenda-templates"][m.type] ?? [];
+
+    const previous = await c.env.DB.prepare(
+      `select v.body as body, mt.date as date
+         from meetings mt
+         join minutes mi on mi.meeting_id = mt.id
+         join minutes_versions v
+           on v.meeting_id = mt.id and v.version = mi.current_version
+        where mt.type = ? and mt.date < ?
+        order by mt.date desc
+        limit 1`,
+    )
+      .bind(m.type, m.date)
+      .first<{ body: string; date: string }>();
+
+    const open = previous
+      ? MinutesBody.parse(JSON.parse(previous.body))
+          .items.filter((it) => it.outcome !== "closed")
+          .map((it) => ({
+            id: it.id,
+            title: it.title,
+            outcome: it.outcome,
+            owner: it.follow_up_owner,
+            note: it.follow_up_note,
+            from_date: previous.date,
+          }))
+      : [];
+
+    return c.json({ template, open });
   });
 
   app.get("/:id/agenda", async (c) => {
