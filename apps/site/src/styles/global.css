@@ -391,14 +391,30 @@ figcaption {
   border-radius: var(--radius);
   background: var(--paper);
   border: 1px solid var(--rule);
-  /* Two lines whether or not anything is picked, so nothing jumps. */
-  min-height: 5.5rem;
+  /*
+   * Room for a name, where it is, and the longest of the descriptions, so
+   * the panel does not resize under the pointer as markers are picked.
+   */
+  min-height: 11rem;
 }
 
 .parkmap__detail b {
   display: block;
   font-family: var(--font-display);
   font-size: var(--step-1);
+}
+
+.parkmap__detail p {
+  margin: var(--space-1) 0 0;
+}
+
+.parkmap__detail [data-detail-where] {
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+}
+
+.parkmap__detail [data-detail-what]:empty {
+  display: none;
 }
 
 .parkmap__detail.is-chosen b {
@@ -484,6 +500,10 @@ details.group.parkmap__all > ul {
 .parkmap__entry small {
   display: block;
   color: var(--ink-muted);
+}
+
+.parkmap__entry small + small {
+  color: var(--ink);
 }
 
 .parkmap__note {

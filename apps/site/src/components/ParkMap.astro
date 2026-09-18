@@ -80,9 +80,9 @@ const marked = places.map((place, index) => ({
 }));
 
 /** "Park 4, off Vision Lane" -- what the marker is called out loud. */
-const spoken = (place: { label: string; note: string }) =>
-  place.note
-    ? `${place.label}, ${place.note[0].toLowerCase()}${place.note.slice(1)}`
+const spoken = (place: { label: string; where: string }) =>
+  place.where
+    ? `${place.label}, ${place.where[0].toLowerCase()}${place.where.slice(1)}`
     : place.label;
 
 const cropped = mapSvg.replace(
@@ -103,7 +103,8 @@ const cropped = mapSvg.replace(
               href={`#${p.id}`}
               data-place={p.id}
               data-label={p.label}
-              data-note={p.note}
+              data-where={p.where}
+              data-what={p.what}
               aria-label={spoken(p)}
               class:list={["parkmap__mark", `parkmap__mark--${p.kind}`]}
               style={`left:${p.left.toFixed(2)}%;top:${p.top.toFixed(2)}%`}
@@ -116,10 +117,11 @@ const cropped = mapSvg.replace(
   </div>
 
   <figcaption class="parkmap__key">
-    <p class="parkmap__detail" data-detail>
+    <div class="parkmap__detail" data-detail>
       <b data-detail-label>Pick a marker</b>
-      <span data-detail-note>to see which park it is.</span>
-    </p>
+      <p data-detail-where>to see what is there.</p>
+      <p data-detail-what></p>
+    </div>
     <ul class="parkmap__legend">
       <li>
         <span class="parkmap__swatch parkmap__swatch--park" aria-hidden="true">
@@ -143,7 +145,8 @@ const cropped = mapSvg.replace(
             <b>{p.kind === "park" ? p.number : "•"}</b>
             <span>
               {p.label}
-              {p.note && <small>{p.note}</small>}
+              {p.where && <small>{p.where}</small>}
+              {p.what && <small>{p.what}</small>}
             </span>
           </li>
         ))}
@@ -167,19 +170,21 @@ const cropped = mapSvg.replace(
   for (const figure of document.querySelectorAll(".parkmap")) {
     const detail = figure.querySelector("[data-detail]");
     const name = figure.querySelector("[data-detail-label]");
-    const note = figure.querySelector("[data-detail-note]");
-    if (!detail || !name || !note) continue;
+    const where = figure.querySelector("[data-detail-where]");
+    const what = figure.querySelector("[data-detail-what]");
+    if (!detail || !name || !where || !what) continue;
 
     const prompt = {
       label: name.textContent ?? "",
-      note: note.textContent ?? "",
+      where: where.textContent ?? "",
     };
     const marks = figure.querySelectorAll<HTMLElement>(".parkmap__mark");
     let picked: HTMLElement | null = null;
 
     const show = (mark: HTMLElement | null) => {
       name.textContent = mark?.dataset.label ?? prompt.label;
-      note.textContent = mark?.dataset.note ?? prompt.note;
+      where.textContent = mark ? (mark.dataset.where ?? "") : prompt.where;
+      what.textContent = mark?.dataset.what ?? "";
       detail.classList.toggle("is-chosen", Boolean(mark));
       for (const other of marks)
         other.classList.toggle("is-lit", other === mark);

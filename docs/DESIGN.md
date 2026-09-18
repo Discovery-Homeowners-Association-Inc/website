@@ -119,6 +119,12 @@ is usable by keyboard and screen reader without the list being open. The detail 
 not a live region: the marker announces itself when focused, and announcing it twice is
 worse than once.
 
+Each place says two things, and the distinction is worth keeping: `where` is the street a
+resident would name, derived from the survey; `what` is the equipment, transcribed from the
+board's own "Parks Description". The second is the reason to pick a marker at all — knowing
+Park 20 has a full basketball court and a merry go round is what someone came to the page
+for.
+
 `apps/site/src/lib/map.ts` holds the projection, which is a copy of the renderer's — a unit
 test checks it against the asset's own viewBox, because if the map is ever re-rendered from
 different data every marker silently shifts, and nothing else would notice. A browser test

@@ -58,11 +58,29 @@ test("says which park it is when you pick a marker", async ({ page }) => {
   await mark.click();
   await expect(detail).toContainText("Park 12");
   await expect(detail).toContainText("Off Treasure Avenue");
+  // What is there is the point of picking one, so check it arrives too.
+  await expect(detail).toContainText("Swing set (3 seats), slide");
   await expect(mark).toHaveClass(/is-lit/);
 
   // Picking the same one again lets go of it.
   await mark.click();
   await expect(detail).toContainText("Pick a marker");
+});
+
+test("says what is at every park, not just where it is", async ({ page }) => {
+  const parks = page.locator(".parkmap__mark--park");
+  for (let i = 0; i < (await parks.count()); i++) {
+    const mark = parks.nth(i);
+    const label = await mark.getAttribute("data-label");
+    expect(
+      await mark.getAttribute("data-where"),
+      `${label} has no street`,
+    ).toMatch(/^Off /);
+    expect(
+      (await mark.getAttribute("data-what")) ?? "",
+      `${label} has no description`,
+    ).not.toBe("");
+  }
 });
 
 test("names a marker when it is reached by keyboard", async ({ page }) => {
