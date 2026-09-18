@@ -1,12 +1,13 @@
 import type { AgendaBody } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
-  type AgendaResponse,
   api,
   can,
   longDate,
+  messageFrom,
   newId,
   param,
+  type AgendaResponse,
   typeLabel,
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
@@ -49,7 +50,10 @@ export default function Meeting() {
     );
     setDirty(false);
   };
-  useEffect(() => void load().catch((e: Error) => setError(e.message)), []);
+  useEffect(
+    () => void load().catch((e: unknown) => setError(messageFrom(e))),
+    [],
+  );
 
   // Warn before leaving with unsaved changes.
   useEffect(() => {
@@ -92,7 +96,7 @@ export default function Meeting() {
       await load();
       setSaved(`Saved as version ${r.version}.`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   }
 
@@ -106,7 +110,7 @@ export default function Meeting() {
       await load();
       setSaved(`Version ${r.published_version} is marked as published.`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   }
 

@@ -5,7 +5,7 @@ import {
   itemActions,
 } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, param, when } from "../lib/api.ts";
+import { api, can, messageFrom, param, when } from "../lib/api.ts";
 import { KINDS, stateLabel } from "../lib/content.ts";
 import { blank, fromLocalInput, toLocalInput } from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
@@ -61,7 +61,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     setDirty(false);
   };
   useEffect(() => {
-    void load().catch((e: Error) => setError(e.message));
+    void load().catch((e: unknown) => setError(messageFrom(e)));
     api<Approvals>("GET", "/settings/approvals").then(setApprovals, () => {});
   }, [id]);
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
       await load();
       setSaved(done);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   };
 
@@ -116,7 +116,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
         const created = await api<Full>("POST", "/items", payload);
         location.replace(`${cfg.path}edit/?id=${created.id}&saved=1`);
       } catch (e) {
-        setError((e as Error).message);
+        setError(messageFrom(e));
       }
       return;
     }
@@ -144,7 +144,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
       setBody({ ...body, file_id: data.id, file_name: data.name });
       setDirty(true);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     } finally {
       setUploading(false);
     }
@@ -377,7 +377,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                     ) {
                       void api("DELETE", `/items/${item.id}`).then(
                         () => location.assign(cfg.path),
-                        (e: Error) => setError(e.message),
+                        (e: unknown) => setError(messageFrom(e)),
                       );
                     }
                   }}

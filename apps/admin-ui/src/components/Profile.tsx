@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { api, type Me, when } from "../lib/api.ts";
+import { api, messageFrom, type Me, when } from "../lib/api.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 
 type Profile = Me & {
@@ -45,7 +45,7 @@ export default function ProfilePage() {
   const load = () =>
     api<Profile>("GET", "/me").then(
       (x) => (setP(x), setName(x.name)),
-      (e: Error) => setError(e.message),
+      (e: unknown) => setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
   if (!p) return error ? <ErrorNotice message={error} /> : <Loading />;
@@ -60,7 +60,7 @@ export default function ProfilePage() {
           e.preventDefault();
           void api("PATCH", "/me", { name }).then(
             () => (load(), setSaved("Name saved.")),
-            (err: Error) => setError(err.message),
+            (err: unknown) => setError(messageFrom(err)),
           );
         }}
       >
@@ -117,7 +117,7 @@ export default function ProfilePage() {
             onClick={() =>
               void api("POST", "/me/sign-out-others").then(
                 () => (load(), setSaved("Signed out everywhere else.")),
-                (e: Error) => setError(e.message),
+                (e: unknown) => setError(messageFrom(e)),
               )
             }
           >

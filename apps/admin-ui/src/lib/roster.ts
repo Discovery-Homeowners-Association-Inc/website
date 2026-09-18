@@ -1,7 +1,7 @@
 import type { Committee, Person } from "@dhoa/shared";
 import { isServing } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api } from "./api.ts";
+import { api, messageFrom } from "./api.ts";
 
 export type RosterPerson = Person & { id: string; updated_at: string };
 
@@ -15,7 +15,7 @@ export function useRoster() {
       api<Committee[]>("GET", "/roster/committees"),
     ]).then(
       ([p, c]) => (setPeople(p), setCommittees(c)),
-      (e: Error) => setError(e.message),
+      (e: unknown) => setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
   const today = new Date().toISOString().slice(0, 10);

@@ -1,6 +1,6 @@
 import type { Item, ItemKind } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, when } from "../lib/api.ts";
+import { api, can, messageFrom, when } from "../lib/api.ts";
 import { KINDS, stateLabel } from "../lib/content.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
@@ -22,8 +22,8 @@ export default function ItemList({ kind }: { kind: ItemKind }) {
   const [q, setQ] = useState("");
   const [show, setShow] = useState<"all" | "mine" | "pending">("all");
   useEffect(() => {
-    api<Row[]>("GET", `/items?kind=${kind}`).then(setRows, (e: Error) =>
-      setError(e.message),
+    api<Row[]>("GET", `/items?kind=${kind}`).then(setRows, (e: unknown) =>
+      setError(messageFrom(e)),
     );
   }, [kind]);
   if (error) return <ErrorNotice message={error} />;

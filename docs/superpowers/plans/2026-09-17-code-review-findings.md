@@ -40,20 +40,47 @@ the feed now says "Board meeting" like everything else.
 
 ---
 
+### 3. Every error message was read off a value that might not be an Error — fixed
+
+`catch (e) { setError((e as Error).message) }` appeared ten times, and
+`(e: Error) => setError(e.message)` nine more — a rejection handler's value is
+`unknown`, so annotating it `Error` is the same assertion in a different shape.
+If anything ever rejected with a string, a volunteer saw "undefined".
+
+`messageFrom(e)` in `lib/api.ts` narrows with `instanceof` and falls back to a
+sentence a person can act on. Nineteen sites now use it; no cast remains in the
+admin app.
+
+The states stayed where they were, per finding #7: what was worth sharing was
+the handling, not the twelve pieces of component state.
+
+### 4. A CSS modifier the content asked for was never defined — fixed
+
+Page content in the database uses `callout--note` — the Architectural Control
+page marks "if you need help filling out the application" with it — and only
+`callout--warning` was ever written. That aside had been rendering as a plain
+callout. Defined against `--pool`, the quiet surface the tokens already reserve
+for callouts.
+
+**The finding underneath it matters more than the fix.** Page content is stored
+in D1 and references classes from the design system, so a class is not dead
+because the source does not mention it, and a modifier can be missing without
+anything failing. Checking one without the other proves nothing.
+
+### 5. Dead CSS: none, and the search itself was the lesson
+
+A sweep for classes nothing references reported five. Every one was a false
+positive: four `status--*` classes are built as `` `status status--${r.status}` ``
+and `callout--warning` lives in database content. 103 classes defined, none
+dead.
+
+Worth recording so the next person does not delete them: **a class in this
+project can be referenced dynamically, or from content in the database, and a
+plain text search over the repository sees neither.**
+
 ## Deferred, with reasons
 
-### 3. Nine identical catch blocks
-
-`catch (e) { setError((e as Error).message) }` appears nine times across six
-components. Beyond the repetition, `as Error` is a cast over a binding that is
-genuinely `unknown` -- a rejected value need not be an Error, and if one is not,
-this prints `undefined` to a volunteer.
-
-A single `run(action)` helper would remove all nine and fix the unsafe cast in
-one place. Deferred only because it touches six components at once and this
-session has already changed a great deal; it is the first thing to do next.
-
-### 4. The admin app has no page head
+### 6. The admin app has no page head
 
 The site has `PageHead.astro` -- title, summary, breadcrumbs, one rule under it.
 The admin app writes `<h1>` and `<p class="lede">` by hand in twelve components.
@@ -63,14 +90,14 @@ title's top margin: there was nothing holding it in one place.
 Deferred: it is a component plus twelve edits, and worth doing on its own so the
 diff is readable.
 
-### 5. `apps/admin-ui/src/lib/settings.ts` is 725 lines
+### 7. `apps/admin-ui/src/lib/settings.ts` is 725 lines
 
 One declarative list describing every settings screen. Long, but it is data
 rather than logic, and the length is the number of settings the board has. Worth
 checking whether every field kind it supports is still used by something; not
 worth restructuring.
 
-### 6. `Minutes.tsx` is 652 lines
+### 8. `Minutes.tsx` is 652 lines
 
 The largest component, carrying the whole minutes lifecycle: draft, review,
 vote, approve, file. Splitting it by stage is plausible. Deferred until someone
@@ -81,14 +108,14 @@ cohesive: every part is about one document moving through one process.
 
 ## Kept deliberately
 
-### 7. Twelve components each hold their own `error` state
+### 9. Twelve components each hold their own `error` state
 
 Twelve declare `const [error, setError] = useState("")`. This is the idiom, not
 duplication: each component owns what it is doing. Extracting it into a shared
 hook would couple twelve screens to one notion of failure to save twelve lines.
-The catch _bodies_ are worth sharing (#3); the state is not.
+The catch bodies were worth sharing and now are (#3); the state is not.
 
-### 8. `scripts/` holds four single-purpose scripts
+### 10. `scripts/` holds four single-purpose scripts
 
 `snapshot.ts`, `check-seed-stable.sh`, `check-english.sh`,
 `render-mark-png.sh`, plus `type-audit.mjs` under `apps/site`. Each does one
@@ -111,6 +138,12 @@ only `snapshot.ts` fetches anything.
 
 ## Not yet reviewed
 
-`apps/admin/src/routes` beyond `meetings.ts`, the Preact components other than
-those named above, and `packages/design/base.css` at 911 lines. "Nothing left
-unturned" is not yet true, and saying so is more useful than implying otherwise.
+**Reviewed since:** `apps/admin/src/routes` — nine of the ten routes already
+share `auditStatement`, and the largest, `minutes.ts` at 447 lines, is one
+document's lifecycle rather than a pile. No duplication worth removing.
+`packages/design/base.css` — no dead rules, see #5.
+
+**Still not reviewed:** the Preact components other than those named above, and
+`apps/admin-ui/src/components/Form.tsx` at 400 lines, which renders every
+settings field kind and is the most likely remaining place for something
+unused. "Nothing left unturned" is closer but not yet true.

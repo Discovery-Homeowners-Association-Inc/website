@@ -1,6 +1,6 @@
 import { BOARD_OFFICES, type Committee, type Person } from "@dhoa/shared";
 import { useState } from "preact/hooks";
-import { api, can } from "../lib/api.ts";
+import { api, can, messageFrom } from "../lib/api.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
@@ -51,7 +51,7 @@ export default function Roster() {
       setEditing(null);
       setEditingCommittee(null);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   };
 

@@ -4,8 +4,9 @@ import {
   api,
   can,
   longDate,
-  type MeetingListItem,
+  messageFrom,
   statusLabel,
+  type MeetingListItem,
   typeLabel,
 } from "../lib/api.ts";
 import { KINDS } from "../lib/content.ts";
@@ -20,8 +21,8 @@ export default function Dashboard() {
   >([]);
   const [error, setError] = useState("");
   useEffect(() => {
-    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: Error) =>
-      setError(e.message),
+    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: unknown) =>
+      setError(messageFrom(e)),
     );
     void Promise.all(
       Object.keys(KINDS).map((k) =>

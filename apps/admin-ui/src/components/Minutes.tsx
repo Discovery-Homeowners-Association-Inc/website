@@ -1,14 +1,15 @@
 import { MINUTES_STATES, type MinutesBody } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
-  type AgendaResponse,
   api,
   can,
   longDate,
-  type MinutesResponse,
+  messageFrom,
   param,
   personName,
   statusLabel,
+  type AgendaResponse,
+  type MinutesResponse,
   typeLabel,
   when,
 } from "../lib/api.ts";
@@ -40,7 +41,10 @@ export default function Minutes() {
     setDraft(d.minutes ? d.current.body : null);
     setDirty(false);
   };
-  useEffect(() => void load().catch((e: Error) => setError(e.message)), []);
+  useEffect(
+    () => void load().catch((e: unknown) => setError(messageFrom(e))),
+    [],
+  );
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
     addEventListener("beforeunload", warn);
@@ -55,7 +59,7 @@ export default function Minutes() {
       await load();
       setSaved(done);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   };
 

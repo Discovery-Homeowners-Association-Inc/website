@@ -156,6 +156,19 @@ export const when = (iso: string) =>
     timeZone: "America/New_York",
   }).format(new Date(iso));
 
+/**
+ * What to show a volunteer when something throws.
+ *
+ * A catch binding is `unknown`: a rejected value need not be an Error. Ten
+ * places cast it to one and read `.message`, which prints "undefined" if
+ * anything ever rejects with a string or a number -- rare, and exactly the
+ * moment when a useful message matters most.
+ */
+export const messageFrom = (e: unknown) =>
+  e instanceof Error && e.message
+    ? e.message
+    : "Something went wrong. Please try again.";
+
 export const param = (name: string) =>
   new URLSearchParams(location.search).get(name) ?? "";
 

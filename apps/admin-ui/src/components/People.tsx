@@ -1,6 +1,6 @@
 import { ROLES, type Role } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, type Grant, when } from "../lib/api.ts";
+import { api, can, messageFrom, type Grant, when } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 
@@ -74,8 +74,8 @@ export default function People() {
   const [saved, setSaved] = useState("");
 
   const load = () =>
-    api<Person[]>("GET", "/users").then(setPeople, (e: Error) =>
-      setError(e.message),
+    api<Person[]>("GET", "/users").then(setPeople, (e: unknown) =>
+      setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
 
@@ -88,7 +88,7 @@ export default function People() {
       await load();
       setSaved(done);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   };
 

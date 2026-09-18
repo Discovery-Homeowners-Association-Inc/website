@@ -1,9 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
 import {
   api,
-  type ExportResponse,
   longDate,
+  messageFrom,
   param,
+  type ExportResponse,
   typeLabel,
 } from "../lib/api.ts";
 import { MinutesView } from "./MinutesView.tsx";
@@ -23,7 +24,7 @@ export default function Print() {
         setData(d);
         document.title = `Minutes ${d.meeting.date} ${typeLabel[d.meeting.type]}`;
       },
-      (e: Error) => setError(e.message),
+      (e: unknown) => setError(messageFrom(e)),
     );
   }, []);
 

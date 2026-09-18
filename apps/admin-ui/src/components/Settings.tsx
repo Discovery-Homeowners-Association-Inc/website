@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { api, can, param } from "../lib/api.ts";
+import { api, can, messageFrom, param } from "../lib/api.ts";
 import { SETTINGS_GROUPS } from "../lib/settings.ts";
 import { useMe } from "../lib/use-me.ts";
 import { Fields } from "./Form.tsx";
@@ -18,7 +18,7 @@ export default function Settings() {
     if (!group) return;
     api<Record<string, unknown>>("GET", `/settings/${group.key}`).then(
       setValue,
-      (e: Error) => setError(e.message),
+      (e: unknown) => setError(messageFrom(e)),
     );
   }, [key]);
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function Settings() {
       setDirty(false);
       setSaved("Saved. The site will update shortly.");
     } catch (err) {
-      setError((err as Error).message);
+      setError(messageFrom(err));
     }
   }
 

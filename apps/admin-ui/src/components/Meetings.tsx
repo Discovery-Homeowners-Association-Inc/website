@@ -3,9 +3,10 @@ import {
   api,
   can,
   longDate,
+  messageFrom,
+  statusLabel,
   type MeetingListItem,
   type MeetingType,
-  statusLabel,
   typeLabel,
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
@@ -25,8 +26,8 @@ export default function Meetings() {
   const [error, setError] = useState("");
 
   const load = () =>
-    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: Error) =>
-      setError(e.message),
+    api<MeetingListItem[]>("GET", "/meetings").then(setMeetings, (e: unknown) =>
+      setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
 
@@ -37,7 +38,7 @@ export default function Meetings() {
       const m = await api<{ id: string }>("POST", "/meetings", form);
       location.assign(`/meeting/?id=${m.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(messageFrom(e));
     }
   }
 
