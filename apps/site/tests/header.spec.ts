@@ -12,9 +12,9 @@ import {
 
 /**
  * The header, across every width that matters, in the web font and in the
- * fallback font. `font-display: optional` means a first visit can legitimately
- * be drawn in the fallback, which is wider — so the fallback is the case the
- * layout has to survive, not an edge case.
+ * fallback font. `font-display: swap` means a page is drawn in the fallback
+ * until the web font arrives, and the fallback is the wider of the two — so it
+ * is the case the layout has to survive, not an edge case.
  */
 for (const font of ["web font", "fallback font"] as const) {
   test.describe(font, () => {

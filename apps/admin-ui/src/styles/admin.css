@@ -69,11 +69,27 @@ fieldset > h2:first-of-type {
   white-space: nowrap;
 }
 
+/*
+ * Done, waiting, and live. `pending` used to be marigold too, which made
+ * "waiting for someone to approve this" and "published on the site" the same
+ * pill -- two opposite states, drawn identically, and the two rules sat three
+ * hundred lines apart so neither showed the other up.
+ */
 .status--approved,
 .status--filed,
 .status--published {
   background: var(--marigold);
-  color: #1a2530;
+  color: var(--ink-on-light);
+}
+
+.status--pending {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.status--live {
+  background: var(--plan);
+  color: var(--paper);
 }
 
 .status--none {
@@ -388,16 +404,6 @@ button[disabled] {
   gap: var(--space-2) var(--space-3);
   align-items: center;
   margin-top: var(--space-1);
-}
-
-.status--pending {
-  background: var(--marigold);
-  color: #1a2530;
-}
-
-.status--live {
-  background: var(--plan);
-  color: var(--paper);
 }
 
 .empty {

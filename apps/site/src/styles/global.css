@@ -209,14 +209,19 @@
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 .site-footer {
-  background: #1a2530;
-  color: #e4eaee;
+  background: var(--band);
+  color: var(--band-ink);
+  /*
+   * A rule above it, because in dark mode the band and the page behind it are
+   * close enough in tone that the footer stopped reading as its own thing.
+   */
+  border-top: 1px solid var(--rule);
   padding-block: var(--space-5);
   font-size: var(--step--1);
 }
 
 .site-footer a {
-  color: #b5ccfa;
+  color: var(--band-link);
 }
 
 .site-footer .wrap {

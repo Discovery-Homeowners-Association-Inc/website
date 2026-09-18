@@ -127,6 +127,22 @@
   --page: 76rem;
   --gutter: clamp(1rem, 4vw, 2.5rem);
   --radius: 6px;
+
+  /*
+   * Light-mode ink, frozen. Marigold needs dark text on it in both themes, and
+   * --ink inverts, so four places had this hex written out by hand with the
+   * reason recorded nowhere.
+   */
+  --ink-on-light: #1a2530;
+
+  /*
+   * A band that stays dark in both themes -- the site's footer. Written out by
+   * hand three times, in light ink, dark ink and dark plan-strong, none of
+   * which said what they were for.
+   */
+  --band: #1a2530;
+  --band-ink: #e4eaee;
+  --band-link: #b5ccfa;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -141,6 +157,30 @@
     --rule: #2a3a46;
     --warn: #f7b58a;
     --warn-soft: #3a2418;
+  }
+}
+
+/*
+ * Paper is light whatever the screen was.
+ *
+ * Both apps' print blocks set the body's own background and color, which is
+ * not enough: everything else reads the tokens, so printing from dark mode put
+ * a dark fill behind every panel and printed the signature rule on approved
+ * minutes -- 2px of --ink -- as white on white. DESIGN.md says every page
+ * prints cleanly; this is what makes that true.
+ */
+@media print {
+  :root {
+    --paper: #ffffff;
+    --surface: #ffffff;
+    --ink: #1a2530;
+    --ink-muted: #4b5a66;
+    --plan: #1f4fa8;
+    --plan-strong: #173d85;
+    --pool: #d6eeea;
+    --rule: #c9d2d8;
+    --warn: #8a3b12;
+    --warn-soft: #fbe6d4;
   }
 }
 
@@ -162,6 +202,12 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--step-0);
+  /*
+   * A word with nowhere to break -- an office email, a document filename, a
+   * long URL in a note -- used to push the page wider than the phone reading
+   * it. Nothing in either stylesheet said anything about wrapping.
+   */
+  overflow-wrap: break-word;
   line-height: 1.6;
   font-variant-numeric: lining-nums;
 }
@@ -230,7 +276,7 @@ a:hover {
 
 ::selection {
   background: var(--marigold);
-  color: #1a2530;
+  color: var(--ink-on-light);
 }
 
 .skip-link {
@@ -863,7 +909,7 @@ td.amount {
 
 .tag--marigold {
   background: var(--marigold);
-  color: #1a2530;
+  color: var(--ink-on-light);
 }
 
 .people {
