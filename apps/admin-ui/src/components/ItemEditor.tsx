@@ -5,7 +5,14 @@ import {
   itemActions,
 } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, messageFrom, param, when } from "../lib/api.ts";
+import {
+  api,
+  can,
+  messageFrom,
+  param,
+  runAndReport,
+  when,
+} from "../lib/api.ts";
 import { KINDS, stateLabel } from "../lib/content.ts";
 import { blank, fromLocalInput, toLocalInput } from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
@@ -88,17 +95,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
       })
     : [];
 
-  const act = async (fn: () => Promise<unknown>, done: string) => {
-    setError("");
-    setSaved("");
-    try {
-      await fn();
-      await load();
-      setSaved(done);
-    } catch (e) {
-      setError(messageFrom(e));
-    }
-  };
+  const act = runAndReport(setError, setSaved, load);
 
   async function save(event: Event) {
     event.preventDefault();

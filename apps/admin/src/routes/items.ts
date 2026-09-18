@@ -3,9 +3,11 @@ import {
   ITEM_BODIES,
   ITEM_KINDS,
   ItemMeta,
+  ROLES,
   type ItemAction,
   type ItemKind,
   type ItemState,
+  type Role,
   itemActions,
   slugify,
 } from "@dhoa/shared";
@@ -38,10 +40,18 @@ export type ItemRow = {
 };
 
 const Kind = z.enum(ITEM_KINDS);
-const rolesOf = (grants: { role: string; scope: string }[]) =>
-  grants.filter((g) => g.scope === "").map((g) => g.role) as (
-    "admin" | "secretary" | "board" | "editor" | "reviewer"
-  )[];
+/*
+ * The roles a person holds across the whole site, as opposed to one committee.
+ * Read from the database, so checked rather than asserted: a row naming a role
+ * this build does not have is dropped, not believed.
+ */
+const rolesOf = (grants: { role: string; scope: string }[]): Role[] =>
+  grants
+    .filter((g) => g.scope === "")
+    .map((g) => g.role)
+    .filter((role): role is Role =>
+      (ROLES as readonly string[]).includes(role),
+    );
 const expand = (r: ItemRow) => ({ ...r, body: JSON.parse(r.body) });
 
 export async function itemOr404(db: D1Database, id: string) {

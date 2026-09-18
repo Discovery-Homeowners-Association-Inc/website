@@ -169,6 +169,31 @@ export const messageFrom = (e: unknown) =>
     ? e.message
     : "Something went wrong. Please try again.";
 
+/**
+ * Do a thing, refresh the screen, then say it worked.
+ *
+ * Three screens had this written out identically. The order is the point:
+ * the list is reloaded before the confirmation appears, so "Invited someone"
+ * is never on screen next to a list that does not show them yet.
+ */
+export const runAndReport =
+  (
+    setError: (message: string) => void,
+    setSaved: (message: string) => void,
+    reload: () => Promise<unknown>,
+  ) =>
+  async (fn: () => Promise<unknown>, done: string) => {
+    setError("");
+    setSaved("");
+    try {
+      await fn();
+      await reload();
+      setSaved(done);
+    } catch (e) {
+      setError(messageFrom(e));
+    }
+  };
+
 export const param = (name: string) =>
   new URLSearchParams(location.search).get(name) ?? "";
 

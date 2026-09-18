@@ -1,3 +1,4 @@
+import { capitalize } from "@dhoa/shared";
 import type { Item } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
@@ -69,8 +70,7 @@ export default function Dashboard() {
                 <a href={`${KINDS[i.kind].path}edit/?id=${i.id}`}>
                   <strong>{i.body.title}</strong>
                   <span>
-                    {KINDS[i.kind].one.charAt(0).toUpperCase() +
-                      KINDS[i.kind].one.slice(1)}
+                    {capitalize(KINDS[i.kind].one)}
                     {i.author && ` by ${i.author}`}. Read it, then approve or
                     send it back.
                   </span>

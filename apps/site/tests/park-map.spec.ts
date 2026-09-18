@@ -34,7 +34,7 @@ test("keeps every marker on the map", async ({ page }) => {
     const box = await marks.nth(i).boundingBox();
     const label = await marks.nth(i).getAttribute("aria-label");
     expect(box, `${label} has no box`).not.toBeNull();
-    // Centres, so a marker half over the edge still counts as on the map.
+    // Centers, so a marker half over the edge still counts as on the map.
     const x = box!.x + box!.width / 2;
     const y = box!.y + box!.height / 2;
     expect(x, `${label} is off the left of the map`).toBeGreaterThan(

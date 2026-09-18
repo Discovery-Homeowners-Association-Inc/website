@@ -111,8 +111,8 @@ Each marker is a link to its own entry in the full list, and picking one names i
 panel beside the map. That ordering matters: the link is what works with no JavaScript, and
 the panel is the enhancement on top of it. The map is therefore the interface rather than a
 picture with an index underneath, which is why the list is folded into a disclosure instead
-of being spelled out at full length — twenty-eight rows of "Park 12 / Off Treasure Avenue"
-said the same thing the markers already say, and pushed the map off the screen.
+of being spelled out at full length — a row per place saying "Park 12 / Off Treasure
+Avenue" said what the marker already says, and pushed the map off the screen.
 
 Markers carry an accessible name of their own ("Park 12, off Treasure Avenue"), so the map
 is usable by keyboard and screen reader without the list being open. The detail panel is
@@ -158,5 +158,5 @@ text — which is the text someone reads when they are unsure, for an audience t
 - WCAG 2.2 AA: text contrast of at least 4.5:1, a visible focus ring, and full keyboard use.
 - Marigold never carries text; the ink color sits on top of it.
 - No third-party requests on public pages. Fonts are self-hosted.
-- Honour `prefers-reduced-motion`. The only motion is the map drawing in once on load.
+- Honor `prefers-reduced-motion`. The only motion is the map drawing in once on load.
 - Every page prints cleanly.

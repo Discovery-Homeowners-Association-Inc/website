@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import { todayInNewYork } from "@dhoa/shared";
+import { decapitalize, todayInNewYork } from "@dhoa/shared";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
@@ -116,11 +116,7 @@ const streets = [
       <dt>Trash pickup</dt>
       <dd>
         {trash.collections[0]?.schedule}
-        <small>
-          Bins out{" "}
-          {trash.setout_rule.charAt(0).toLowerCase() +
-            trash.setout_rule.slice(1)}
-        </small>
+        <small>Bins out {decapitalize(trash.setout_rule)}</small>
       </dd>
     </div>
     <div>

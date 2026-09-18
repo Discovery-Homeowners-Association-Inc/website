@@ -5,4 +5,5 @@ export * from "./schedule.ts";
 export * from "./documents.ts";
 export * from "./content.ts";
 export * from "./settings.ts";
+export * from "./text.ts";
 export * from "./snapshot.ts";
