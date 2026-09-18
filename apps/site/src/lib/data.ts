@@ -10,6 +10,8 @@ export const org = settings.organization;
 export const parks = settings.parks;
 export const problems = settings.problems.entries;
 export const trash = settings.trash;
+/** The assessment, as the dues page and the home page both read it. */
+export const dues = org.dues;
 export const links = settings.links.categories;
 export const newsletter = org.newsletter;
 export const pageData = {
