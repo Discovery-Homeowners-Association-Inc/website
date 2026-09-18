@@ -1,4 +1,4 @@
-import type { ExportDataset } from "@dhoa/shared";
+import { todayInNewYork, type ExportDataset } from "@dhoa/shared";
 import { api } from "./api.ts";
 
 /**
@@ -97,7 +97,16 @@ export async function collect(key: ExportDataset): Promise<Collected> {
       return { json: accounts, tables: { accounts } };
     }
     case "audit": {
-      const audit = await api<Rows>("GET", "/audit");
+      // The server sends `detail` as the JSON text it stores, to keep the
+      // parsing off a Worker that has 10 ms per request.
+      const rows = await api<Rows>("GET", "/audit");
+      const audit = rows.map((r) => ({
+        ...r,
+        detail:
+          typeof r.detail === "string" && r.detail
+            ? (JSON.parse(r.detail) as unknown)
+            : null,
+      }));
       return { json: audit, tables: { audit } };
     }
   }
@@ -111,8 +120,20 @@ export function download(name: string, type: string, text: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
+  // In the document and revoked a beat later: a detached anchor and an
+  // immediately revoked URL both have browsers where the download never
+  // starts, and this app is used in whatever the board has.
+  document.body.append(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
-export const stamp = () => new Date().toISOString().slice(0, 10);
+/**
+ * The date to put in the file name, as the association reckons it.
+ *
+ * `toISOString()` would be UTC, so an export taken on a Tuesday evening in
+ * Maryland would be filed under Wednesday. The rest of the site already
+ * decides dates this way.
+ */
+export const stamp = () => todayInNewYork();

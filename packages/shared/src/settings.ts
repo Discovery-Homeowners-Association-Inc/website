@@ -104,7 +104,6 @@ export const Organization = z.object({
 
 /** What a marker on the parks map stands for. */
 export const MAP_PLACE_KINDS = ["park", "amenity"] as const;
-export type MapPlaceKind = (typeof MAP_PLACE_KINDS)[number];
 
 /**
  * One marker on the parks map.

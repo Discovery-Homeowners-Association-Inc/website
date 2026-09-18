@@ -99,6 +99,50 @@ test("a CSV is one table, and it is a real CSV", async ({ browser }) => {
   await page.close();
 });
 
+test("meetings and minutes come out whole, including the ones with neither", async ({
+  browser,
+}) => {
+  // These two walk every meeting and ask for its agenda and its minutes, so
+  // they are the paths that break on a meeting that has neither -- which most
+  // of a year's schedule is.
+  const page = await signIn(browser, ADMIN);
+  // The schedule is materialized by a cron that does not run locally, so a
+  // fresh database has no meetings. One is enough to walk the path.
+  const made = await page.request.post("/api/meetings", {
+    data: {
+      type: "board",
+      date: "2029-03-20",
+      time: "7:00 pm",
+      location: "Discovery Recreation Center",
+    },
+  });
+  expect([200, 201, 409]).toContain(made.status());
+
+  await page.goto("/export/");
+  await page.getByRole("checkbox", { name: "Roster and committees" }).uncheck();
+  await page.getByRole("checkbox", { name: "Meetings and agendas" }).check();
+  await page
+    .getByRole("checkbox", { name: "Minutes, including drafts" })
+    .check();
+
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download" }).click();
+  const body = JSON.parse(
+    await (
+      await import("node:fs/promises")
+    ).readFile((await (await download).path()) ?? "", "utf8"),
+  );
+
+  expect(body.data.meetings.meetings.length).toBeGreaterThan(0);
+  // One agenda entry per meeting, each naming the meeting it belongs to.
+  expect(body.data.meetings.agendas.length).toBe(
+    body.data.meetings.meetings.length,
+  );
+  expect(body.data.meetings.agendas[0].meeting_id).toBeTruthy();
+  expect(body.data.minutes.length).toBe(body.data.meetings.meetings.length);
+  await page.close();
+});
+
 test("the export is written to the audit log", async ({ browser }) => {
   const page = await signIn(browser, ADMIN);
   const log = await page.request.get("/api/audit");
@@ -111,8 +155,11 @@ test("the export is written to the audit log", async ({ browser }) => {
   const me = await (await page.request.get("/api/me")).json();
   expect(exports[0].actor_id).toBe(me.id);
   expect(exports[0].actor).toBe(me.name);
-  expect(exports[0].detail.datasets.length).toBeGreaterThan(0);
-  expect(exports[0].detail.format).toMatch(/^(json|csv)$/);
+  // The endpoint sends detail as stored JSON text; parsing it is the caller's
+  // job, so that a Worker with 10 ms does not do it two thousand times.
+  const detail = JSON.parse(exports[0].detail);
+  expect(detail.datasets.length).toBeGreaterThan(0);
+  expect(detail.format).toMatch(/^(json|csv)$/);
   await page.close();
 });
 
