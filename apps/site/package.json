@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "lint": "astro check",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "test": "vitest run"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "7.3.1",
@@ -21,6 +22,7 @@
     "@playwright/test": "1.63.0",
     "@types/node": "^24.13.5",
     "typescript": "~6.0.3",
+    "vitest": "5.0.1",
     "wrangler": "4.133.0"
   }
 }

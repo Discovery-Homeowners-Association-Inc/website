@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
 import OfficePanel from "../../components/OfficePanel.astro";
+import ParkMap from "../../components/ParkMap.astro";
 import { parks } from "../../lib/data";
 import { page } from "../../lib/pages";
 
@@ -18,6 +19,12 @@ const p = await page("parks");
   <div class="with-aside">
     <div>
       <Prose id="parks" />
+      {parks.places.length > 0 && (
+        <Fragment>
+          <h2>Where they are</h2>
+          <ParkMap places={parks.places} />
+        </Fragment>
+      )}
       <h2>Inspections</h2>
       <p class="prose">{parks.inspection_note}</p>
       <p class="prose">{parks.report_note}</p>

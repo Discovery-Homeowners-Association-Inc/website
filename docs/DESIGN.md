@@ -89,6 +89,35 @@ Inlining the fonts as `data:` URIs was considered and rejected: 161.7KB of woff2
 ~221KB of base64 on a 12.4KB stylesheet, and CSS blocks rendering — a blank screen beats
 readable fallback text for nobody.
 
+## Maps
+
+There is one map drawing, `apps/site/src/assets/discovery-map.svg`, rendered from
+OpenStreetMap geometry by `render-neighborhood-map.py` in the association's tools
+repository. It carries CSS classes rather than baked-in colors, so it follows the palette
+into dark mode, weighs about 11KB, and asks nothing of any third party at runtime. No tile
+service, no map library, no runtime fetch: the same reasons the rest of the site is static.
+
+Two pages use it. The home page crops it to the neighborhood as a backdrop. The parks page
+(`ParkMap.astro`) crops it tighter and lays a marker over each park and shared amenity,
+with a key beside it.
+
+The markers are ordinary elements positioned as a percentage of the picture's box, not
+shapes spliced into the SVG. The SVG scales to its box, so a percentage lands on the spot
+the projection gives at any width; and a marker stays something CSS can style and a pointer
+can find. `apps/site/src/lib/map.ts` holds the projection, which is a copy of the renderer's
+— a unit test checks it against the asset's own viewBox, because if the map is ever
+re-rendered from different data every marker silently shifts.
+
+The map is a picture: it carries `role="img"`, and the marker overlay is `aria-hidden`,
+because the key beside it lists the same places in the same order with the same notes.
+Lighting up a park in both at once is an enhancement; with no JavaScript both still say
+everything.
+
+Where the positions come from is a separate question, answered in
+`apps/site/scripts/park-positions.mjs`: the association's only record of its parks is a
+hand drawing that is not to scale. They are estimates good to something like the width of a
+house, the page says so, and the board corrects any of them in Settings.
+
 ## Where the admin app differs, and why
 
 The two apps share `packages/design/base.css`, so they agree unless something
