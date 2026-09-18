@@ -31,17 +31,22 @@ const VIEW = PARKS_VIEW;
 /*
  * Two markers can sit closer together than a marker is wide -- the two parks
  * off Foresight Lane are 31m apart, and the pool and the court beside it 37m.
- * Drawn where they are, each eats into the other's target, which is both a
- * nuisance to tap and a failure of WCAG 2.2's 24px minimum.
+ * Drawn where they are, each eats into the other's target.
  *
- * So markers that collide are eased apart until they do not, by the least
- * that works. This moves the drawing, never the coordinate: the setting the
- * board edits still says where the park is. Sixteen of the twenty-six do not
- * move at all and the furthest goes 20m, which is inside the error these
- * positions already carry -- see apps/site/scripts/park-positions.mjs -- so
- * the drawing claims no more precision than it did before.
+ * So markers that collide are eased apart until they do not, by the least that
+ * works. This moves the drawing, never the coordinate: the setting the board
+ * edits still says where the park is.
+ *
+ * The number is in the picture's own units and the marker scales with the
+ * picture, so the two keep their ratio at every width -- the earlier version
+ * paired this with a marker fixed in rem, which held at desktop and let
+ * markers touch on a phone. It is set so that the gap between centers stays
+ * above 24 CSS pixels down to a 320px viewport, which is what WCAG 2.2's
+ * target-size rule asks of targets that are themselves under 24px: not that
+ * every target be 24px, but that a 24px circle centered on each not reach
+ * another.
  */
-const APART = 58; // in the picture's own units; a marker is about 55 across
+const APART = 70; // of the crop's 790 units across
 
 const projected = places.map((place) => project(place.lat, place.lon));
 

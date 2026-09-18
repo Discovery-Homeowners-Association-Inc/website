@@ -34,12 +34,21 @@ test.beforeAll(async ({ request }) => {
 
 test("the next meeting is first, and what has happened comes after", async ({
   browser,
-}) => {
+}, testInfo) => {
   const page = await signIn(browser, ADMIN);
+
+  /*
+   * Dates of this spec's own, per browser: the suite runs every project
+   * against one database, and a meeting is unique by date and type, so fixed
+   * dates mean the second project cannot create what it needs.
+   */
+  const era = testInfo.project.name === "firefox" ? 1 : 0;
+  const future = [`${2031 + era * 10}-06-17`, `${2030 + era * 10}-02-19`];
+  const past = `${2019 - era * 10}-04-16`;
 
   // Two far-future meetings and one long past, created out of order.
   // Adding one takes you to its own page, so each round trips back to the list.
-  for (const date of ["2031-06-17", "2030-02-19", "2019-04-16"]) {
+  for (const date of [...future, past]) {
     await page.goto("/meetings/");
     await page.getByLabel("Date").fill(date);
     await page.getByRole("button", { name: "Add meeting" }).click();
@@ -65,11 +74,16 @@ test("the next meeting is first, and what has happened comes after", async ({
 
   // Nearest upcoming first, and the 2031 one after the 2030 one.
   const upcoming = groupsAndDates.slice(upcomingAt + 1, pastAt);
-  const feb2030 = upcoming.findIndex((d) => d.includes("2030"));
-  const jun2031 = upcoming.findIndex((d) => d.includes("2031"));
-  expect(feb2030, "2030 missing from Upcoming").toBeGreaterThanOrEqual(0);
-  expect(jun2031, "2031 missing from Upcoming").toBeGreaterThan(feb2030);
+  const earlier = upcoming.findIndex((d) => d.includes(future[1]!.slice(0, 4)));
+  const later = upcoming.findIndex((d) => d.includes(future[0]!.slice(0, 4)));
+  expect(
+    earlier,
+    "the nearer meeting is missing from Upcoming",
+  ).toBeGreaterThanOrEqual(0);
+  expect(later, "the later meeting is not after it").toBeGreaterThan(earlier);
 
   // What has already happened is below, not above.
-  expect(groupsAndDates.slice(pastAt + 1).join(" ")).toContain("2019");
+  expect(groupsAndDates.slice(pastAt + 1).join(" ")).toContain(
+    past.slice(0, 4),
+  );
 });

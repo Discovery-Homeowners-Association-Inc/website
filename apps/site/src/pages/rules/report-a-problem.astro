@@ -6,6 +6,24 @@ import { email, org, problems, telHref } from "../../lib/data";
 import { page } from "../../lib/pages";
 
 const p = await page("report-a-problem");
+
+/*
+ * Urgent first, then grouped by the kind of problem.
+ *
+ * The page said it was "sorted by the kind of problem you have", and two other
+ * pages said "most urgent first", while this rendered whatever order the rows
+ * happened to be in. Both `urgent` and `category` were on every entry and
+ * neither was used. Someone reading this page is usually looking for one
+ * number quickly, and the emergency one has to be first.
+ */
+const urgent = problems.filter((e) => e.urgent);
+const rest = problems.filter((e) => !e.urgent);
+const groups = [
+  ...new Map(rest.map((e) => [e.category, [] as typeof rest])).entries(),
+].map(([category]) => ({
+  category,
+  entries: rest.filter((e) => e.category === category),
+}));
 ---
 
 <Base title={p.title} description={p.summary}>
@@ -15,26 +33,62 @@ const p = await page("report-a-problem");
     crumbs={[{ href: "/rules/", label: "Rules & requests" }]}
   />
   <Prose id="report-a-problem" />
-  <ul class="people problems">
-    {problems.map((e) => {
-      const phone = e.phone_key === "office" ? org.office.phone : e.phone;
-      return (
-        <li>
-          <strong>{e.issue}</strong>
-          <span>{e.contact}</span>
-          {phone && (
-            <div>
-              <a href={telHref(phone)}>{phone}</a>
-            </div>
-          )}
-          {e.email_key && (
-            <div>
-              <a href={`mailto:${email(e.email_key)}`}>{email(e.email_key)}</a>
-            </div>
-          )}
-          {e.note && <p class="muted">{e.note}</p>}
-        </li>
-      );
-    })}
-  </ul>
+  {urgent.length > 0 && (
+    <section aria-labelledby="urgent-title">
+      <h2 id="urgent-title">Right away</h2>
+      <ul class="people problems">
+        {urgent.map((e) => {
+          const phone = e.phone_key === "office" ? org.office.phone : e.phone;
+          return (
+            <li>
+              <strong>{e.issue}</strong>
+              <span>{e.contact}</span>
+              {phone && (
+                <div>
+                  <a href={telHref(phone)}>{phone}</a>
+                </div>
+              )}
+              {e.email_key && (
+                <div>
+                  <a href={`mailto:${email(e.email_key)}`}>
+                    {email(e.email_key)}
+                  </a>
+                </div>
+              )}
+              {e.note && <p class="muted">{e.note}</p>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+  {groups.map((g) => (
+    <section>
+      <h2>{g.category}</h2>
+      <ul class="people problems">
+        {g.entries.map((e) => {
+          const phone = e.phone_key === "office" ? org.office.phone : e.phone;
+          return (
+            <li>
+              <strong>{e.issue}</strong>
+              <span>{e.contact}</span>
+              {phone && (
+                <div>
+                  <a href={telHref(phone)}>{phone}</a>
+                </div>
+              )}
+              {e.email_key && (
+                <div>
+                  <a href={`mailto:${email(e.email_key)}`}>
+                    {email(e.email_key)}
+                  </a>
+                </div>
+              )}
+              {e.note && <p class="muted">{e.note}</p>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  ))}
 </Base>
