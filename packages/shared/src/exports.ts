@@ -60,9 +60,12 @@ export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
 /** What the admin app tells the server it took, so the log can say so. */
 export const ExportRecord = z.object({
+  // Capped at the number that exist: unbounded, a caller could hand the Worker
+  // a hundred thousand entries to validate inside its 10 ms.
   datasets: z
     .array(z.enum(EXPORT_DATASETS.map((d) => d.key) as [string, ...string[]]))
-    .min(1),
+    .min(1)
+    .max(EXPORT_DATASETS.length),
   format: z.enum(EXPORT_FORMATS),
 });
 export type ExportRecord = z.infer<typeof ExportRecord>;

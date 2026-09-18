@@ -6,6 +6,7 @@ import { requireRole } from "../access.ts";
 import { auditStatement, isConstraintError, nowIso } from "../db.ts";
 import { readSettings } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
+import type { AppDeps } from "../app.ts";
 
 const MeetingInput = z.object({
   type: z.enum(["board", "annual", "special", "pool-rec"]),
@@ -49,7 +50,7 @@ export async function meetingOr404(db: D1Database, id: string) {
   return m;
 }
 
-export function meetingRoutes() {
+export function meetingRoutes(deps: AppDeps) {
   const app = new Hono<AppEnv>();
 
   app.get("/", async (c) => {
@@ -108,6 +109,11 @@ export function meetingRoutes() {
         patch,
       ),
     ]);
+    // The public site lists every meeting and its status, so moving one or
+    // calling it off has to reach the site. Without this a canceled meeting
+    // stayed on the calendar as scheduled until an unrelated edit happened to
+    // trigger a rebuild.
+    await deps.siteChanged(c.env, `meeting ${m.id}`);
     return c.json(next);
   });
 
@@ -118,14 +124,24 @@ export function meetingRoutes() {
    * whatever the previous meeting of the same kind left unfinished. Each open
    * item says which meeting it came from, so the secretary can check it rather
    * than trust it. Nothing is inferred from titles.
+   *
+   * Guarded like the minutes themselves, and guarded here rather than relying
+   * on the minutes routes to do it: those live in a separate Hono app mounted
+   * on this same prefix, and a handler registered first ends the chain before a
+   * middleware registered later ever runs. This route was reachable by an
+   * editor until that was measured, handing out item titles, named follow-up
+   * owners and notes from minutes nobody had approved.
    */
-  app.get("/:id/agenda/suggestions", async (c) => {
-    const m = await meetingOr404(c.env.DB, c.req.param("id"));
-    const settings = await readSettings(c.env.DB);
-    const template = settings["agenda-templates"][m.type] ?? [];
+  app.get(
+    "/:id/agenda/suggestions",
+    requireRole("admin", "secretary", "board", "reviewer"),
+    async (c) => {
+      const m = await meetingOr404(c.env.DB, c.req.param("id"));
+      const settings = await readSettings(c.env.DB);
+      const template = settings["agenda-templates"][m.type] ?? [];
 
-    const previous = await c.env.DB.prepare(
-      `select v.body as body, mt.date as date
+      const previous = await c.env.DB.prepare(
+        `select v.body as body, mt.date as date
          from meetings mt
          join minutes mi on mi.meeting_id = mt.id
          join minutes_versions v
@@ -133,25 +149,26 @@ export function meetingRoutes() {
         where mt.type = ? and mt.date < ?
         order by mt.date desc
         limit 1`,
-    )
-      .bind(m.type, m.date)
-      .first<{ body: string; date: string }>();
+      )
+        .bind(m.type, m.date)
+        .first<{ body: string; date: string }>();
 
-    const open = previous
-      ? MinutesBody.parse(JSON.parse(previous.body))
-          .items.filter((it) => it.outcome !== "closed")
-          .map((it) => ({
-            id: it.id,
-            title: it.title,
-            outcome: it.outcome,
-            owner: it.follow_up_owner,
-            note: it.follow_up_note,
-            from_date: previous.date,
-          }))
-      : [];
+      const open = previous
+        ? MinutesBody.parse(JSON.parse(previous.body))
+            .items.filter((it) => it.outcome !== "closed")
+            .map((it) => ({
+              id: it.id,
+              title: it.title,
+              outcome: it.outcome,
+              owner: it.follow_up_owner,
+              note: it.follow_up_note,
+              from_date: previous.date,
+            }))
+        : [];
 
-    return c.json({ template, open });
-  });
+      return c.json({ template, open });
+    },
+  );
 
   app.get("/:id/agenda", async (c) => {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
@@ -239,6 +256,8 @@ export function meetingRoutes() {
           version: agenda.current_version,
         }),
       ]);
+      // Publishing is the whole point: the agenda has to appear on the site.
+      await deps.siteChanged(c.env, `agenda ${m.id}`);
       return c.json({ published_version: agenda.current_version });
     },
   );

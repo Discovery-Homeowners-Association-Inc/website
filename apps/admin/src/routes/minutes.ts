@@ -194,7 +194,14 @@ export function minutesRoutes() {
         message: `Minutes that are ${minutes.status.replaceAll("_", " ")} cannot be moved to ${to.replaceAll("_", " ")}.`,
       });
     }
-    await c.env.DB.batch([
+    /*
+     * The status is checked above and set here, in two statements. The update
+     * is conditional on the status not having moved in between, so the way to
+     * find out whether it did is to ask how many rows changed -- reporting the
+     * transition without asking told the caller a move had happened when the
+     * database had refused it.
+     */
+    const moved = await c.env.DB.batch([
       c.env.DB.prepare(
         "update minutes set status = ? where meeting_id = ? and status = ?",
       ).bind(to, m.id, minutes.status),
@@ -203,6 +210,11 @@ export function minutesRoutes() {
         to,
       }),
     ]);
+    if (moved[0]?.meta.changes !== 1)
+      throw new HTTPException(409, {
+        message:
+          "Someone else moved these minutes while you were looking. Reload to see where they are now.",
+      });
     return c.json({ status: to });
   });
 
@@ -345,7 +357,14 @@ export function minutesRoutes() {
           message:
             "The motion to approve did not carry, so the minutes stay ready for a vote.",
         });
-      await c.env.DB.batch([
+      /*
+       * The vote row goes in unconditionally and the approval is conditional,
+       * so a status that moved in between would have left a recorded vote for
+       * minutes that were never approved -- and the caller told they were. D1
+       * runs a batch as one transaction, so throwing on a zero-row update
+       * rolls the vote back with it.
+       */
+      const approved = await c.env.DB.batch([
         c.env.DB.prepare(
           "insert into votes (meeting_id, version, sha256, voted_on, motion_by, seconded_by, yes, no, abstain, recorded_by, recorded_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         ).bind(
@@ -372,6 +391,11 @@ export function minutesRoutes() {
           abstain: input.abstain,
         }),
       ]);
+      if (approved[1]?.meta.changes !== 1)
+        throw new HTTPException(409, {
+          message:
+            "Someone else moved these minutes while you were looking. Reload to see where they are now.",
+        });
       return c.json({
         status: "approved",
         version: current.version,
@@ -429,7 +453,7 @@ export function minutesRoutes() {
           message: "Only approved minutes can be marked as uploaded to PayHOA.",
         });
       }
-      await c.env.DB.batch([
+      const filed = await c.env.DB.batch([
         c.env.DB.prepare(
           "update minutes set status = 'filed', filed_at = ?, filed_by = ?, filed_note = ? where meeting_id = ? and status = 'approved'",
         ).bind(nowIso(), user.id, note, m.id),
@@ -439,6 +463,11 @@ export function minutesRoutes() {
           note,
         }),
       ]);
+      if (filed[0]?.meta.changes !== 1)
+        throw new HTTPException(409, {
+          message:
+            "Someone else moved these minutes while you were looking. Reload to see where they are now.",
+        });
       return c.json({ status: "filed" });
     },
   );

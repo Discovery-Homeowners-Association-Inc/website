@@ -95,3 +95,66 @@ test("a meeting with nothing before it suggests only the template", async () => 
   expect(res.json.open).toEqual([]);
   expect(res.json.template.length).toBeGreaterThan(0);
 });
+
+test("an editor cannot read what the last meeting left open", async () => {
+  // The suggestions carry titles, named follow-up owners and notes out of
+  // minutes that have not been approved, let alone published. An editor writes
+  // news posts and is refused the minutes themselves, so they must be refused
+  // this too -- see access.test.ts, "never shows minutes to an editor".
+  await seedSettings();
+  const secretary = await makeUser(["secretary"]);
+  const editor = await makeUser(["editor"]);
+  const earlier = await meeting(secretary, "2028-06-20");
+  const later = await meeting(secretary, "2028-07-18");
+
+  await call(secretary, "PUT", `/api/meetings/${earlier}/minutes`, {
+    base_version: 0,
+    change_note: "Draft",
+    body: {
+      items: [
+        {
+          id: "a",
+          title: "Complaint about the Nguyen family's fence",
+          outcome: "follow_up",
+          follow_up_owner: "Bob Thornton",
+          follow_up_note: "Counsel says do not put this in writing",
+        },
+      ],
+    },
+  });
+
+  const res = await call(
+    editor,
+    "GET",
+    `/api/meetings/${later}/agenda/suggestions`,
+  );
+  expect(res.status).toBe(403);
+  expect(JSON.stringify(res.json)).not.toContain("Nguyen");
+});
+
+test("the audit log pages backwards, so nothing can be pushed out of reach", async () => {
+  const admin = await makeUser(["admin"]);
+  // Enough to need more than one page.
+  for (let i = 0; i < 6; i++)
+    await call(admin, "POST", "/api/audit/export", {
+      datasets: ["roster"],
+      format: "json",
+    });
+
+  const first = await call(admin, "GET", "/api/audit?limit=3");
+  expect(first.status).toBe(200);
+  expect(first.json.length).toBe(3);
+  const oldest = first.json[2].id as number;
+
+  const next = await call(admin, "GET", `/api/audit?before=${oldest}&limit=3`);
+  expect(next.json.length).toBe(3);
+  // Strictly older, and no overlap with the page before it.
+  expect((next.json[0].id as number) < oldest).toBe(true);
+
+  // An export record cannot be an unbounded array.
+  const huge = await call(admin, "POST", "/api/audit/export", {
+    datasets: Array.from({ length: 5000 }, () => "roster"),
+    format: "json",
+  });
+  expect(huge.status).toBe(400);
+});

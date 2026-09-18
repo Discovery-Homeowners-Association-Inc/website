@@ -29,7 +29,9 @@ const hex = (buf: ArrayBuffer) =>
 export function fileRoutes() {
   const app = new Hono<AppEnv>();
 
-  app.get("/", async (c) => {
+  // Same roles as uploading: the list carries every file's id, and an id is
+  // all anyone needs to fetch the bytes.
+  app.get("/", requireRole("admin", "secretary", "editor"), async (c) => {
     const { results } = await c.env.DB.prepare(
       'select f.*, u.name as uploaded_by_name from files f left join "user" u on u.id = f.uploaded_by order by f.uploaded_at desc',
     ).all();
@@ -109,7 +111,37 @@ export function fileRoutes() {
   return app;
 }
 
-/** Streams a stored file. Used by both the signed-in preview and the public site. */
+/**
+ * Streams a stored file to the public, but only once a document that residents
+ * can actually see points at it.
+ *
+ * Without the check, every byte ever uploaded was world-readable forever: a
+ * draft's attachment, a scan uploaded and then thought better of, a form that
+ * was later unpublished. The ids are content hashes rather than guessable, but
+ * that was the only thing standing in the way, and the signed-in file list
+ * hands them all out.
+ *
+ * The condition is `isVisible` in SQL -- published, published by now, not yet
+ * expired -- so a file stops being public at the same moment its document does.
+ */
+export async function servePublicFile(env: Env, id: string): Promise<Response> {
+  const now = new Date().toISOString();
+  const shown = await env.DB.prepare(
+    `select 1 from items
+      where kind = 'document'
+        and status = 'published'
+        and publish_at <= ?
+        and (expires_at is null or expires_at > ?)
+        and json_extract(body, '$.file_id') = ?
+      limit 1`,
+  )
+    .bind(now, now, id)
+    .first();
+  if (!shown) return new Response("Not found", { status: 404 });
+  return serveFile(env, id);
+}
+
+/** Streams a stored file. Used by the signed-in preview and, guarded, the site. */
 export async function serveFile(env: Env, id: string): Promise<Response> {
   const row = await env.DB.prepare(
     "select name, content_type, size from files where id = ?",

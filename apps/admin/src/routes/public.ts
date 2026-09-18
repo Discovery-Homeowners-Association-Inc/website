@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { serveFile } from "./files.ts";
+import { servePublicFile } from "./files.ts";
 import { buildSnapshot } from "../snapshot.ts";
 
 /**
@@ -75,6 +75,6 @@ export function publicRoutes(cache: SnapshotCache = edgeCache) {
     await cache.put(key, res.clone());
     return res;
   });
-  app.get("/files/:id", (c) => serveFile(c.env, c.req.param("id")));
+  app.get("/files/:id", (c) => servePublicFile(c.env, c.req.param("id")));
   return app;
 }

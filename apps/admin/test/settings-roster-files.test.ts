@@ -85,7 +85,7 @@ describe("files", () => {
     };
   };
 
-  it("stores an upload in KV and serves it publicly, and refuses other types", async () => {
+  it("stores an upload in KV and refuses other types", async () => {
     const pdf = new TextEncoder().encode("%PDF-1.4 test");
     const up = await upload(
       editor,
@@ -100,18 +100,66 @@ describe("files", () => {
     expect(again.status).toBe(200);
     expect(again.json.id).toBe(up.json.id);
 
-    const served = await app.request(
-      `/api/public/files/${up.json.id}`,
-      {},
-      env,
-    );
-    expect(served.status).toBe(200);
-    expect(served.headers.get("content-type")).toBe("application/pdf");
-    expect(await served.text()).toBe("%PDF-1.4 test");
+    // Uploaded is not published. Nothing points at this file yet, so the
+    // public route must not hand it out.
+    const early = await app.request(`/api/public/files/${up.json.id}`, {}, env);
+    expect(early.status).toBe(404);
 
     expect((await upload(editor, "evil.html", "text/html", pdf)).status).toBe(
       415,
     );
+  });
+
+  it("serves a file publicly once a published document points at it, and stops when it stops", async () => {
+    const bytes = new TextEncoder().encode("%PDF-1.4 bylaws");
+    const up = await upload(secretary, "bylaws.pdf", "application/pdf", bytes);
+    expect(up.status).toBe(201);
+    const url = `/api/public/files/${up.json.id}`;
+
+    expect((await app.request(url, {}, env)).status).toBe(404);
+
+    const doc = await call(secretary, "POST", "/api/items", {
+      kind: "document",
+      body: {
+        title: "Bylaws",
+        summary: "The bylaws.",
+        category: "governing",
+        file_id: up.json.id,
+      },
+    });
+    expect(doc.status).toBe(201);
+    // Still a draft.
+    expect((await app.request(url, {}, env)).status).toBe(404);
+
+    // Documents need approval, and nobody approves their own submission.
+    expect(
+      (
+        await call(secretary, "POST", `/api/items/${doc.json.id}/action`, {
+          action: "submit",
+        })
+      ).status,
+    ).toBe(200);
+    expect((await app.request(url, {}, env)).status).toBe(404);
+    expect(
+      (
+        await call(admin, "POST", `/api/items/${doc.json.id}/action`, {
+          action: "approve",
+        })
+      ).status,
+    ).toBe(200);
+    const served = await app.request(url, {}, env);
+    expect(served.status).toBe(200);
+    expect(await served.text()).toBe("%PDF-1.4 bylaws");
+
+    // Unpublishing takes the file back out of public reach with the document.
+    expect(
+      (
+        await call(admin, "POST", `/api/items/${doc.json.id}/action`, {
+          action: "unpublish",
+        })
+      ).status,
+    ).toBe(200);
+    expect((await app.request(url, {}, env)).status).toBe(404);
   });
 
   it("will not delete a file that a document uses", async () => {
@@ -176,5 +224,42 @@ describe("profile", () => {
         (s: { id: string }) => s.id,
       ),
     ).toEqual(["s-this"]);
+  });
+});
+
+describe("what the roster hands out", () => {
+  it("keeps phone numbers and unpublished emails to the people who edit the roster", async () => {
+    const person = {
+      name: "Quiet Director",
+      office: "Director",
+      email: "quiet@example.com",
+      phone: "301-555-0142",
+      show_email: false,
+      order: 99,
+      committees: [],
+      chairs: [],
+      note: "",
+      started_on: "2026-01-01",
+      ended_on: "",
+    };
+    expect(
+      (await call(secretary, "POST", "/api/roster/people", person)).status,
+    ).toBe(201);
+
+    const forEditors = await call(editor, "GET", "/api/roster/people");
+    expect(forEditors.status).toBe(200);
+    const seen = (
+      forEditors.json as { name: string; phone: string; email: string }[]
+    ).find((p) => p.name === "Quiet Director");
+    // The name is needed -- minutes take attendance from this list.
+    expect(seen).toBeTruthy();
+    expect(seen!.phone).toBe("");
+    expect(seen!.email).toBe("");
+
+    const forSecretary = await call(secretary, "GET", "/api/roster/people");
+    const full = (forSecretary.json as { name: string; phone: string }[]).find(
+      (p) => p.name === "Quiet Director",
+    );
+    expect(full!.phone).toBe("301-555-0142");
   });
 });
