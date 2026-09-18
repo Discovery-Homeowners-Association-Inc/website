@@ -533,9 +533,20 @@ main {
  * 46, 51 and 49 pixels side by side -- so the height is set here rather than
  * left to the browser.
  */
+/*
+ * Every control type the forms actually render. `tel`, `url` and
+ * `datetime-local` were missing, so a phone field on the roster screen and a
+ * scheduling field on the content screens were unstyled browser defaults --
+ * a different height, a different border and a different font, next to
+ * controls that had all three from here.
+ */
 input[type="text"],
 input[type="email"],
+input[type="tel"],
+input[type="url"],
 input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
 input[type="number"],
 input[type="search"],
 select,
@@ -547,12 +558,19 @@ textarea {
   border: 2px solid var(--rule);
   border-radius: var(--radius);
   padding: 0.55rem 0.8rem;
-  min-height: var(--control-height);
+  /*
+   * A height, not a minimum. A minimum let a control stretch to whatever its
+   * field happened to be -- so a text box beside a select with help text under
+   * it came out 48px while the same box in the next row came out 44 -- and let
+   * a date input sit 1px taller than everything else on its own.
+   */
+  height: var(--control-height);
   width: 100%;
   max-width: 100%;
 }
 
 textarea {
+  height: auto;
   min-height: 6rem;
   resize: vertical;
 }

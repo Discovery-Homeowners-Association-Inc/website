@@ -8,6 +8,7 @@ import {
   expectTargetSize,
   heightBudget,
   LADDER,
+  PHONE_BAND_PX,
 } from "../../../packages/design/test/header-checks";
 
 /**
@@ -35,8 +36,19 @@ async function walkTheLadder(page: Page) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     await expectHeaderHeightAtMost(page, heightBudget(width));
+    /*
+     * Which side of the phone breakpoint we are on is itself the
+     * assertion. Clicking the toggle only when it happened to be visible
+     * meant a toggle that stopped rendering left the panel closed and
+     * every check below with nothing to look at -- and passing.
+     */
     const toggle = page.locator(".nav-toggle");
-    if (await toggle.isVisible()) await toggle.click();
+    if (width < PHONE_BAND_PX) {
+      await expect(toggle).toBeVisible();
+      await toggle.click();
+    } else {
+      await expect(toggle).toBeHidden();
+    }
     await expectNoClippedLinks(page);
     await expectNoSidewaysScroll(page);
     await expectTargetSize(page);
@@ -73,8 +85,19 @@ test("the header itself has no accessibility violations", async ({
   for (const width of [390, 900, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
+    /*
+     * Which side of the phone breakpoint we are on is itself the
+     * assertion. Clicking the toggle only when it happened to be visible
+     * meant a toggle that stopped rendering left the panel closed and
+     * every check below with nothing to look at -- and passing.
+     */
     const toggle = page.locator(".nav-toggle");
-    if (await toggle.isVisible()) await toggle.click();
+    if (width < PHONE_BAND_PX) {
+      await expect(toggle).toBeVisible();
+      await toggle.click();
+    } else {
+      await expect(toggle).toBeHidden();
+    }
     const { violations } = await new AxeBuilder({ page })
       .include(".site-header")
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])

@@ -51,8 +51,19 @@ test("text, date and select controls are all the same height", async ({
   for (const path of ["/meetings/", "/people/", "/roster/"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
+    // The roster shows a list until an editor is opened, so open one. This is
+    // the screen the skip-when-empty was quietly passing over.
+    if (path === "/roster/")
+      await page.getByRole("button", { name: "Edit" }).first().click();
     const controls = await controlHeights(page);
-    if (controls.length === 0) continue; // an index screen with no form
+    // Every one of these screens has a form on it. Skipping when none is found
+    // -- which is what this did -- reports green after asserting nothing, and
+    // a hydration error or a 500 is exactly what makes the form disappear. The
+    // next test in this file already guards against that shape.
+    expect(
+      controls.length,
+      `no form controls on ${path}: this test would pass without looking at anything`,
+    ).toBeGreaterThan(0);
     const heights = [...new Set(controls.map((c) => c.height))];
     expect(
       heights,
