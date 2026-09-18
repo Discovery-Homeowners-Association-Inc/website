@@ -514,6 +514,39 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
       { key: "count", label: "Number of parks", kind: "number", step: 1 },
       { key: "inspection_note", label: "Inspections", kind: "textarea" },
       { key: "report_note", label: "Reporting a problem", kind: "textarea" },
+      {
+        key: "places",
+        label: "Map markers",
+        help:
+          "Where each park and amenity sits on the parks map. The positions " +
+          "are estimates read off the association's hand-drawn map; correct " +
+          "one by nudging its latitude and longitude.",
+        kind: "list",
+        itemLabel: "Marker",
+        summary: label,
+        fields: [
+          { key: "label", label: "Name", kind: "text", required: true },
+          {
+            key: "kind",
+            label: "Shown as",
+            kind: "select",
+            options: [
+              { value: "park", label: "Numbered park" },
+              { value: "amenity", label: "Amenity" },
+            ],
+          },
+          {
+            key: "number",
+            label: "Park number",
+            kind: "number",
+            step: 1,
+            help: "Shown inside the marker. Leave at 0 for an amenity.",
+          },
+          { key: "lat", label: "Latitude", kind: "number", step: 0.000001 },
+          { key: "lon", label: "Longitude", kind: "number", step: 0.000001 },
+          { key: "note", label: "Note", kind: "text" },
+        ],
+      },
     ],
   },
   {

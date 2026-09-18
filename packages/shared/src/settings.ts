@@ -102,10 +102,35 @@ export const Organization = z.object({
     .default({ enabled: false, provider: "sender" }),
 });
 
+/** What a marker on the parks map stands for. */
+export const MAP_PLACE_KINDS = ["park", "amenity"] as const;
+export type MapPlaceKind = (typeof MAP_PLACE_KINDS)[number];
+
+/**
+ * One marker on the parks map.
+ *
+ * The positions are estimates worked out from the association's hand-drawn
+ * park map, the surveyed street geometry and aerial photography, by
+ * `apps/site/scripts/park-positions.mjs`. They are good to something like a
+ * house's width, which is why they are settings the board can correct rather
+ * than numbers baked into the page.
+ */
+export const MapPlace = z.object({
+  kind: z.enum(MAP_PLACE_KINDS).default("park"),
+  label: s.min(1),
+  /** Shown inside the marker. 0 for an amenity, which gets a dot instead. */
+  number: z.number().int().min(0).default(0),
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+  note: s.default(""),
+});
+export type MapPlace = z.infer<typeof MapPlace>;
+
 export const Parks = z.object({
   count: z.number().int(),
   inspection_note: s.default(""),
   report_note: s.default(""),
+  places: z.array(MapPlace).default([]),
 });
 
 export const Problems = z.object({

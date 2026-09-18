@@ -132,7 +132,233 @@
   "parks": {
     "count": 20,
     "inspection_note": "An outside inspector reviews all twenty parks each year, usually in late July or early August, checking equipment for safety and wear.",
-    "report_note": "If a swing, slide, or bench is broken or looks unsafe, tell the office. It is logged and scheduled rather than waiting for the annual inspection."
+    "report_note": "If a swing, slide, or bench is broken or looks unsafe, tell the office. It is logged and scheduled rather than waiting for the annual inspection.",
+    "places": [
+      {
+        "kind": "park",
+        "label": "Park 1",
+        "number": 1,
+        "lat": 39.464834,
+        "lon": -77.361893,
+        "note": "Off Beacon Circle"
+      },
+      {
+        "kind": "park",
+        "label": "Park 2",
+        "number": 2,
+        "lat": 39.464465,
+        "lon": -77.360004,
+        "note": "Off Foresight Lane"
+      },
+      {
+        "kind": "park",
+        "label": "Park 3",
+        "number": 3,
+        "lat": 39.464744,
+        "lon": -77.359962,
+        "note": "Off Eureka Lane"
+      },
+      {
+        "kind": "park",
+        "label": "Park 4",
+        "number": 4,
+        "lat": 39.464325,
+        "lon": -77.358878,
+        "note": "Off Vision Lane"
+      },
+      {
+        "kind": "park",
+        "label": "Park 5",
+        "number": 5,
+        "lat": 39.462997,
+        "lon": -77.356977,
+        "note": "Off Inspiration Avenue"
+      },
+      {
+        "kind": "park",
+        "label": "Park 6",
+        "number": 6,
+        "lat": 39.463291,
+        "lon": -77.359075,
+        "note": "Off Seekers Walk"
+      },
+      {
+        "kind": "park",
+        "label": "Park 7",
+        "number": 7,
+        "lat": 39.463266,
+        "lon": -77.360209,
+        "note": "Off Seekers Walk"
+      },
+      {
+        "kind": "park",
+        "label": "Park 8",
+        "number": 8,
+        "lat": 39.463086,
+        "lon": -77.362772,
+        "note": "Off Inquiry Court"
+      },
+      {
+        "kind": "park",
+        "label": "Park 9",
+        "number": 9,
+        "lat": 39.462347,
+        "lon": -77.36287,
+        "note": "Off Revelation Avenue"
+      },
+      {
+        "kind": "park",
+        "label": "Park 10",
+        "number": 10,
+        "lat": 39.46201,
+        "lon": -77.362805,
+        "note": "Off Inspiration Court"
+      },
+      {
+        "kind": "park",
+        "label": "Park 11",
+        "number": 11,
+        "lat": 39.46224,
+        "lon": -77.364168,
+        "note": "Off Revelation Avenue"
+      },
+      {
+        "kind": "park",
+        "label": "Park 12",
+        "number": 12,
+        "lat": 39.466,
+        "lon": -77.361351,
+        "note": "Off Treasure Avenue"
+      },
+      {
+        "kind": "park",
+        "label": "Park 13",
+        "number": 13,
+        "lat": 39.467034,
+        "lon": -77.36103,
+        "note": "Off Discovery Boulevard"
+      },
+      {
+        "kind": "park",
+        "label": "Park 14",
+        "number": 14,
+        "lat": 39.466878,
+        "lon": -77.362788,
+        "note": "Off Treasure Avenue"
+      },
+      {
+        "kind": "park",
+        "label": "Park 15",
+        "number": 15,
+        "lat": 39.467987,
+        "lon": -77.361203,
+        "note": "Off Adventure Avenue"
+      },
+      {
+        "kind": "park",
+        "label": "Park 16",
+        "number": 16,
+        "lat": 39.469653,
+        "lon": -77.356997,
+        "note": "Off Imagination Court"
+      },
+      {
+        "kind": "park",
+        "label": "Park 17",
+        "number": 17,
+        "lat": 39.467551,
+        "lon": -77.358656,
+        "note": "Off Adventure Court"
+      },
+      {
+        "kind": "park",
+        "label": "Park 18",
+        "number": 18,
+        "lat": 39.46504,
+        "lon": -77.358492,
+        "note": "Off Eureka Lane"
+      },
+      {
+        "kind": "park",
+        "label": "Park 19",
+        "number": 19,
+        "lat": 39.465696,
+        "lon": -77.359659,
+        "note": "Off Utopia Place"
+      },
+      {
+        "kind": "park",
+        "label": "Park 20",
+        "number": 20,
+        "lat": 39.469111,
+        "lon": -77.35942,
+        "note": "Off Inspiration Avenue"
+      },
+      {
+        "kind": "amenity",
+        "label": "Water tower",
+        "number": 0,
+        "lat": 39.470564,
+        "lon": -77.356759,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Swimming pool",
+        "number": 0,
+        "lat": 39.464136,
+        "lon": -77.361991,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Day care center",
+        "number": 0,
+        "lat": 39.464236,
+        "lon": -77.360946,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Bath house",
+        "number": 0,
+        "lat": 39.46387,
+        "lon": -77.361141,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Pavilion",
+        "number": 0,
+        "lat": 39.464556,
+        "lon": -77.361396,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Basketball court (recreation center)",
+        "number": 0,
+        "lat": 39.464412,
+        "lon": -77.361761,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Basketball court (Revelation Avenue)",
+        "number": 0,
+        "lat": 39.462465,
+        "lon": -77.362361,
+        "note": ""
+      },
+      {
+        "kind": "amenity",
+        "label": "Ballfields",
+        "number": 0,
+        "lat": 39.46571,
+        "lon": -77.358301,
+        "note": ""
+      }
+    ]
   },
   "problems": {
     "entries": [
