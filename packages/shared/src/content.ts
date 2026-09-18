@@ -3,6 +3,7 @@
  * and the site reads it. One definition, used by both.
  */
 import { z } from "zod";
+import type { Role } from "./minutes.ts";
 
 const text = (max: number) => z.string().trim().max(max);
 const isoDateTime = z.iso.datetime({ offset: true });
@@ -110,7 +111,6 @@ export function isVisible(
 
 export type ItemAction =
   "submit" | "approve" | "reject" | "publish" | "unpublish";
-type ItemRole = "admin" | "secretary" | "board" | "editor" | "reviewer";
 
 /**
  * Which lifecycle actions a person may take on an item.
@@ -120,12 +120,12 @@ type ItemRole = "admin" | "secretary" | "board" | "editor" | "reviewer";
  */
 export function itemActions(input: {
   status: ItemState;
-  roles: readonly ItemRole[];
+  roles: readonly Role[];
   isAuthor: boolean;
   requiresApproval: boolean;
 }): ItemAction[] {
   const { status, roles, isAuthor, requiresApproval } = input;
-  const can = (...r: ItemRole[]) => r.some((x) => roles.includes(x));
+  const can = (...r: Role[]) => r.some((x) => roles.includes(x));
   const out: ItemAction[] = [];
   if (status === "draft") {
     if (can("admin", "secretary") && !requiresApproval) out.push("publish");

@@ -119,7 +119,9 @@ export default function Minutes() {
     );
   }
 
-  const d = data as Loaded;
+  // Narrowed by the early return above, not asserted: MinutesResponse is a
+  // union discriminated on `minutes`, so the compiler already knows.
+  const d: Loaded = data;
   const status = d.minutes.status;
   const editable =
     secretary &&

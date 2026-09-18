@@ -36,8 +36,8 @@ const VIEW = PARKS_VIEW;
  *
  * So markers that collide are eased apart until they do not, by the least
  * that works. This moves the drawing, never the coordinate: the setting the
- * board edits still says where the park is. Seventeen of the twenty-eight do
- * not move at all and the furthest goes 20m, which is inside the error these
+ * board edits still says where the park is. Sixteen of the twenty-six do not
+ * move at all and the furthest goes 20m, which is inside the error these
  * positions already carry -- see apps/site/scripts/park-positions.mjs -- so
  * the drawing claims no more precision than it did before.
  */
@@ -126,7 +126,7 @@ const cropped = mapSvg.replace(
   <figcaption class="parkmap__key">
     <div class="parkmap__detail" data-detail>
       <b data-detail-label>Pick a marker</b>
-      <p data-detail-where>to see what is there.</p>
+      <p data-detail-where>Any one will say where it is and what is there.</p>
       <p data-detail-what></p>
     </div>
     <ul class="parkmap__legend">
@@ -134,14 +134,14 @@ const cropped = mapSvg.replace(
         <span class="parkmap__swatch parkmap__swatch--park" aria-hidden="true">
           7
         </span>
-        The twenty parks, numbered as on the association's own map
+        A park, numbered as on the association's own map
       </li>
       <li>
         <span
           class="parkmap__swatch parkmap__swatch--amenity"
           aria-hidden="true"
         />
-        What the neighborhood shares
+        Something the neighborhood shares
       </li>
     </ul>
     <details class="group parkmap__all">
