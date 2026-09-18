@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { api, can, messageFrom, type Grant, when } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 type Person = {
   id: string;
@@ -202,11 +203,15 @@ export default function People() {
 
   return (
     <>
-      <h1>Accounts</h1>
-      <p class="lede">
-        Who can sign in to this admin app, and what they may do. For who serves
-        on the board, see <a href="/roster/">the roster</a>.
-      </p>
+      <PageHead
+        title="Accounts"
+        lede={
+          <>
+            Who can sign in to this admin app, and what they may do. For who
+            serves on the board, see <a href="/roster/">the roster</a>.
+          </>
+        }
+      />
       <ErrorNotice message={error} />
       <Saved message={saved} />
       <form

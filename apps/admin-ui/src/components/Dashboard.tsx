@@ -12,6 +12,7 @@ import {
 import { KINDS } from "../lib/content.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 export default function Dashboard() {
   const { me, error: meError } = useMe();
@@ -51,7 +52,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <h1>Hello, {me.name.split(" ")[0]}</h1>
+      <PageHead title={`Hello, ${me.name.split(" ")[0]}`} />
       <p class="meta">
         Your roles:{" "}
         {me.grants

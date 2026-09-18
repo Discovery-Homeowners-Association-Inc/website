@@ -19,6 +19,7 @@ import { NamePicker } from "./NamePicker.tsx";
 import { MinutesEditor } from "./MinutesEditor.tsx";
 import { MinutesView } from "./MinutesView.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 type Loaded = Extract<MinutesResponse, { minutes: object }>;
 
@@ -68,13 +69,13 @@ export default function Minutes() {
   const secretary = can(me, "admin", "secretary");
   const heading = (
     <>
-      <nav class="crumbs" aria-label="Breadcrumb">
-        <a href="/meetings/">Meetings</a> /{" "}
-        <a href={`/meeting/?id=${m.id}`}>{longDate(m.date)}</a>
-      </nav>
-      <h1>
-        Minutes: {typeLabel[m.type]}, {longDate(m.date)}
-      </h1>
+      <PageHead
+        crumbs={[
+          { href: "/meetings/", label: "Meetings" },
+          { href: `/meeting/?id=${m.id}`, label: longDate(m.date) },
+        ]}
+        title={`Minutes: ${typeLabel[m.type]}, ${longDate(m.date)}`}
+      />
     </>
   );
 

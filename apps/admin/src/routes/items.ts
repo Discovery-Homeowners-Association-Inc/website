@@ -84,17 +84,22 @@ export function itemRoutes(deps: AppDeps) {
     const wanted = slugify(
       typeof raw.slug === "string" && raw.slug ? raw.slug : body.title,
     );
-    // Keep slugs unique per kind by appending a counter when needed.
+    /*
+     * Keep slugs unique per kind by appending a counter. Every candidate that
+     * could collide is read once, rather than one query per attempt: this ran
+     * inside the loop, so a popular title cost a round trip per try, in a
+     * Worker with 10 ms of CPU. It also stopped at 49 having never checked the
+     * name it settled on, so the insert, not the loop, would have reported the
+     * collision.
+     */
+    const { results: existing } = await c.env.DB.prepare(
+      "select slug from items where kind = ? and (slug = ? or slug like ?)",
+    )
+      .bind(kind, wanted, `${wanted}-%`)
+      .all<{ slug: string }>();
+    const taken = new Set(existing.map((r) => r.slug));
     let slug = wanted;
-    for (let n = 2; n < 50; n++) {
-      const taken = await c.env.DB.prepare(
-        "select 1 from items where kind = ? and slug = ?",
-      )
-        .bind(kind, slug)
-        .first();
-      if (!taken) break;
-      slug = `${wanted}-${n}`;
-    }
+    for (let n = 2; taken.has(slug); n++) slug = `${wanted}-${n}`;
     await c.env.DB.batch([
       c.env.DB.prepare(
         "insert into items (id, kind, slug, status, body, publish_at, expires_at, expiry_action, author_id, created_at, updated_at) values (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)",

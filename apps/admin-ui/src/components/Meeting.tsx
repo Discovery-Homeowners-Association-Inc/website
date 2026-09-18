@@ -12,6 +12,7 @@ import {
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 type Suggestions = {
   template: { title: string; detail: string }[];
@@ -189,12 +190,10 @@ export default function Meeting() {
 
   return (
     <>
-      <nav class="crumbs" aria-label="Breadcrumb">
-        <a href="/meetings/">Meetings</a>
-      </nav>
-      <h1>
-        {typeLabel[m.type]}, {longDate(m.date)}
-      </h1>
+      <PageHead
+        crumbs={[{ href: "/meetings/", label: "Meetings" }]}
+        title={`${typeLabel[m.type]}, ${longDate(m.date)}`}
+      />
       <p>
         {m.time}, {m.location}.{" "}
         {m.status === "canceled" && <strong>Canceled.</strong>}

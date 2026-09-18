@@ -4,6 +4,7 @@ import { SETTINGS_GROUPS } from "../lib/settings.ts";
 import { useMe } from "../lib/use-me.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 export default function Settings() {
   const { me } = useMe();
@@ -33,11 +34,10 @@ export default function Settings() {
   if (!group) {
     return (
       <>
-        <h1>Site settings</h1>
-        <p class="lede">
-          Facts the site shows in many places, so they are changed in one. Text
-          for each page is under Pages.
-        </p>
+        <PageHead
+          title="Site settings"
+          lede="Facts the site shows in many places, so they are changed in one. Text for each page is under Pages."
+        />
         <ul class="tasks">
           {SETTINGS_GROUPS.map((g) => (
             <li key={g.key}>
@@ -72,11 +72,11 @@ export default function Settings() {
 
   return (
     <>
-      <nav class="crumbs" aria-label="Breadcrumb">
-        <a href="/settings/">Site settings</a>
-      </nav>
-      <h1>{group.title}</h1>
-      <p class="lede">{group.intro}</p>
+      <PageHead
+        crumbs={[{ href: "/settings/", label: "Site settings" }]}
+        title={group.title}
+        lede={group.intro}
+      />
       <ErrorNotice message={error} />
       <Saved message={saved} />
       {!value ? (

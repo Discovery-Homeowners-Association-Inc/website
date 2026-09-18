@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { api, messageFrom, type Me, when } from "../lib/api.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 type Profile = Me & {
   provider: string | null;
@@ -51,7 +52,7 @@ export default function ProfilePage() {
   if (!p) return error ? <ErrorNotice message={error} /> : <Loading />;
   return (
     <>
-      <h1>Your profile</h1>
+      <PageHead title="Your profile" />
       <ErrorNotice message={error} />
       <Saved message={saved} />
       <form

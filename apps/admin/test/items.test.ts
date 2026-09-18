@@ -228,3 +228,16 @@ describe("the public snapshot", () => {
     expect(draft.json.status).toBe("draft");
   });
 });
+
+describe("slugs", () => {
+  it("keeps them unique per kind without asking the database once per try", async () => {
+    const secretary = await makeUser(["secretary"]);
+    const make = async () =>
+      (await call(secretary, "POST", "/api/items", news("Pool opening day")))
+        .json.slug as string;
+
+    expect(await make()).toBe("pool-opening-day");
+    expect(await make()).toBe("pool-opening-day-2");
+    expect(await make()).toBe("pool-opening-day-3");
+  });
+});

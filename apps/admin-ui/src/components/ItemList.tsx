@@ -4,6 +4,7 @@ import { api, can, messageFrom, when } from "../lib/api.ts";
 import { KINDS, stateLabel } from "../lib/content.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 import { Why } from "./Why.tsx";
 
 type Row = Item & { author: string | null };
@@ -45,8 +46,7 @@ export default function ItemList({ kind }: { kind: ItemKind }) {
 
   return (
     <>
-      <h1>{cfg.many}</h1>
-      <p class="lede">{cfg.intro}</p>
+      <PageHead title={cfg.many} lede={cfg.intro} />
       <Why title={`How ${cfg.many.toLowerCase()} get onto the site`}>
         <p>
           Write a {cfg.one}, then either publish it or submit it for approval,

@@ -11,6 +11,7 @@ import { blank, fromLocalInput, toLocalInput } from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 import { Why } from "./Why.tsx";
 
 type Full = Item & {
@@ -177,10 +178,10 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
 
   return (
     <>
-      <nav class="crumbs" aria-label="Breadcrumb">
-        <a href={cfg.path}>{cfg.many}</a>
-      </nav>
-      <h1>{item ? item.body.title : `New ${cfg.one}`}</h1>
+      <PageHead
+        crumbs={[{ href: cfg.path, label: cfg.many }]}
+        title={item ? item.body.title : `New ${cfg.one}`}
+      />
       <ErrorNotice message={error} />
       <Saved
         message={

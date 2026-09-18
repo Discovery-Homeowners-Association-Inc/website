@@ -80,15 +80,42 @@ plain text search over the repository sees neither.**
 
 ## Deferred, with reasons
 
-### 6. The admin app has no page head
+### 6. The admin app had no page head — fixed
 
-The site has `PageHead.astro` -- title, summary, breadcrumbs, one rule under it.
-The admin app writes `<h1>` and `<p class="lede">` by hand in twelve components.
-That is why the typography audit found the two apps disagreeing about a page
-title's top margin: there was nothing holding it in one place.
+The site has `PageHead.astro`; the admin app wrote `<h1>` and
+`<p class="lede">` by hand in thirteen places. That is why the typography audit
+found the two apps disagreeing about whether a page title has a top margin:
+there was nothing holding it in one place.
 
-Deferred: it is a component plus twelve edits, and worth doing on its own so the
-diff is readable.
+`PageHead.tsx` now carries the title, the lede and the breadcrumbs, and uses the
+same `.page-head` class as the site, so the rule under a title is defined once
+for both apps. Eleven screens use it.
+
+Two do not, deliberately: `Print.tsx` is a document going to paper, where a rule
+and a lede would be wrong, and `SignIn.tsx` is a bare card with no navigation
+around it.
+
+Converting them turned up its own bug: two screens had their breadcrumbs left
+outside the new head, because the crumbs and the title were written in separate
+places. That is the duplication being what it was.
+
+### 11. A query inside a loop, in a Worker with 10 ms of CPU — fixed
+
+Creating an item made the slug unique by querying the database once per
+attempt, inside `for (let n = 2; n < 50; n++)`. A popular title cost a round
+trip per try, up to 48 of them, serialized.
+
+It also never checked the name it settled on: at the 48th collision the loop
+ended with an untested slug, so the unique constraint on the insert would have
+reported the problem instead of the loop. Every candidate that could collide is
+now read in one query and the free name chosen in memory.
+
+### 12. One unused field kind — kept
+
+`Form.tsx` renders sixteen field kinds. Fifteen are used; `kind: "time"` is not.
+Every time in this project is a `text` field matching "7:00 pm", which is how the
+board writes them and how they are displayed. Kept: it is three lines, and it
+records a choice rather than an oversight.
 
 ### 7. `apps/admin-ui/src/lib/settings.ts` is 725 lines
 
@@ -143,7 +170,12 @@ share `auditStatement`, and the largest, `minutes.ts` at 447 lines, is one
 document's lifecycle rather than a pile. No duplication worth removing.
 `packages/design/base.css` — no dead rules, see #5.
 
-**Still not reviewed:** the Preact components other than those named above, and
-`apps/admin-ui/src/components/Form.tsx` at 400 lines, which renders every
-settings field kind and is the most likely remaining place for something
-unused. "Nothing left unturned" is closer but not yet true.
+**Reviewed since:** `Form.tsx` and the field definitions -- fifteen of sixteen
+field kinds are in use (#12). The Worker's routes were checked for work done in
+a loop that belongs in one query; one was found and fixed (#11), and the other
+two the search flagged were false positives.
+
+**What that leaves:** the Preact components have been read for their page heads
+and their error handling but not line by line for logic. `Minutes.tsx` at 652
+lines and `settings.ts` at 725 remain deferred with reasons above. Every other
+area has now been through a pass.

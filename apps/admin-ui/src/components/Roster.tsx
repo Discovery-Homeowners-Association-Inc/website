@@ -4,6 +4,7 @@ import { api, can, messageFrom } from "../lib/api.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 import { Why } from "./Why.tsx";
 
 const blankPerson = (): Person => ({
@@ -314,11 +315,10 @@ export default function Roster() {
 
   return (
     <>
-      <h1>The roster</h1>
-      <p class="lede">
-        Who serves on the board and its committees. The board page, the
-        committees page and the attendance list in minutes all come from here.
-      </p>
+      <PageHead
+        title="The roster"
+        lede="Who serves on the board and its committees. The board page, the committees page and the attendance list in minutes all come from here."
+      />
       <Why title="How the roster relates to sign-in accounts">
         <p>
           The roster is who serves; it is public. Sign-in accounts are who can

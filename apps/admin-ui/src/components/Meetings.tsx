@@ -11,6 +11,7 @@ import {
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
+import { PageHead } from "./PageHead.tsx";
 
 const blank = {
   type: "board" as MeetingType,
@@ -47,7 +48,7 @@ export default function Meetings() {
 
   return (
     <>
-      <h1>Meetings</h1>
+      <PageHead title="Meetings" />
       <ErrorNotice message={error} />
       {can(me, "admin", "secretary") && (
         <form class="panel" onSubmit={create}>
