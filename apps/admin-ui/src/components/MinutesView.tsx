@@ -1,3 +1,4 @@
+import { capitalize } from "@dhoa/shared";
 import type { MinutesBody } from "@dhoa/shared";
 
 /** Read-only minutes. Used for reviewers, for locked minutes, and inside the printable export. */
@@ -57,9 +58,7 @@ export function MinutesView({ body }: { body: MinutesBody }) {
             <p class="motion">
               <strong>Motion:</strong> {mo.text} Moved by {mo.moved_by}
               {mo.seconded_by && `, seconded by ${mo.seconded_by}`}.{" "}
-              <strong>
-                {mo.result[0]!.toUpperCase() + mo.result.slice(1)}
-              </strong>
+              <strong>{capitalize(mo.result)}</strong>
               {mo.yes + mo.no + mo.abstain > 0 &&
                 ` (${mo.yes} in favor, ${mo.no} against, ${mo.abstain} abstaining)`}
               .

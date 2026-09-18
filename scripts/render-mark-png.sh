@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Rasterises the association mark to a square PNG.
+# Rasterizes the association mark to a square PNG.
 #
 # Google's OAuth consent screen wants a square logo, 120 by 120 for best
 # results, under 1 MB. The mark is drawn at 100 x 100.64, so it is rendered to
-# height and centred on a square canvas rather than stretched to fit.
+# height and centered on a square canvas rather than stretched to fit.
 #
 #   scripts/render-mark-png.sh [size]
 #

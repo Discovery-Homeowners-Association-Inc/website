@@ -7,11 +7,12 @@ import {
   messageFrom,
   param,
   personName,
+  runAndReport,
   statusLabel,
-  type AgendaResponse,
-  type MinutesResponse,
   typeLabel,
   when,
+  type AgendaResponse,
+  type MinutesResponse,
 } from "../lib/api.ts";
 import { useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
@@ -52,17 +53,7 @@ export default function Minutes() {
     return () => removeEventListener("beforeunload", warn);
   }, [dirty]);
 
-  const act = async (fn: () => Promise<unknown>, done: string) => {
-    setError("");
-    setSaved("");
-    try {
-      await fn();
-      await load();
-      setSaved(done);
-    } catch (e) {
-      setError(messageFrom(e));
-    }
-  };
+  const act = runAndReport(setError, setSaved, load);
 
   if (!data) return error ? <ErrorNotice message={error} /> : <Loading />;
   const m = data.meeting;

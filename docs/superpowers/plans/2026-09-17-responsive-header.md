@@ -17,7 +17,7 @@
 - Free plans only: Workers Free 10 ms CPU, D1, KV, public-repo Actions minutes.
 - WCAG 2.2 AA: 4.5:1 text contrast, visible focus ring, full keyboard use, targets ≥ 24×24 px, focus not obscured.
 - No third-party requests on public pages. Fonts stay self-hosted.
-- Honour `prefers-reduced-motion`. Every page still prints cleanly.
+- Honor `prefers-reduced-motion`. Every page still prints cleanly.
 - Conventional Commits, imperative subject, no trailing period, ≤ 72 chars.
 - Prettier is the formatter: `pnpm exec prettier --write <files>` before every commit.
 - Measured constants, used verbatim: one-row breakpoint **71rem**, phone breakpoint **40rem**, nav text **1rem**, brand **1.05rem**, mark **2.4rem**, link gap **1rem**, action padding **0.55rem 0.9rem**. Height budgets: one-row ≤ **80px**, middle ≤ **150px**, phone closed ≤ **72px**.

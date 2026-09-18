@@ -24,7 +24,13 @@
  * corrects any park by editing it in the admin app; nothing here overwrites
  * what they have entered.
  *
- *   node apps/site/scripts/park-positions.mjs
+ *   node apps/site/scripts/park-positions.mjs   # look at what it works out
+ *   just park-positions                         # write it into the seed
+ *
+ * The recipe is the one to use, because `--write` leaves the seed unformatted
+ * and `just lint` checks formatting. It replaces `parks.places` and nothing
+ * else: the site reads a snapshot published by the admin app, so getting this
+ * onto the site means seeding, applying, then `just snapshot`.
  *
  * The aerial photograph is downloaded once and cached under scripts/.cache.
  */
@@ -89,30 +95,40 @@ const WHAT = {
 };
 
 /*
- * The drawing's lettered legend. Two marks read F, so there are two courts.
+ * The drawing's lettered legend.
  *
  * Two of these are unmistakable in the aerial photograph -- the water tower is
  * a white tank with a shadow, the pool is the only body of turquoise water --
  * so those two are read straight off it and are as good as the photograph.
  * The rest are placed by the fit like the parks, and inherit its error.
+ *
+ * The drawing's ballfields and its second basketball mark are deliberately
+ * not here. Both turn out to be inside a park: the ballfields are 76m from
+ * park 18, whose own description reads "Baseball diamond ... full court
+ * basketball", and the second court is 46m from park 9, which reads
+ * "Basketball court, swing set (4)". Marking them again would claim two
+ * baseball diamonds and two courts where the neighborhood has one of each.
+ * They are still on the map -- as what those two parks contain. The court by
+ * the recreation center stays, being 298m from the nearest park with one.
  */
+const REC = "At the recreation center";
 const AMENITIES = [
   { key: "water-tower", label: "Water tower", seen: [39.470564, -77.356759] },
-  { key: "pool", label: "Swimming pool", seen: [39.464136, -77.361991] },
-  { key: "day-care", label: "Day care center", at: [1100, 689] },
-  { key: "bath-house", label: "Bath house", at: [1156, 698] },
-  { key: "pavilion", label: "Pavilion", at: [1066, 738] },
+  {
+    key: "pool",
+    label: "Swimming pool",
+    seen: [39.464136, -77.361991],
+    where: REC,
+  },
+  { key: "day-care", label: "Day care center", at: [1100, 689], where: REC },
+  { key: "bath-house", label: "Bath house", at: [1156, 698], where: REC },
+  { key: "pavilion", label: "Pavilion", at: [1066, 738], where: REC },
   {
     key: "basketball-rec",
-    label: "Basketball court (recreation center)",
+    label: "Basketball court",
     at: [1095, 768],
+    where: REC,
   },
-  {
-    key: "basketball-revelation",
-    label: "Basketball court (Revelation Avenue)",
-    at: [1382, 776],
-  },
-  { key: "ballfields", label: "Ballfields", at: [830, 482] },
 ];
 
 /*
@@ -153,12 +169,12 @@ const CONTROL = [
   [[806, 1025], "Woodsboro Pike"],
 ];
 
-/** A flat metric frame centered on the neighborhood. Good to a metre here. */
+/** A flat metric frame centered on the neighborhood. Good to a meter here. */
 const LAT0 = 39.466;
 const LON0 = -77.36;
 const LON_M = 111320 * Math.cos((LAT0 * Math.PI) / 180);
 const LAT_M = 111132;
-const toMetres = ([lat, lon]) => [(lon - LON0) * LON_M, (lat - LAT0) * LAT_M];
+const toMeters = ([lat, lon]) => [(lon - LON0) * LON_M, (lat - LAT0) * LAT_M];
 const toLatLon = ([x, y]) => [LAT0 + y / LAT_M, LON0 + x / LON_M];
 
 // ---------------------------------------------------------------- the survey
@@ -173,13 +189,13 @@ const osm = JSON.parse(
   ),
 );
 
-/** Each named street as a list of surveyed segments, in metres. */
+/** Each named street as a list of surveyed segments, in meters. */
 const streets = new Map();
 /** Every surveyed segment, for measuring how far a point is off the pavement. */
 const pavement = [];
 for (const way of osm.elements) {
   if (!way.geometry) continue;
-  const points = way.geometry.map((p) => toMetres([p.lat, p.lon]));
+  const points = way.geometry.map((p) => toMeters([p.lat, p.lon]));
   for (let i = 1; i < points.length; i++)
     pavement.push([points[i - 1], points[i]]);
   const name = way.tags?.name;
@@ -277,7 +293,7 @@ function nearestStreet(p) {
 
 /**
  * Least-squares affine fit: the six numbers that carry drawing pixels onto
- * metres. Affine rather than a plain rotate-and-scale because a sketch is
+ * meters. Affine rather than a plain rotate-and-scale because a sketch is
  * stretched unevenly, and with control points spread over the whole drawing
  * the extra freedom earns its keep.
  */
@@ -401,8 +417,8 @@ const pixelOf = ([x, y]) => {
     Math.round((BBOX.north - lat) / DEG_Y),
   ];
 };
-const metresOf = (px, py) =>
-  toMetres([BBOX.north - py * DEG_Y, BBOX.west + px * DEG_X]);
+const metersOf = (px, py) =>
+  toMeters([BBOX.north - py * DEG_Y, BBOX.west + px * DEG_X]);
 
 /*
  * Classify every pixel as open ground, tree canopy, or built. Vegetation shows
@@ -462,7 +478,7 @@ for (let y = 0; y < H; y++) {
 }
 
 /**
- * How far every pixel is from the nearest seeded pixel, in metres. A two-pass
+ * How far every pixel is from the nearest seeded pixel, in meters. A two-pass
  * chamfer sweep, weighted for the aerial's non-square pixels.
  *
  * @param {(p: number) => boolean} seeded
@@ -553,7 +569,7 @@ function ontoOpenGround(point) {
       const hit = near.find(([, room]) => room >= want);
       if (hit) {
         const [moved, room, x, y] = hit;
-        return { point: metresOf(x, y), moved, room, placed: true };
+        return { point: metersOf(x, y), moved, room, placed: true };
       }
     }
   }
@@ -584,11 +600,16 @@ const parks = PARKS.map(({ number, at }) => {
   };
 });
 
-const amenities = AMENITIES.map(({ key, label, at, seen }) => {
-  const [lat, lon] = seen ?? toLatLon(place(at));
+const amenities = AMENITIES.map(({ key, label, at, seen, where }) => {
+  const point = seen ? toMeters(seen) : place(at);
+  const [lat, lon] = toLatLon(point);
   return {
     key,
     label,
+    // Five of the six are the one complex the drawing groups them into, and
+    // that is how a resident would say where they are. The nearest street is
+    // the fallback, and is what the water tower gets.
+    where: where ?? `Off ${nearestStreet(point)}`,
     lat: Number(lat.toFixed(6)),
     lon: Number(lon.toFixed(6)),
     from: seen ? "photograph" : "drawing",
@@ -605,4 +626,42 @@ for (const p of parks)
         : "NO open ground within 60 m -- left where the drawing puts it"),
   );
 
-console.log(JSON.stringify({ parks, amenities }, null, 2));
+/*
+ * The markers as the settings record them. The board edits these afterwards,
+ * so this shape is the schema's, not this script's: see MapPlace in
+ * packages/shared/src/settings.ts.
+ */
+const places = [
+  ...parks.map((p) => ({
+    kind: "park",
+    label: p.name,
+    number: p.number,
+    lat: p.lat,
+    lon: p.lon,
+    where: p.where,
+    what: p.what,
+  })),
+  ...amenities.map((a) => ({
+    kind: "amenity",
+    label: a.label,
+    number: 0,
+    lat: a.lat,
+    lon: a.lon,
+    where: a.where,
+    what: "",
+  })),
+];
+
+if (process.argv.includes("--write")) {
+  // Only the seed. The site's snapshot comes from the admin app, so the way
+  // to move this onto the site is seed it, apply it, then `just snapshot`.
+  const seed = new URL("../../admin/seed/settings.json", import.meta.url);
+  const settings = JSON.parse(readFileSync(seed, "utf8"));
+  settings.parks.places = places;
+  writeFileSync(seed, `${JSON.stringify(settings, null, 2)}\n`);
+  console.error(
+    `wrote ${places.length} markers to apps/admin/seed/settings.json`,
+  );
+} else {
+  console.log(JSON.stringify({ parks, amenities, places }, null, 2));
+}

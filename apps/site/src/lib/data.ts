@@ -1,5 +1,5 @@
 /**
- * Organisational facts and structured page data, read from the snapshot.
+ * Organizational facts and structured page data, read from the snapshot.
  * Every page imports from here rather than reaching into the snapshot, so
  * the shapes the templates rely on live in one place.
  */

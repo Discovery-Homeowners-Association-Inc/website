@@ -313,7 +313,7 @@
           "number": 0,
           "lat": 39.470564,
           "lon": -77.356759,
-          "where": "",
+          "where": "Off Discovery Boulevard",
           "what": ""
         },
         {
@@ -322,7 +322,7 @@
           "number": 0,
           "lat": 39.464136,
           "lon": -77.361991,
-          "where": "",
+          "where": "At the recreation center",
           "what": ""
         },
         {
@@ -331,7 +331,7 @@
           "number": 0,
           "lat": 39.464236,
           "lon": -77.360946,
-          "where": "",
+          "where": "At the recreation center",
           "what": ""
         },
         {
@@ -340,7 +340,7 @@
           "number": 0,
           "lat": 39.46387,
           "lon": -77.361141,
-          "where": "",
+          "where": "At the recreation center",
           "what": ""
         },
         {
@@ -349,34 +349,16 @@
           "number": 0,
           "lat": 39.464556,
           "lon": -77.361396,
-          "where": "",
+          "where": "At the recreation center",
           "what": ""
         },
         {
           "kind": "amenity",
-          "label": "Basketball court (recreation center)",
+          "label": "Basketball court",
           "number": 0,
           "lat": 39.464412,
           "lon": -77.361761,
-          "where": "",
-          "what": ""
-        },
-        {
-          "kind": "amenity",
-          "label": "Basketball court (Revelation Avenue)",
-          "number": 0,
-          "lat": 39.462465,
-          "lon": -77.362361,
-          "where": "",
-          "what": ""
-        },
-        {
-          "kind": "amenity",
-          "label": "Ballfields",
-          "number": 0,
-          "lat": 39.46571,
-          "lon": -77.358301,
-          "where": "",
+          "where": "At the recreation center",
           "what": ""
         }
       ]

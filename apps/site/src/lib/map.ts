@@ -40,13 +40,27 @@ export function project(lat: number, lon: number): { x: number; y: number } {
 }
 
 /**
- * Whether a coordinate is inside the frame at all. A marker the board has
- * mistyped would otherwise be drawn off the edge of the picture, stretching
- * the layout for everyone; this leaves it out of the map instead. It still
- * appears in the list, which is where the information actually is.
+ * The part of the drawing the parks page shows.
+ *
+ * The full frame holds the whole street network with room to spare; the parks
+ * sit inside x 110-781, y 180-1184 of it, so this is that with a margin. The
+ * same drawing, closer in, which is what makes twenty markers legible rather
+ * than crowded into the middle.
  */
-export const onTheMap = (lat: number, lon: number): boolean =>
-  lat >= MAP_FRAME.south &&
-  lat <= MAP_FRAME.north &&
-  lon >= MAP_FRAME.west &&
-  lon <= MAP_FRAME.east;
+export const PARKS_VIEW = { x: 50, y: 110, width: 790, height: 1150 } as const;
+
+/** A crop of the drawing, in its own units. */
+export type View = { x: number; y: number; width: number; height: number };
+
+/**
+ * Whether a projected point falls inside a crop.
+ *
+ * A marker outside the crop would be drawn beyond the edge of the picture,
+ * stretching the layout for everyone, so the page leaves it off the map. It
+ * still appears in the list, which is where the information actually is.
+ */
+export const inside = (at: { x: number; y: number }, view: View): boolean =>
+  at.x >= view.x &&
+  at.x <= view.x + view.width &&
+  at.y >= view.y &&
+  at.y <= view.y + view.height;

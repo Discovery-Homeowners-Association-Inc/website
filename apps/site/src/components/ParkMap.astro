@@ -1,7 +1,8 @@
 ---
+import { decapitalize } from "@dhoa/shared";
 import type { MapPlace } from "@dhoa/shared";
 import mapSvg from "../assets/discovery-map.svg?raw";
-import { onTheMap, project } from "../lib/map.ts";
+import { inside, PARKS_VIEW, project } from "../lib/map.ts";
 
 interface Props {
   places: MapPlace[];
@@ -25,13 +26,7 @@ interface Props {
  */
 const { places } = Astro.props;
 
-/*
- * The map is drawn to hold the whole street network with room to spare. The
- * parks sit inside x 110-781, y 180-1184 of it, so the picture is cropped to
- * them with a margin: the same drawing, closer in, which is what makes twenty
- * markers legible rather than crowded into the middle.
- */
-const VIEW = { x: 50, y: 110, width: 790, height: 1150 };
+const VIEW = PARKS_VIEW;
 
 /*
  * Two markers can sit closer together than a marker is wide -- the two parks
@@ -48,11 +43,18 @@ const VIEW = { x: 50, y: 110, width: 790, height: 1150 };
  */
 const APART = 58; // in the picture's own units; a marker is about 55 across
 
-const placed = places.map((place) => project(place.lat, place.lon));
+const projected = places.map((place) => project(place.lat, place.lon));
+
+/* Judged on the true position, not the eased one. */
+const shown = projected.map((at) => inside(at, VIEW));
+
+const placed = projected.map((at) => ({ ...at }));
 for (let pass = 0; pass < 100; pass++) {
   let collided = false;
   for (let a = 0; a < placed.length; a++) {
+    if (!shown[a]) continue;
     for (let b = a + 1; b < placed.length; b++) {
+      if (!shown[b]) continue;
       const dx = placed[b].x - placed[a].x;
       const dy = placed[b].y - placed[a].y;
       const gap = Math.hypot(dx, dy);
@@ -74,16 +76,21 @@ for (let pass = 0; pass < 100; pass++) {
 const marked = places.map((place, index) => ({
   ...place,
   id: `place-${index}`,
-  drawn: onTheMap(place.lat, place.lon),
+  drawn: shown[index],
   left: ((placed[index].x - VIEW.x) / VIEW.width) * 100,
   top: ((placed[index].y - VIEW.y) / VIEW.height) * 100,
 }));
 
-/** "Park 4, off Vision Lane" -- what the marker is called out loud. */
-const spoken = (place: { label: string; where: string }) =>
-  place.where
-    ? `${place.label}, ${place.where[0].toLowerCase()}${place.where.slice(1)}`
-    : place.label;
+/*
+ * What the marker is called out loud: "Park 4, off Vision Lane. Swing set
+ * (3 seats), slide." What is there is the reason to pick a marker, so it
+ * belongs in the name -- otherwise the map is the one way to reach a park
+ * that cannot tell you anything about it.
+ */
+const spoken = (place: { label: string; where: string; what: string }) =>
+  [place.label, place.where && decapitalize(place.where)]
+    .filter(Boolean)
+    .join(", ") + (place.what ? `. ${place.what}` : "");
 
 const cropped = mapSvg.replace(
   /viewBox="[^"]*"/,

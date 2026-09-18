@@ -158,5 +158,5 @@ text — which is the text someone reads when they are unsure, for an audience t
 - WCAG 2.2 AA: text contrast of at least 4.5:1, a visible focus ring, and full keyboard use.
 - Marigold never carries text; the ink color sits on top of it.
 - No third-party requests on public pages. Fonts are self-hosted.
-- Honour `prefers-reduced-motion`. The only motion is the map drawing in once on load.
+- Honor `prefers-reduced-motion`. The only motion is the map drawing in once on load.
 - Every page prints cleanly.

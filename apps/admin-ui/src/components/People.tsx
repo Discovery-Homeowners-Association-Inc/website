@@ -1,6 +1,13 @@
 import { ROLES, type Role } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, messageFrom, type Grant, when } from "../lib/api.ts";
+import {
+  api,
+  can,
+  messageFrom,
+  runAndReport,
+  when,
+  type Grant,
+} from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
@@ -80,18 +87,7 @@ export default function People() {
     );
   useEffect(() => void load(), []);
 
-  // Refresh the list first, then confirm. The confirmation is the signal that the page is settled.
-  const run = async (fn: () => Promise<unknown>, done: string) => {
-    setError("");
-    setSaved("");
-    try {
-      await fn();
-      await load();
-      setSaved(done);
-    } catch (e) {
-      setError(messageFrom(e));
-    }
-  };
+  const run = runAndReport(setError, setSaved, load);
 
   if (me && !can(me, "admin"))
     return <p class="notice">Only administrators can manage people.</p>;

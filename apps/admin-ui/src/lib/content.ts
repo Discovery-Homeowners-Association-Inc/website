@@ -3,6 +3,7 @@ import {
   type ItemKind,
   type ItemState,
   NEWS_CATEGORIES,
+  capitalize,
 } from "@dhoa/shared";
 import type { Field } from "./fields.ts";
 
@@ -17,8 +18,6 @@ export type KindConfig = {
   /** Whether the public site gives each item its own page (news, events, pages) or a link (documents). */
   publicUrl: (slug: string) => string;
 };
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const documentCategoryLabel: Record<
   (typeof DOCUMENT_CATEGORIES)[number],
@@ -71,7 +70,10 @@ export const KINDS: Record<ItemKind, KindConfig> = {
         key: "category",
         label: "Category",
         kind: "select",
-        options: NEWS_CATEGORIES.map((c) => ({ value: c, label: cap(c) })),
+        options: NEWS_CATEGORIES.map((c) => ({
+          value: c,
+          label: capitalize(c),
+        })),
       },
       {
         key: "pinned",

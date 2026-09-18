@@ -23,6 +23,13 @@ lint:
 check-english:
     ./scripts/check-english.sh
 
+# Re-derive where the parks are from the board's drawing into the seed. Needs
+# the sibling tools repository for the street survey, and the network once for
+# the aerial photograph. See the script's header for how it works.
+park-positions:
+    node apps/site/scripts/park-positions.mjs --write
+    pnpm exec prettier --write apps/admin/seed/settings.json
+
 # The seed must stay safe to apply twice; see the script for why
 seed-check:
     ./scripts/check-seed-stable.sh
