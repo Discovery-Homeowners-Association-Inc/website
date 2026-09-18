@@ -233,6 +233,3 @@ export const stateLabel: Record<ItemState, string> = {
   pending: "Waiting for approval",
   published: "Published",
 };
-
-export const kindFromPath = (p: string): ItemKind | null =>
-  Object.values(KINDS).find((k) => p.startsWith(k.path))?.kind ?? null;
