@@ -18,6 +18,7 @@ import {
 } from "./routes/public.ts";
 import { rosterRoutes } from "./routes/roster.ts";
 import { settingsRoutes } from "./routes/settings.ts";
+import { auditRoutes } from "./routes/audit.ts";
 import { userRoutes } from "./routes/users.ts";
 import type { AppEnv, ResolveUser } from "./types.ts";
 
@@ -68,6 +69,7 @@ export function createApp(deps: AppDeps) {
   api.route("/settings", settingsRoutes(deps));
   api.route("/roster", rosterRoutes(deps));
   api.route("/files", fileRoutes());
+  api.route("/audit", auditRoutes());
   api.get("/files/:id/content", (c) => serveFile(c.env, c.req.param("id")));
   app.route("/api", api);
 
