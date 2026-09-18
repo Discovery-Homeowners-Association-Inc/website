@@ -22,6 +22,19 @@ const names: Record<string, string> = {
 const present = new Set<string>(
   (await getCollection("documents")).map((d) => d.data.category),
 );
+
+/*
+ * A category nobody named here used to make its documents vanish from the
+ * page, silently: `category` is free text, and this list is a fixed ten. They
+ * are now shown under "Other" and the build says so, because a document the
+ * board published and cannot find is worse than an untidy heading.
+ */
+const unnamed = [...present].filter((c) => !(c in names)).toSorted();
+if (unnamed.length > 0)
+  console.warn(
+    `documents: no heading for ${unnamed.map((c) => `"${c}"`).join(", ")} -- ` +
+      `listed under "Other". Add them to apps/site/src/pages/documents/index.astro.`,
+  );
 ---
 
 <Base title={p.title} description={p.summary}>
@@ -32,4 +45,7 @@ const present = new Set<string>(
     .map(([k, label]) => (
       <DocumentList category={k} heading={label} />
     ))}
+  {unnamed.map((k) => (
+    <DocumentList category={k} heading="Other" />
+  ))}
 </Base>

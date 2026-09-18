@@ -8,9 +8,25 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
+/*
+ * Invited identities are this project's own. Every browser project runs
+ * against the same database, and a person is unique by email, so a second
+ * project inviting the same address is refused and the whole spec unravels.
+ * The bootstrapped administrator stays shared, because bootstrap is a
+ * one-time door and tolerates having already been opened.
+ */
+/*
+ * The invited identities are this project's own, set before the first test
+ * runs. Every browser project works against the same database and a person is
+ * unique by email, so a second project inviting the same address is refused
+ * and the spec unravels from there. The bootstrapped administrator stays
+ * shared: bootstrap is a one-time door and tolerates being already open.
+ */
 const ADMIN = "secretary@example.com";
-const DIRECTOR = "director@example.com";
-const EDITOR = "editor@example.com";
+let DIRECTOR = "";
+let EDITOR = "";
+/** A meeting date of this project's own: a meeting is unique by date and type. */
+let MEETING_DATE = "";
 
 async function signIn(browser: Browser, email: string) {
   const page = await (await browser.newContext()).newPage();
@@ -36,14 +52,20 @@ let admin: Page;
 let director: Page;
 let minutesUrl = "";
 
-test.beforeAll(async ({ request }) => {
+test.beforeAll(async ({ request }, testInfo) => {
+  DIRECTOR = `director-${testInfo.project.name}@example.com`;
+  EDITOR = `editor-${testInfo.project.name}@example.com`;
+  MEETING_DATE =
+    testInfo.project.name === "firefox" ? "2036-10-20" : "2026-10-20";
+
   const res = await request.post("/api/bootstrap", {
     headers: {
       authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
     },
     data: { email: ADMIN, name: "Sam Secretary" },
   });
-  expect(res.status()).toBe(201);
+  // 409 when another browser project has already run against this database.
+  expect([201, 409]).toContain(res.status());
 });
 
 test("anonymous visitors are sent to sign in", async ({ page }) => {
@@ -90,9 +112,11 @@ test("the administrator also acts as secretary: add a meeting and publish its ag
     .getByRole("navigation", { name: "Main" })
     .getByRole("link", { name: "Meetings" })
     .click();
-  await admin.getByLabel("Date").fill("2026-10-20");
+  await admin.getByLabel("Date").fill(MEETING_DATE);
   await admin.getByRole("button", { name: "Add meeting" }).click();
-  await expect(admin).toHaveURL(/\/meeting\/\?id=2026-10-20-board/);
+  await expect(admin).toHaveURL(
+    new RegExp(`/meeting/\\?id=${MEETING_DATE}-board`),
+  );
 
   await admin.getByRole("button", { name: "Add an item" }).click();
   await admin.getByLabel("Item title").nth(1).fill("Treasurer's report");

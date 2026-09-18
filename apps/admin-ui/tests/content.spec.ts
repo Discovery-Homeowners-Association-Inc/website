@@ -8,9 +8,25 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
+/*
+ * Invited identities are this project's own. Every browser project runs
+ * against the same database, and a person is unique by email, so a second
+ * project inviting the same address is refused and the whole spec unravels.
+ * The bootstrapped administrator stays shared, because bootstrap is a
+ * one-time door and tolerates having already been opened.
+ */
+/*
+ * The invited identities are this project's own, set before the first test
+ * runs. Every browser project works against the same database and a person is
+ * unique by email, so a second project inviting the same address is refused
+ * and the spec unravels from there. The bootstrapped administrator stays
+ * shared: bootstrap is a one-time door and tolerates being already open.
+ */
 const ADMIN = "secretary@example.com";
-const EDITOR = "writer@example.com";
-const DIRECTOR = "approver@example.com";
+let EDITOR = "";
+let DIRECTOR = "";
+/** A post title of this project's own, so the second run is not reading the first's. */
+let SCHEDULED = "";
 
 async function signIn(browser: Browser, email: string, phone = false) {
   const page = await (
@@ -56,7 +72,11 @@ let editor: Page;
 let director: Page;
 let newsUrl = "";
 
-test.beforeAll(async ({ request, browser }) => {
+test.beforeAll(async ({ request, browser }, testInfo) => {
+  EDITOR = `writer-${testInfo.project.name}@example.com`;
+  DIRECTOR = `approver-${testInfo.project.name}@example.com`;
+  SCHEDULED = `Holiday lights walk (${testInfo.project.name})`;
+
   const res = await request.post("/api/bootstrap", {
     headers: {
       authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
@@ -156,7 +176,7 @@ test("a director sees it on the home page, sends it back, then approves the fix"
 
 test("a scheduled post stays off the site until its date; an expired one disappears", async () => {
   await admin.goto("/content/events/edit/");
-  await admin.getByLabel("Title").fill("Holiday lights walk");
+  await admin.getByLabel("Title").fill(SCHEDULED);
   await admin.getByLabel("Summary").fill("A stroll to see the lights.");
   await admin.getByLabel("Starts").fill("2099-12-15T18:00");
   await admin.getByLabel("Ends").fill("2099-12-15T20:00");
@@ -169,13 +189,13 @@ test("a scheduled post stays off the site until its date; an expired one disappe
   await expect(
     admin
       .getByRole("listitem")
-      .filter({ hasText: "Holiday lights walk" })
+      .filter({ hasText: SCHEDULED })
       .locator(".status"),
   ).toHaveText("Scheduled");
   let json = await (await admin.request.get("/api/public/site.json")).json();
   expect(
     json.events.map((e: { body: { title: string } }) => e.body.title),
-  ).not.toContain("Holiday lights walk");
+  ).not.toContain(SCHEDULED);
 
   await admin.goto("/content/events/edit/");
   await admin.getByLabel("Title").fill("Yard sale sign-up");

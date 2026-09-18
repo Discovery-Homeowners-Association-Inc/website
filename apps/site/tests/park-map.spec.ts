@@ -26,6 +26,48 @@ test("numbers the parks 1 to 20, in order", async ({ page }) => {
   );
 });
 
+test("no two markers touch, and their centers stay a target apart", async ({
+  page,
+}) => {
+  /*
+   * WCAG 2.2 target size, by the spacing exception: a marker may be under 24px
+   * as long as a 24px circle centered on it does not reach another. The easing
+   * in the component is what guarantees that, and it is expressed in the
+   * picture's units -- so the width to check is the narrowest the site
+   * supports, where the picture is smallest and the gap tightest.
+   */
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/amenities/parks/");
+    const marks = await page.evaluate(() =>
+      [...document.querySelectorAll(".parkmap__mark")].map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          label: el.getAttribute("aria-label") ?? "",
+          x: r.x + r.width / 2,
+          y: r.y + r.height / 2,
+          w: r.width,
+        };
+      }),
+    );
+    expect(marks.length).toBeGreaterThan(20);
+    for (let a = 0; a < marks.length; a++)
+      for (let b = a + 1; b < marks.length; b++) {
+        const first = marks[a]!;
+        const second = marks[b]!;
+        const gap = Math.hypot(first.x - second.x, first.y - second.y);
+        expect(
+          gap,
+          `at ${width}px, ${first.label} and ${second.label} are ${gap.toFixed(1)}px apart`,
+        ).toBeGreaterThanOrEqual(24);
+        expect(
+          gap,
+          `at ${width}px, ${first.label} overlaps ${second.label}`,
+        ).toBeGreaterThanOrEqual(first.w / 2 + second.w / 2);
+      }
+  }
+});
+
 test("keeps every marker on the map", async ({ page }) => {
   const picture = await page.locator(".parkmap__picture").boundingBox();
   expect(picture).not.toBeNull();
