@@ -103,15 +103,32 @@ with a key beside it.
 
 The markers are ordinary elements positioned as a percentage of the picture's box, not
 shapes spliced into the SVG. The SVG scales to its box, so a percentage lands on the spot
-the projection gives at any width; and a marker stays something CSS can style and a pointer
-can find. `apps/site/src/lib/map.ts` holds the projection, which is a copy of the renderer's
-— a unit test checks it against the asset's own viewBox, because if the map is ever
-re-rendered from different data every marker silently shifts.
+the projection gives at any width; a marker stays something CSS can style, a pointer can
+hit and a keyboard can reach; and nothing has to build SVG markup inside Astro frontmatter,
+which its parser reads as the end of the surrounding element.
 
-The map is a picture: it carries `role="img"`, and the marker overlay is `aria-hidden`,
-because the key beside it lists the same places in the same order with the same notes.
-Lighting up a park in both at once is an enhancement; with no JavaScript both still say
-everything.
+Each marker is a link to its own entry in the full list, and picking one names it in the
+panel beside the map. That ordering matters: the link is what works with no JavaScript, and
+the panel is the enhancement on top of it. The map is therefore the interface rather than a
+picture with an index underneath, which is why the list is folded into a disclosure instead
+of being spelled out at full length — twenty-eight rows of "Park 12 / Off Treasure Avenue"
+said the same thing the markers already say, and pushed the map off the screen.
+
+Markers carry an accessible name of their own ("Park 12, off Treasure Avenue"), so the map
+is usable by keyboard and screen reader without the list being open. The detail panel is
+not a live region: the marker announces itself when focused, and announcing it twice is
+worse than once.
+
+Each place says two things, and the distinction is worth keeping: `where` is the street a
+resident would name, derived from the survey; `what` is the equipment, transcribed from the
+board's own "Parks Description". The second is the reason to pick a marker at all — knowing
+Park 20 has a full basketball court and a merry go round is what someone came to the page
+for.
+
+`apps/site/src/lib/map.ts` holds the projection, which is a copy of the renderer's — a unit
+test checks it against the asset's own viewBox, because if the map is ever re-rendered from
+different data every marker silently shifts, and nothing else would notice. A browser test
+checks the markers land inside the picture, for the same reason.
 
 Where the positions come from is a separate question, answered in
 `apps/site/scripts/park-positions.mjs`: the association's only record of its parks is a

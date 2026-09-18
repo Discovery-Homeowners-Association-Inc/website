@@ -61,6 +61,34 @@ const PARKS = [
 ];
 
 /*
+ * What is at each park, transcribed from "Parks Description", the second page
+ * of the association's park map. The board's own words, including the ones
+ * marked as possibly going.
+ */
+const WHAT = {
+  1: "Jungle gym (2019), two branches, trash can",
+  2: "2 rockers and bench",
+  3: "Swing set (3 seats)",
+  4: "Swing set (3 seats), slide (maybe removed due to leaning to the right)",
+  5: "Jungle gym, swing set (4), slide, doggie station, trash can",
+  6: "Red slide, blue jungle gym",
+  7: "Trash can, 2 benches, swing set (4 seats), climbing/pull up bar",
+  8: "Monkey bars, swing set (2 seats), picnic table, trash can",
+  9: "Basketball court, swing set (4)",
+  10: "Bench, trash can, dog station, kiddie jungle gym (5 and under) (possibly removing)",
+  11: "Swing set (3 seats) (possibly removing)",
+  12: "Swing set (3 seats), slide",
+  13: "Swing set (4 seats), basketball half court, trash can",
+  14: "Trash can, bench, dog station, kiddie jungle gym (5 and under) (possibly removing), slide, swing set (4 seats) (possibly removing), rocker",
+  15: "Bench, swing set (2 seats)",
+  16: "Jungle gym, swings (2 seats), monkey bars, bench",
+  17: "Swing set (4 seats)",
+  18: "Baseball diamond, trash can, full court basketball, bike path and exercise equipment",
+  19: "Swing set (4 seats), jungle gym",
+  20: "Full basketball court, swing set (4 seats), metal slide, merry go round, 2 rockers, pull up bar, monkey bars and play house",
+};
+
+/*
  * The drawing's lettered legend. Two marks read F, so there are two courts.
  *
  * Two of these are unmistakable in the aerial photograph -- the water tower is
@@ -545,7 +573,8 @@ const parks = PARKS.map(({ number, at }) => {
   return {
     number,
     name: `Park ${number}`,
-    near: `Off ${nearestStreet(point)}`,
+    where: `Off ${nearestStreet(point)}`,
+    what: WHAT[number] ?? "",
     lat: Number(lat.toFixed(6)),
     lon: Number(lon.toFixed(6)),
     moved_m: Number(moved.toFixed(1)),

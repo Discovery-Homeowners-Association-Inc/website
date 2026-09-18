@@ -122,7 +122,10 @@ export const MapPlace = z.object({
   number: z.number().int().min(0).default(0),
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
-  note: s.default(""),
+  /** Where it is, in the way a resident would say it: "Off Treasure Avenue". */
+  where: s.default(""),
+  /** What is there: "Swing set (3 seats), Slide". */
+  what: s.default(""),
 });
 export type MapPlace = z.infer<typeof MapPlace>;
 
