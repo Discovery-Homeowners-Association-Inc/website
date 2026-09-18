@@ -1,5 +1,5 @@
 import type { AppDeps } from "./app.ts";
-import { materialiseMeetings } from "./meetings-schedule.ts";
+import { materializeMeetings } from "./meetings-schedule.ts";
 
 /**
  * Runs once a day (see wrangler.jsonc triggers).
@@ -14,7 +14,7 @@ export async function runScheduled(
   deps: Pick<AppDeps, "siteChanged">,
   now = new Date(),
 ): Promise<{ deleted: number; meetingsCreated: number }> {
-  const { created: meetingsCreated } = await materialiseMeetings(env.DB, now);
+  const { created: meetingsCreated } = await materializeMeetings(env.DB, now);
 
   const { results } = await env.DB.prepare(
     "select id, kind, slug from items where expiry_action = 'delete' and expires_at is not null and expires_at <= ?",

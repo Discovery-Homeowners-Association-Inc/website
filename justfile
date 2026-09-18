@@ -19,6 +19,10 @@ lint:
     pnpm exec prettier --check .
     pnpm -r --if-present run lint
 
+# American English everywhere; see the script for what it does not flag
+check-english:
+    ./scripts/check-english.sh
+
 # The seed must stay safe to apply twice; see the script for why
 seed-check:
     ./scripts/check-seed-stable.sh
@@ -74,4 +78,4 @@ clean:
     rm -rf apps/*/dist apps/*/.astro packages/*/dist apps/*/test-results apps/*/playwright-report
 
 # Everything CI runs
-ci: lint seed-check test security build e2e
+ci: lint check-english seed-check test security build e2e

@@ -18,7 +18,7 @@ const MeetingInput = z.object({
 
 /*
  * The date is editable, which is how a meeting is moved. The id keeps the date
- * the schedule originally gave it, so the scheduler still recognises the slot as
+ * the schedule originally gave it, so the scheduler still recognizes the slot as
  * filled and does not put the old date back on the calendar.
  */
 const MeetingPatch = MeetingInput.pick({

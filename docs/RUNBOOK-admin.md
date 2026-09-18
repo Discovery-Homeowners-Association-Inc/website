@@ -112,7 +112,7 @@ seed/seed.sql`, then `bash seed/kv.sh --remote`.
    earlier note assumed. The median request costs 4 ms, but 19% exceed the 10 ms Workers Free
    limit. No request has ever been terminated: the only invocation status this Worker has ever
    recorded is `success`, so enforcement is currently looser than the documented Error 1102
-   behaviour. Two separate causes, and only one of them is ours:
+   behavior. Two separate causes, and only one of them is ours:
 
    - **Cold starts dominate the tail.** The same endpoint costs 4 ms warm and 32 ms cold;
      94% of requests following an idle gap exceed 10 ms, against 10% of warm ones. Cloudflare
@@ -120,7 +120,7 @@ seed/seed.sql`, then `bash seed/kv.sh --remote`.
      these are rejected.
    - **Two endpoints are over the limit while warm.** `/api/public/site.json` cost 22–35 ms until
      it was cached (see DECISIONS #12); `/api/auth/callback/google` costs about 24 ms on every
-     sign-in, measured over only three samples. Gather more before optimising it.
+     sign-in, measured over only three samples. Gather more before optimizing it.
 
    To re-measure, with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment,
    query per-request CPU by path from the observability API — the Worker has

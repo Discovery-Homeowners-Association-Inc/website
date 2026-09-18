@@ -1,5 +1,5 @@
 /**
- * Lets Markdown refer to organisational facts instead of repeating them:
+ * Lets Markdown refer to organizational facts instead of repeating them:
  *   {{email:general}}  -> a mailto link to that role address
  *   {{phone:office}}   -> a tel link to the office phone
  * Unknown keys throw, so a typo fails the build.
