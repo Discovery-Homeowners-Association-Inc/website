@@ -118,7 +118,7 @@ test("every internal link resolves", async ({ page, request }) => {
 test("the header is the same height whether the web font or the fallback font draws the page", async ({
   browser,
 }) => {
-  // Fonts use font-display: optional, so either can draw a given page load.
+  // Fonts use font-display: swap, so either can be drawing when this runs.
   // The header's layout must not depend on which one did.
   for (const width of [390, 1024, 1366]) {
     const heights: number[] = [];

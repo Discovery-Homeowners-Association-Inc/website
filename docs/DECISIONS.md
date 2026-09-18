@@ -124,7 +124,7 @@ transactional email sender, but no password hashing.
 
 The admin API runs its tests with `@cloudflare/vitest-pool-workers` against a local D1 database with
 the real migrations applied. Only sign-in is replaced by a test header. That package requires
-Vitest 4, so `apps/admin` uses Vitest 4 while `packages/shared` uses Vitest 5.
+Vitest 4, so `apps/admin` uses Vitest 4 while `packages/shared` and `apps/site` use Vitest 5.
 
 ## 9. People are never deleted
 
@@ -149,7 +149,7 @@ Node, pnpm and just; lockfile and exact versions for packages. Dependabot propos
 - **Node stays on the active LTS line** (24.x). Node 26 becomes LTS in October 2026.
 - **TypeScript 7** is used by `apps/admin` and `packages/shared`. The two Astro apps stay on
   TypeScript 6, because `astro check` (`@astrojs/check` 0.9.10) refuses TypeScript 7.
-- **Vitest 5** is used by `packages/shared`. `apps/admin` stays on Vitest 4, because
+- **Vitest 5** is used by `packages/shared` and `apps/site`. `apps/admin` stays on Vitest 4, because
   `@cloudflare/vitest-pool-workers` 0.22.0 supports only Vitest 4.
 - **The Worker's `compatibility_date`** is 2026-08-15, the newest date the test runtime supports.
 

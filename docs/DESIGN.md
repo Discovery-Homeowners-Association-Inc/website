@@ -142,10 +142,17 @@ says otherwise. These are the differences that are meant to be there, measured
 on 2026-09-17 with `apps/site/scripts/type-audit.mjs`. Re-run it rather than
 judging by eye, and add a line here before introducing a new difference.
 
-| Role            | Site       | Admin      | Why                                                                                                |
-| --------------- | ---------- | ---------- | -------------------------------------------------------------------------------------------------- |
-| Page title      | up to 68px | up to 35px | The site's front page carries the one bold element; the admin app is a tool people work in all day |
-| Section heading | 28px       | 22.5px     | One step down from each app's own title, so the hierarchy inside each is consistent                |
+| Role       | Site       | Admin      | Why                                                                                                |
+| ---------- | ---------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| Page title | up to 68px | up to 35px | The site's front page carries the one bold element; the admin app is a tool people work in all day |
+
+There used to be a second row here claiming section headings were 28px on the
+site and 22.5px in the admin app. That difference does not exist and never did:
+`admin.css` sets only a top margin on `h2` and never a size, so a bare heading
+is `--step-2` in both apps, and `.panel h2` is `--step-1` in both — the rule is
+in the shared base. The audit had sampled a panel heading in one app and a bare
+heading in the other, and the selector rather than the design decided the
+answer. Which is the argument for re-running it _and_ reading what it matched.
 
 Everything else the audit found was a difference nobody chose, and was fixed:
 page titles carried a stray top margin in the admin app, sections had no space
