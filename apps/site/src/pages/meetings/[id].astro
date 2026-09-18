@@ -1,5 +1,5 @@
 ---
-import { MEETING_LABEL } from "@dhoa/shared";
+import { MEETING_LABEL, todayInNewYork } from "@dhoa/shared";
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
@@ -14,15 +14,34 @@ export async function getStaticPaths() {
 const { record } = Astro.props;
 const m = record.data;
 const title = `${MEETING_LABEL[m.type]}, ${longDate(m.date)}`;
+
+/*
+ * A meeting keeps its page after it is called off or held: the listings drop
+ * it, but this is the address on a calendar entry or in an old email, so it is
+ * exactly the page someone arrives at. It used to say "The agenda is posted
+ * about a week before the meeting" either way, which sends a resident to a
+ * meeting that is not happening.
+ */
+const canceled = m.status === "canceled";
+const past = !canceled && m.date < todayInNewYork();
 ---
 
-<Base title={title} description={`Agenda for the ${title.toLowerCase()}.`}>
+<Base
+  title={title}
+  description={`Agenda for the ${MEETING_LABEL[m.type].toLowerCase()} on ${longDate(m.date)}.`}
+>
   <PageHead
-    title={title}
+    title={canceled ? `Canceled: ${title}` : title}
     summary={`${m.time}, ${m.location}`}
     crumbs={[{ href: "/meetings/", label: "Meetings" }]}
   />
   <div class="prose">
+    {canceled && (
+      <p class="callout callout--warning">
+        This meeting was canceled. See{" "}
+        <a href="/meetings/">the meetings page</a> for the next one.
+      </p>
+    )}
     {m.agenda.length > 0 ? (
       <section aria-labelledby="agenda-title">
         <h2 id="agenda-title" class="first">
@@ -37,6 +56,8 @@ const title = `${MEETING_LABEL[m.type]}, ${longDate(m.date)}`;
           ))}
         </ol>
       </section>
+    ) : canceled ? null : past ? (
+      <p>No agenda was posted for this meeting.</p>
     ) : (
       <p>The agenda is posted about a week before the meeting.</p>
     )}

@@ -1,12 +1,18 @@
 ---
 import { getCollection } from "astro:content";
-import { decapitalize, todayInNewYork } from "@dhoa/shared";
+import { todayInNewYork } from "@dhoa/shared";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
-import { newsletter, org, trash } from "../lib/data";
+import { dues, newsletter, org, telHref, trash } from "../lib/data";
 import { boardMeetings, upcoming } from "../lib/calendar";
-import { dayOfMonth, longDate, monthShort } from "../lib/dates";
+import {
+  dateOf,
+  dayInYear,
+  dayOfMonth,
+  longDate,
+  monthShort,
+} from "../lib/dates";
 
 const today = todayInNewYork();
 const [nextMeeting] = await boardMeetings(today, 2);
@@ -19,13 +25,28 @@ const news = (await getCollection("news"))
   )
   .slice(0, 3);
 
+/*
+ * From the setting the dues page already renders, rather than a second copy
+ * baked in here -- editing the due dates in the admin app used to leave the two
+ * pages disagreeing, with nothing to catch it.
+ */
 const nextDue = (() => {
   const year = Number(today.slice(0, 4));
-  const quarters = ["01-01", "04-01", "07-01", "10-01"].map(
-    (md) => `${year}-${md}`,
+  const dates = dues.due_dates
+    .map((label) => dayInYear(label, year))
+    .filter((d): d is string => d !== null)
+    .toSorted();
+  const first = dues.due_dates[0];
+  return (
+    dates.find((d) => d >= today) ??
+    (first && dayInYear(first, year + 1)) ??
+    `${year + 1}-01-01`
   );
-  return quarters.find((d) => d >= today) ?? `${year + 1}-01-01`;
 })();
+
+const trashPickup =
+  trash.collections.find((c) => /trash/i.test(c.service)) ??
+  trash.collections[0];
 
 const tasks = [
   {
@@ -115,8 +136,8 @@ const streets = [
     <div>
       <dt>Trash pickup</dt>
       <dd>
-        {trash.collections[0]?.schedule}
-        <small>Bins out {decapitalize(trash.setout_rule)}</small>
+        {trashPickup?.schedule}
+        <small>Bins out: {trash.setout_rule}</small>
       </dd>
     </div>
     <div>
@@ -129,7 +150,7 @@ const streets = [
     <div>
       <dt>Office</dt>
       <dd>
-        <a href={`tel:${org.office.phone_e164}`}>{org.office.phone}</a>
+        <a href={telHref(org.office.phone_e164)}>{org.office.phone}</a>
         <small>
           {org.office.hours
             .map((h) => `${h.days}, ${h.open} to ${h.close}`)
@@ -182,9 +203,9 @@ const streets = [
       <ul class="dated">
         {news.map((n) => (
           <li>
-            <time datetime={n.data.date.toISOString()}>
-              {monthShort(n.data.date.toISOString().slice(0, 10))}
-              <span>{dayOfMonth(n.data.date.toISOString().slice(0, 10))}</span>
+            <time datetime={dateOf(n.data.date)}>
+              {monthShort(dateOf(n.data.date))}
+              <span>{dayOfMonth(dateOf(n.data.date))}</span>
             </time>
             <div>
               <h3>

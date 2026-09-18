@@ -9,8 +9,10 @@
 # in the expression that rewrites it. Both must contain it to do their job.
 #
 # Deliberately not listed: `aria-labelledby`, which is an HTML attribute rather
-# than a spelling; upstream package names such as @img/colour in the lockfile;
-# and license text quoted verbatim from its author.
+# than a spelling; `STATUS:CANCELLED`, which is the RFC 5545 keyword and is
+# spelled that way on the wire whatever we would write in prose; upstream
+# package names such as @img/colour in the lockfile; and license text quoted
+# verbatim from its author.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -33,7 +35,7 @@ hits=$(
     ':!apps/admin/worker-configuration.d.ts' \
     ':!apps/admin/migrations/0002_app.sql' \
     ':!apps/admin/migrations/0006_canceled_spelling.sql' \
-  | grep -v 'aria-labelledby' || true
+  | grep -vE 'aria-labelledby|STATUS:CANCELLED' || true
 )
 
 if [ -z "$hits" ]; then

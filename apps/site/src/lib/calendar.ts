@@ -3,13 +3,16 @@ import { MEETING_LABEL, todayInNewYork } from "@dhoa/shared";
 import { dateOf } from "./dates";
 
 export type CalendarItem = {
+  /** The meeting record's id. Stable across a change of date, unlike the date. */
+  id: string;
   date: string;
   title: string;
   time: string;
   location: string;
   href: string;
   kind: "meeting" | "event";
-  note?: string;
+  /** Meetings only: "scheduled" unless the board called it off or it was held. */
+  status?: "scheduled" | "canceled" | "held";
   /** Meetings only: whether the agenda is up yet, which changes what we say. */
   agendaPublished?: boolean;
 };
@@ -25,25 +28,37 @@ export type CalendarItem = {
 export async function boardMeetings(
   from: string,
   limit: number,
+  /*
+   * Canceled meetings are left out of the pages, where only what is happening
+   * matters. The calendar feed asks for them, because a subscriber already has
+   * the old entry and needs to be told it is off -- dropping it silently leaves
+   * them planning to attend.
+   */
+  { includeCanceled = false } = {},
 ): Promise<CalendarItem[]> {
   const records = await getCollection("meetings");
   return records
     .filter(
       (r) =>
         r.data.type === "board" &&
-        r.data.status !== "canceled" &&
+        (includeCanceled || r.data.status !== "canceled") &&
         r.data.date >= from,
     )
     .toSorted((a, b) => a.data.date.localeCompare(b.data.date))
     .slice(0, limit)
     .map((r) => ({
+      id: r.id,
       date: r.data.date,
       title: MEETING_LABEL[r.data.type],
       time: r.data.time,
       location: r.data.location,
       href: `/meetings/${r.id}/`,
       kind: "meeting" as const,
-      agendaPublished: r.data.agenda.length > 0,
+      status: r.data.status,
+      // The publish timestamp, rather than inferring it from the agenda having
+      // items. Both say the same thing today, because only a published agenda
+      // reaches the site at all -- but one says it directly.
+      agendaPublished: r.data.agenda_published !== null,
     }));
 }
 
@@ -54,6 +69,7 @@ export async function upcoming(
   const events = (await getCollection("events"))
     .filter((e) => dateOf(e.data.end) >= today)
     .map<CalendarItem>((e) => ({
+      id: e.id,
       date: dateOf(e.data.start),
       title: e.data.title,
       time: "",
