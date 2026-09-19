@@ -68,6 +68,31 @@ test("no two markers touch, and their centers stay a target apart", async ({
   }
 });
 
+test("every marker is at least 24px on the narrowest phone", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/amenities/parks/");
+  const small = await page.evaluate(
+    () =>
+      [...document.querySelectorAll(".parkmap__mark")]
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.width < 24 || r.height < 24).length,
+  );
+  expect(small).toBe(0);
+});
+
+test("on a phone the detail panel is above the map and the list starts open", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/amenities/parks/");
+  const detail = (await page.locator(".parkmap__detail").boundingBox())!;
+  const picture = (await page.locator(".parkmap__picture").boundingBox())!;
+  expect(detail.y).toBeLessThan(picture.y);
+  await expect(page.locator(".parkmap__all")).toHaveAttribute("open", /.*/);
+});
+
 test("keeps every marker on the map", async ({ page }) => {
   const picture = await page.locator(".parkmap__picture").boundingBox();
   expect(picture).not.toBeNull();
@@ -142,6 +167,9 @@ test("every marker links to its own entry, for when scripts do not run", async (
 });
 
 test("folds the full list away, and opens it on request", async ({ page }) => {
+  // The fold is a wide-screen behavior now: a phone shows the list open.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/amenities/parks/");
   const list = page.locator(".parkmap__all");
   await expect(list).not.toHaveAttribute("open", /.*/);
   await list.locator("summary").click();

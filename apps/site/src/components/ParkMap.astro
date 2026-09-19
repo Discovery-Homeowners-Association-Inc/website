@@ -180,6 +180,11 @@ const cropped = mapSvg.replace(
    * is still a link to the same park in the list below it.
    */
   for (const figure of document.querySelectorAll(".parkmap")) {
+    // A phone shows the list open: the map is thumb-sized there, and the list
+    // is where the information is. Wider screens fold it under the panel.
+    const all = figure.querySelector<HTMLDetailsElement>(".parkmap__all");
+    if (all && matchMedia("(width < 52rem)").matches) all.open = true;
+
     const detail = figure.querySelector("[data-detail]");
     const name = figure.querySelector("[data-detail-label]");
     const where = figure.querySelector("[data-detail-where]");
