@@ -141,4 +141,12 @@ test("changing the rule replaces future rule-made meetings and keeps the ones wi
     (r) => r.id !== "2026-11-17-board" && r.date >= today,
   ))
     expect(weekdayOf(row.date), `${row.date} is not a Wednesday`).toBe(3);
+
+  const { results: audits } = await env.DB.prepare(
+    "select detail from audit_log where action = 'reschedule' and entity = 'meeting'",
+  ).all<{ detail: string }>();
+  expect(audits).toHaveLength(1);
+  const detail = JSON.parse(audits[0]!.detail);
+  expect(typeof detail.removed).toBe("number");
+  expect(typeof detail.created).toBe("number");
 });

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { auditStatement, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -31,7 +32,7 @@ export function profileRoutes(deps: AppDeps) {
   app.patch("/", async (c) => {
     const { name } = z
       .object({ name: z.string().trim().min(1).max(120) })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const user = c.get("user");
     await c.env.DB.batch([
       c.env.DB.prepare(

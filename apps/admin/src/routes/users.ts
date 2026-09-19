@@ -4,7 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, grantsFor, nowIso } from "../db.ts";
-import { Note } from "../inputs.ts";
+import { Note, readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -57,7 +57,7 @@ export function userRoutes(deps: AppDeps) {
 
   /** Invite someone: creates their account so their first Google sign-in with this address is accepted. */
   app.post("/", async (c) => {
-    const input = Invite.parse(await c.req.json());
+    const input = Invite.parse(await readJson(c));
     const ctx = await deps.getAuth(c.env).$context;
     const existing = await ctx.internalAdapter.findUserByEmail(input.email);
     if (existing) {
@@ -101,7 +101,9 @@ export function userRoutes(deps: AppDeps) {
 
   app.put("/:id/grants", async (c) => {
     const id = c.req.param("id");
-    const grants = Grants.parse((await c.req.json()).grants);
+    const grants = Grants.parse(
+      ((await readJson(c)) as Record<string, unknown>).grants,
+    );
     const actor = c.get("user").id;
     if (id === actor && !grants.some((g) => g.role === "admin")) {
       throw new HTTPException(422, {

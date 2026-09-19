@@ -14,7 +14,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { hasRole, requireRole, rolesOf } from "../access.ts";
 import { auditStatement, batchOr409, nowIso, type Guard } from "../db.ts";
-import { Note } from "../inputs.ts";
+import { Note, readJson } from "../inputs.ts";
 import { approvalsSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -72,10 +72,13 @@ export function itemRoutes(deps: AppDeps) {
   );
 
   app.post("/", requireRole("admin", "secretary", "editor"), async (c) => {
-    const raw = await c.req.json();
+    const raw = (await readJson(c)) as Record<string, unknown>;
     const kind = Kind.parse(raw.kind);
     const body = ITEM_BODIES[kind].parse(raw.body);
-    const meta = ItemMeta.parse({ publish_at: nowIso(), ...raw.meta });
+    const meta = ItemMeta.parse({
+      publish_at: nowIso(),
+      ...(raw.meta as Record<string, unknown> | undefined),
+    });
     const actor = c.get("user").id;
     const id = crypto.randomUUID();
     const wanted = slugify(
@@ -132,13 +135,13 @@ export function itemRoutes(deps: AppDeps) {
           "You can change only your own items, and only before they are published.",
       });
     }
-    const raw = await c.req.json();
+    const raw = (await readJson(c)) as Record<string, unknown>;
     const body = ITEM_BODIES[row.kind].parse(raw.body ?? JSON.parse(row.body));
     const meta = ItemMeta.parse({
       publish_at: row.publish_at,
       expires_at: row.expires_at,
       expiry_action: row.expiry_action,
-      ...raw.meta,
+      ...(raw.meta as Record<string, unknown> | undefined),
     });
     const slug =
       typeof raw.slug === "string" && raw.slug && staff
@@ -173,7 +176,7 @@ export function itemRoutes(deps: AppDeps) {
     const input = Note.extend({
       action: z.enum(["submit", "approve", "reject", "publish", "unpublish"]),
       seen_updated_at: z.string().optional(),
-    }).parse(await c.req.json());
+    }).parse(await readJson(c));
     const user = c.get("user");
     const requiresApproval = (await approvalsSetting(c.env.DB))[row.kind];
     const allowed = itemActions({

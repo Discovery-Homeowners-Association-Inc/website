@@ -10,7 +10,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { hasRole, requireRole, rolesOf } from "../access.ts";
 import { auditStatement, batchOr409, nowIso, type Guard } from "../db.ts";
-import { Note } from "../inputs.ts";
+import { Note, readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import { meetingOr404 } from "./meetings.ts";
 
@@ -196,7 +196,7 @@ export function minutesRoutes() {
         body: MinutesBody,
         change_note: z.string().trim().max(500).optional(),
       })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const row = await c.env.DB.prepare(
       "select * from minutes where meeting_id = ?",
     )
@@ -258,7 +258,7 @@ export function minutesRoutes() {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
     const { to } = z
       .object({ to: z.enum(["draft", "in_review", "ready_for_vote"]) })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const { minutes } = await load(c.env.DB, m.id);
     const user = c.get("user");
     if (!canTransition(minutes.status, to, rolesOf(user.grants))) {
@@ -308,7 +308,7 @@ export function minutesRoutes() {
         anchor: z.string().trim().max(80).default(""),
         body: z.string().trim().min(1).max(4000),
       })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const { minutes } = await load(c.env.DB, m.id);
     if (!EDITABLE.includes(minutes.status))
       throw new HTTPException(409, {
@@ -423,7 +423,7 @@ export function minutesRoutes() {
           no: z.number().int().min(0),
           abstain: z.number().int().min(0),
         })
-        .parse(await c.req.json());
+        .parse(await readJson(c));
       const { minutes, current } = await load(c.env.DB, m.id);
       const user = c.get("user");
       if (!canTransition(minutes.status, "approved", rolesOf(user.grants))) {
@@ -499,7 +499,7 @@ export function minutesRoutes() {
     requireRole("secretary", "admin"),
     async (c) => {
       const m = await meetingOr404(c.env.DB, c.req.param("id"));
-      const { note } = Note.parse(await c.req.json());
+      const { note } = Note.parse(await readJson(c));
       const { minutes, current } = await load(c.env.DB, m.id);
       const user = c.get("user");
       if (!canTransition(minutes.status, "filed", rolesOf(user.grants))) {

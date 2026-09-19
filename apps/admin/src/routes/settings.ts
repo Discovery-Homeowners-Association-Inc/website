@@ -9,6 +9,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { requireRole } from "../access.ts";
 import { auditStatement, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import { reconcileMeetings } from "../meetings-schedule.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -70,7 +71,7 @@ export function settingsRoutes(deps: AppDeps) {
     const key = c.req.param("key");
     if (!isKey(key))
       throw new HTTPException(404, { message: "No such settings group." });
-    const value = SETTINGS[key].parse(await c.req.json());
+    const value = SETTINGS[key].parse(await readJson(c));
     const actor = c.get("user").id;
     let previous: Settings[SettingsKey] | undefined;
     try {
@@ -95,7 +96,7 @@ export function settingsRoutes(deps: AppDeps) {
         before.time !== after.time ||
         before.location !== after.location
       )
-        await reconcileMeetings(c.env.DB);
+        await reconcileMeetings(c.env.DB, actor);
     }
     if (key !== "approvals") await deps.siteChanged(c.env, `settings ${key}`);
     return c.json(value);

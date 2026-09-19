@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { hasRole, requireRole } from "../access.ts";
 import { auditStatement, nowIso, type Guard } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -61,7 +62,7 @@ export function rosterRoutes(deps: AppDeps) {
   app.get("/committees", async (c) => c.json(await listCommittees(c.env.DB)));
 
   app.post("/people", requireRole("admin", "secretary"), async (c) => {
-    const person = Person.parse(await c.req.json());
+    const person = Person.parse(await readJson(c));
     const id = crypto.randomUUID();
     const actor = c.get("user").id;
     await c.env.DB.batch([
@@ -78,7 +79,7 @@ export function rosterRoutes(deps: AppDeps) {
 
   app.put("/people/:id", requireRole("admin", "secretary"), async (c) => {
     const id = c.req.param("id");
-    const person = Person.parse(await c.req.json());
+    const person = Person.parse(await readJson(c));
     const actor = c.get("user").id;
     const exists: Guard = {
       sql: "select 1 from people where id = ?",
@@ -133,7 +134,10 @@ export function rosterRoutes(deps: AppDeps) {
 
   app.put("/committees/:slug", requireRole("admin", "secretary"), async (c) => {
     const slug = c.req.param("slug");
-    const committee = Committee.parse({ ...(await c.req.json()), slug });
+    const committee = Committee.parse({
+      ...((await readJson(c)) as Record<string, unknown>),
+      slug,
+    });
     const actor = c.get("user").id;
     await c.env.DB.batch([
       c.env.DB.prepare(

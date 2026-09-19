@@ -1,4 +1,5 @@
 import { occurrences, todayInNewYork } from "@dhoa/shared";
+import { auditStatement } from "./db.ts";
 import { readSetting } from "./routes/settings.ts";
 
 /** How far ahead meetings are kept as records. */
@@ -59,9 +60,10 @@ export async function materializeMeetings(
  */
 export async function reconcileMeetings(
   db: D1Database,
+  actorId: string,
   now = new Date(),
 ): Promise<{ created: number; removed: number }> {
-  const removed = await db
+  const removedResult = await db
     .prepare(
       `delete from meetings
         where type = 'board' and created_by is null and status = 'scheduled'
@@ -71,6 +73,15 @@ export async function reconcileMeetings(
     )
     .bind(todayInNewYork(now))
     .run();
+  const removed = removedResult.meta.changes ?? 0;
   const { created } = await materializeMeetings(db, now);
-  return { created, removed: removed.meta.changes ?? 0 };
+  // Two statements rather than one batch: `created` is only known after
+  // `materializeMeetings` runs, and the audit row is the fix here -- a
+  // partial failure between the delete and the audit insert is recoverable
+  // by the next cron, which reconciles again.
+  await auditStatement(db, actorId, "reschedule", "meeting", "board", {
+    removed,
+    created,
+  }).run();
+  return { created, removed };
 }

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 
 /** One page. Older entries are reached with `before`, not by raising this. */
@@ -74,7 +75,7 @@ export function auditRoutes() {
    * comes from the request, and that is validated.
    */
   app.post("/export", async (c) => {
-    const body = ExportRecord.parse(await c.req.json());
+    const body = ExportRecord.parse(await readJson(c));
     const at = nowIso();
     await auditStatement(
       c.env.DB,

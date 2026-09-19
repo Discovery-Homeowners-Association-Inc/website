@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, batchOr409, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import { readSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -64,7 +65,7 @@ export function meetingRoutes(deps: AppDeps) {
   });
 
   app.post("/", requireRole("secretary", "admin"), async (c) => {
-    const input = MeetingInput.parse(await c.req.json());
+    const input = MeetingInput.parse(await readJson(c));
     const id = `${input.date}-${input.type}`;
     const actor = c.get("user").id;
     await batchOr409(
@@ -93,7 +94,7 @@ export function meetingRoutes(deps: AppDeps) {
 
   app.patch("/:id", requireRole("secretary", "admin"), async (c) => {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
-    const patch = MeetingPatch.parse(await c.req.json());
+    const patch = MeetingPatch.parse(await readJson(c));
     const next = { ...m, ...patch };
     await batchOr409(
       c.env.DB,
@@ -199,7 +200,7 @@ export function meetingRoutes(deps: AppDeps) {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
     const input = z
       .object({ base_version: z.number().int().min(0), body: AgendaBody })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const actor = c.get("user").id;
     const agenda = await c.env.DB.prepare(
       "select current_version from agendas where meeting_id = ?",
