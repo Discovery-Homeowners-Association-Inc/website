@@ -25,6 +25,6 @@ describe("remark-org", () => {
   it("still links the office", () => {
     const [link] = run("{{phone:office}}");
     expect(link?.type).toBe("link");
-    expect(link?.url).toMatch(/^tel:/);
+    expect(link?.url).toBe("tel:+13018452050");
   });
 });

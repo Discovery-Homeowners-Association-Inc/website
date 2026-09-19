@@ -5,7 +5,7 @@
  *   {{setting:a.b.c}}    -> the value the board edits in Site settings
  * Unknown keys throw, so a typo fails the build.
  */
-import { email, telHref } from "./data.ts";
+import { email, org, telHref } from "./data.ts";
 import { settings } from "./snapshot.ts";
 
 type Node = { type: string; value?: string; url?: string; children?: Node[] };
@@ -37,10 +37,10 @@ function replacement(kind: string, key: string): Node {
   }
   if (key !== "office")
     throw new Error(`Unknown phone key "${key}" in Markdown`);
-  const phone = settings.organization.office.phone;
+  const phone = org.office.phone;
   return {
     type: "link",
-    url: telHref(phone),
+    url: telHref(org.office.phone_e164),
     children: [{ type: "text", value: phone }],
   };
 }
