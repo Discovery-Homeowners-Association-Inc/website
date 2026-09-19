@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import { DOCUMENT_CATEGORIES, DOCUMENT_CATEGORY_LABEL } from "@dhoa/shared";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
@@ -7,45 +8,31 @@ import DocumentList from "../../components/DocumentList.astro";
 import { page } from "../../lib/pages";
 
 const p = await page("documents");
-const names: Record<string, string> = {
-  governing: "Governing documents",
-  newsletters: "Newsletters",
-  minutes: "Agendas and minutes",
-  acc: "Exterior changes",
-  pool: "Pool",
-  "rec-center": "Recreation Center",
-  "rv-lot": "RV lot",
-  parks: "Parks",
-  trash: "Trash and recycling",
-  general: "General",
-};
+const names: Record<(typeof DOCUMENT_CATEGORIES)[number], string> =
+  DOCUMENT_CATEGORY_LABEL;
+const order = [
+  "governing",
+  "newsletters",
+  "minutes",
+  "acc",
+  "pool",
+  "rec-center",
+  "rv-lot",
+  "parks",
+  "trash",
+  "general",
+] as const;
 const present = new Set<string>(
   (await getCollection("documents")).map((d) => d.data.category),
 );
-
-/*
- * A category nobody named here used to make its documents vanish from the
- * page, silently: `category` is free text, and this list is a fixed ten. They
- * are now shown under "Other" and the build says so, because a document the
- * board published and cannot find is worse than an untidy heading.
- */
-const unnamed = [...present].filter((c) => !(c in names)).toSorted();
-if (unnamed.length > 0)
-  console.warn(
-    `documents: no heading for ${unnamed.map((c) => `"${c}"`).join(", ")} -- ` +
-      `listed under "Other". Add them to apps/site/src/pages/documents/index.astro.`,
-  );
 ---
 
 <Base title={p.title} description={p.summary}>
   <PageHead title={p.title} summary={p.summary} />
   <Prose id="documents" />
-  {Object.entries(names)
-    .filter(([k]) => present.has(k))
-    .map(([k, label]) => (
-      <DocumentList category={k} heading={label} />
+  {order
+    .filter((k) => present.has(k))
+    .map((k) => (
+      <DocumentList category={k} heading={names[k]} />
     ))}
-  {unnamed.map((k) => (
-    <DocumentList category={k} heading="Other" />
-  ))}
 </Base>

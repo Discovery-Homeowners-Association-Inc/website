@@ -1,14 +1,11 @@
 ---
-import { getEntry, render } from "astro:content";
+import { render } from "astro:content";
+import { pageEntry } from "../lib/pages";
 
 interface Props {
   id: string;
 }
-const entry = await getEntry("pages", Astro.props.id);
-if (!entry)
-  throw new Error(
-    `Missing page content: src/content/pages/${Astro.props.id}.md`,
-  );
+const entry = await pageEntry(Astro.props.id);
 const { Content } = await render(entry);
 ---
 

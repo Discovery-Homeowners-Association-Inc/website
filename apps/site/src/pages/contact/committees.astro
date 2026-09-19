@@ -3,9 +3,12 @@ import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
 import { committees, email } from "../../lib/data";
-import { page } from "../../lib/pages";
+import { page, titleForPath } from "../../lib/pages";
 
 const p = await page("committees");
+const titles = await Promise.all(
+  committees.map((c) => (c.page ? titleForPath(c.page) : undefined)),
+);
 ---
 
 <Base title={p.title} description={p.summary}>
@@ -15,7 +18,7 @@ const p = await page("committees");
     crumbs={[{ href: "/contact/", label: "Contact" }]}
   />
   <Prose id="committees" />
-  {committees.map((c) => (
+  {committees.map((c, i) => (
     <section>
       <h2>{c.name}</h2>
       <p class="prose">{c.purpose}</p>
@@ -36,9 +39,11 @@ const p = await page("committees");
           ))}
         </ul>
       )}
-      <p>
-        <a href={c.page}>Related page</a>
-      </p>
+      {c.page && (
+        <p>
+          <a href={c.page}>{titles[i] ?? "More"}</a>
+        </p>
+      )}
     </section>
   ))}
 </Base>

@@ -1,8 +1,10 @@
 import {
   DOCUMENT_CATEGORIES,
+  DOCUMENT_CATEGORY_LABEL,
   type ItemKind,
   type ItemState,
   NEWS_CATEGORIES,
+  PAGE_PATHS,
   capitalize,
 } from "@dhoa/shared";
 import type { Field } from "./fields.ts";
@@ -17,22 +19,6 @@ export type KindConfig = {
   fields: Field[];
   /** Whether the public site gives each item its own page (news, events, pages) or a link (documents). */
   publicUrl: (slug: string) => string;
-};
-
-export const documentCategoryLabel: Record<
-  (typeof DOCUMENT_CATEGORIES)[number],
-  string
-> = {
-  general: "General",
-  governing: "Governing documents",
-  acc: "Exterior changes (ACC)",
-  pool: "Pool",
-  "rec-center": "Recreation Center",
-  "rv-lot": "RV lot",
-  parks: "Parks",
-  trash: "Trash and recycling",
-  newsletters: "Newsletters",
-  minutes: "Agendas and minutes",
 };
 
 export const KINDS: Record<ItemKind, KindConfig> = {
@@ -161,7 +147,7 @@ export const KINDS: Record<ItemKind, KindConfig> = {
         kind: "select",
         options: DOCUMENT_CATEGORIES.map((c) => ({
           value: c,
-          label: documentCategoryLabel[c],
+          label: DOCUMENT_CATEGORY_LABEL[c],
         })),
       },
       {
@@ -188,7 +174,7 @@ export const KINDS: Record<ItemKind, KindConfig> = {
     path: "/content/pages/",
     intro:
       "The written text of the site's pages. Facts like phone numbers and fees are under Site settings, so they stay consistent everywhere.",
-    publicUrl: (slug) => pagePaths[slug] ?? "/",
+    publicUrl: (slug) => PAGE_PATHS[slug] ?? "/",
     fields: [
       { key: "title", label: "Title", kind: "text", required: true },
       {
@@ -201,31 +187,6 @@ export const KINDS: Record<ItemKind, KindConfig> = {
       { key: "body", label: "Text", kind: "markdown", rows: 16 },
     ],
   },
-};
-
-/** Where each page's text appears on the public site. */
-export const pagePaths: Record<string, string> = {
-  home: "/",
-  about: "/about/",
-  history: "/about/history/",
-  "welcome-committee": "/about/welcome-committee/",
-  amenities: "/amenities/",
-  pool: "/amenities/pool/",
-  "recreation-center": "/amenities/recreation-center/",
-  "rv-lot": "/amenities/rv-lot/",
-  parks: "/amenities/parks/",
-  board: "/board/",
-  meetings: "/meetings/",
-  projects: "/board/projects/",
-  rules: "/rules/",
-  "architectural-control": "/rules/architectural-control/",
-  "trash-recycling": "/rules/trash-recycling/",
-  "report-a-problem": "/rules/report-a-problem/",
-  committees: "/contact/committees/",
-  "community-links": "/contact/community-links/",
-  contact: "/contact/",
-  documents: "/documents/",
-  dues: "/dues/",
 };
 
 export const stateLabel: Record<ItemState, string> = {
