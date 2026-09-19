@@ -20,6 +20,8 @@ on:
 
 permissions:
   contents: read
+  # To see whether the admin deploy is still running; see the wait below.
+  actions: read
 
 concurrency:
   group: site-build
@@ -40,6 +42,35 @@ jobs:
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      # This build reads its content from the deployed admin Worker, and both
+      # workflows start on the same push. Racing it meant fetching the content
+      # from the version being replaced: a deploy that had already written the
+      # park markers to the database produced a parks page with no markers.
+      #
+      # Said here rather than with a `workflow_run` trigger, which would order
+      # the two but is a privileged trigger that zizmor gates on sight -- and
+      # rightly, since it is worth more than the few lines it would save.
+      - name: Wait for the admin deploy, which this reads its content from
+        if: vars.SITE_CONTENT_URL != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for _ in $(seq 1 60); do
+            # Anything not finished: queued, in_progress, waiting. Repeating
+            # --status does not combine them, it overrides, so this filters
+            # instead of asking twice and getting only the second answer.
+            busy=$(gh run list --workflow=deploy-admin.yml --limit 20 \
+              --json status \
+              --jq '[.[] | select(.status != "completed")] | length')
+            if [ "$busy" = "0" ]; then
+              echo "admin deploy is idle"
+              exit 0
+            fi
+            echo "admin deploy is busy; waiting"
+            sleep 10
+          done
+          echo "admin deploy still running after ten minutes" >&2
+          exit 1
       - run: pnpm install --frozen-lockfile
       - name: Fetch the latest published content
         if: vars.SITE_CONTENT_URL != ''

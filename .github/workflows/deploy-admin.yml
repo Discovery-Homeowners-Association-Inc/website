@@ -1,7 +1,9 @@
 name: Deploy admin
 
 # Deploys the admin Worker (API plus admin screens) to Cloudflare on every
-# push to main, after applying database migrations. Needs the repository
+# push to main, after applying database migrations. The site build waits for
+# this to finish (see site.yml) because it reads its content from the Worker
+# this deploys. Needs the repository
 # secret CLOUDFLARE_API_TOKEN (Workers Scripts: Edit, D1: Edit, Workers KV
 # Storage: Edit, Account Settings: Read) and the variable CLOUDFLARE_ACCOUNT_ID.
 

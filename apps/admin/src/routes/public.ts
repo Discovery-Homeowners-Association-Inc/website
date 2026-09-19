@@ -26,8 +26,27 @@ export const edgeCache: SnapshotCache = {
  * the body use the same origin, which keeps the cached body correct for every
  * caller instead of carrying whichever host happened to build it.
  */
-const snapshotKey = (env: Env) =>
-  new Request(new URL("/api/public/site.json", env.BETTER_AUTH_URL).toString());
+const snapshotKey = (env: Env) => {
+  const url = new URL("/api/public/site.json", env.BETTER_AUTH_URL);
+  /*
+   * The deployed version is part of the key, so every deploy starts with a
+   * cold snapshot.
+   *
+   * The deploy writes settings and page copy straight to D1 with wrangler,
+   * which never passes through this Worker and so never reaches
+   * invalidateSnapshot. Without this the site build that follows reads
+   * whatever was cached up to five minutes earlier and ships it -- which is
+   * how a deploy that had already put the park markers in the database
+   * produced a parks page with no markers on it.
+   *
+   * One rebuild per deploy is the whole cost. Nothing a caller sends can
+   * change the key, so it is not a way to make the Worker do the expensive
+   * thing on demand.
+   */
+  const version = env.CF_VERSION_METADATA?.id;
+  if (version) url.searchParams.set("v", version);
+  return new Request(url.toString());
+};
 
 /** Drop the cached snapshot. Called for every change to published content. */
 export async function invalidateSnapshot(
