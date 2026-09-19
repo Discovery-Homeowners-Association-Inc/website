@@ -200,6 +200,32 @@ describe("files", () => {
     ).toBe(204);
     expect(await env.FILES.get(up.json.id)).toBeNull();
   });
+
+  it("keeps the signed-in preview private and away from editors' roles it does not need", async () => {
+    const up = await upload(
+      secretary,
+      "private.pdf",
+      "application/pdf",
+      new TextEncoder().encode("%PDF-1.4 private"),
+    );
+    const res = await app.request(
+      `/api/files/${up.json.id}/content`,
+      { headers: { "x-test-user": secretary } },
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("private, max-age=0");
+    const director = await makeUser(["board"]);
+    expect(
+      (
+        await app.request(
+          `/api/files/${up.json.id}/content`,
+          { headers: { "x-test-user": director } },
+          env,
+        )
+      ).status,
+    ).toBe(403);
+  });
 });
 
 describe("profile", () => {
@@ -236,6 +262,13 @@ describe("profile", () => {
         (s: { id: string }) => s.id,
       ),
     ).toEqual(["s-this"]);
+    expect(
+      await env.DB.prepare(
+        "select 1 from audit_log where action = 'sign_out_others' and actor_id = ?",
+      )
+        .bind(me)
+        .first(),
+    ).not.toBeNull();
   });
 });
 

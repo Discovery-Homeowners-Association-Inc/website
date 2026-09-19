@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
 import { ZodError } from "zod";
-import { requireUser } from "./access.ts";
+import { requireRole, requireUser } from "./access.ts";
 import type { Auth } from "./auth.ts";
 import { bootstrapRoutes } from "./routes/bootstrap.ts";
 import { fileRoutes, serveFile } from "./routes/files.ts";
@@ -70,7 +70,11 @@ export function createApp(deps: AppDeps) {
   api.route("/roster", rosterRoutes(deps));
   api.route("/files", fileRoutes());
   api.route("/audit", auditRoutes());
-  api.get("/files/:id/content", (c) => serveFile(c.env, c.req.param("id")));
+  api.get(
+    "/files/:id/content",
+    requireRole("admin", "secretary", "editor"),
+    (c) => serveFile(c.env, c.req.param("id"), "private"),
+  );
   app.route("/api", api);
 
   app.onError((err, c) => {

@@ -308,6 +308,22 @@ describe("minutes, from draft to filed", () => {
     });
     expect(ok.json.status).toBe("approved");
   });
+
+  it("logs a review once, however many times the button is pressed", async () => {
+    await call(secretary, "PUT", path(), {
+      base_version: 0,
+      body: body("Draft"),
+    });
+    await call(secretary, "POST", path("/transition"), { to: "in_review" });
+    await call(director, "POST", path("/reviewed"));
+    await call(director, "POST", path("/reviewed"));
+    const { results } = await env.DB.prepare(
+      "select 1 from audit_log where action = 'review' and entity_id = ? and actor_id = ?",
+    )
+      .bind(meeting, director)
+      .all();
+    expect(results).toHaveLength(1);
+  });
 });
 
 describe("an item's outcome", () => {

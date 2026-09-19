@@ -390,11 +390,23 @@ export function minutesRoutes() {
         });
       }
       const user = c.get("user");
-      await c.env.DB.prepare(
-        "insert into reviews (meeting_id, version, user_id, reviewed_at) values (?, ?, ?, ?) on conflict do nothing",
-      )
-        .bind(m.id, minutes.current_version, user.id, nowIso())
-        .run();
+      await c.env.DB.batch([
+        auditStatement(
+          c.env.DB,
+          user.id,
+          "review",
+          "minutes",
+          m.id,
+          { version: minutes.current_version },
+          {
+            sql: "select 1 where not exists (select 1 from reviews where meeting_id = ? and version = ? and user_id = ?)",
+            binds: [m.id, minutes.current_version, user.id],
+          },
+        ),
+        c.env.DB.prepare(
+          "insert into reviews (meeting_id, version, user_id, reviewed_at) values (?, ?, ?, ?) on conflict do nothing",
+        ).bind(m.id, minutes.current_version, user.id, nowIso()),
+      ]);
       return c.json({ version: minutes.current_version });
     },
   );

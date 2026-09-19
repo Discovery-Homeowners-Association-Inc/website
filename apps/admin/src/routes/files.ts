@@ -66,15 +66,23 @@ export function fileRoutes() {
     await c.env.FILES.put(id, bytes, {
       metadata: { name, content_type: file.type },
     });
-    await c.env.DB.batch([
-      c.env.DB.prepare(
-        "insert into files (id, name, content_type, size, sha256, uploaded_by, uploaded_at) values (?, ?, ?, ?, ?, ?, ?)",
-      ).bind(id, name, file.type, file.size, sha256, actor, nowIso()),
-      auditStatement(c.env.DB, actor, "upload", "file", id, {
-        name,
-        size: file.size,
-      }),
-    ]);
+    // The row is what makes a blob reachable, so a blob without a row is
+    // waste while a row without a blob is a broken document: if the D1 write
+    // fails, take the blob back out rather than leave it orphaned.
+    try {
+      await c.env.DB.batch([
+        c.env.DB.prepare(
+          "insert into files (id, name, content_type, size, sha256, uploaded_by, uploaded_at) values (?, ?, ?, ?, ?, ?, ?)",
+        ).bind(id, name, file.type, file.size, sha256, actor, nowIso()),
+        auditStatement(c.env.DB, actor, "upload", "file", id, {
+          name,
+          size: file.size,
+        }),
+      ]);
+    } catch (e) {
+      await c.env.FILES.delete(id);
+      throw e;
+    }
     return c.json(
       {
         id,
@@ -100,11 +108,14 @@ export function fileRoutes() {
       throw new HTTPException(409, {
         message: `That file is attached to the document "${used.slug}". Remove it there first.`,
       });
-    await c.env.FILES.delete(id);
+    // A failed KV delete leaves an unreachable blob -- the lesser harm next
+    // to a row that survives with no blob behind it -- so the D1 write goes
+    // first.
     await c.env.DB.batch([
       c.env.DB.prepare("delete from files where id = ?").bind(id),
       auditStatement(c.env.DB, c.get("user").id, "delete", "file", id),
     ]);
+    await c.env.FILES.delete(id);
     return c.body(null, 204);
   });
 
@@ -138,11 +149,15 @@ export async function servePublicFile(env: Env, id: string): Promise<Response> {
     .bind(now, now, id)
     .first();
   if (!shown) return new Response("Not found", { status: 404 });
-  return serveFile(env, id);
+  return serveFile(env, id, "public");
 }
 
 /** Streams a stored file. Used by the signed-in preview and, guarded, the site. */
-export async function serveFile(env: Env, id: string): Promise<Response> {
+export async function serveFile(
+  env: Env,
+  id: string,
+  audience: "public" | "private",
+): Promise<Response> {
   const row = await env.DB.prepare(
     "select name, content_type, size from files where id = ?",
   )
@@ -156,7 +171,8 @@ export async function serveFile(env: Env, id: string): Promise<Response> {
       "content-type": row.content_type,
       "content-length": String(row.size),
       "content-disposition": `inline; filename="${row.name.replaceAll('"', "")}"`,
-      "cache-control": "public, max-age=3600",
+      "cache-control":
+        audience === "public" ? "public, max-age=3600" : "private, max-age=0",
     },
   });
 }

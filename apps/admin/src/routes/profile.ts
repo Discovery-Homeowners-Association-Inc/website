@@ -45,11 +45,12 @@ export function profileRoutes(deps: AppDeps) {
   app.post("/sign-out-others", async (c) => {
     const user = c.get("user");
     const current = await deps.currentSessionId(c.req.raw, c.env);
-    await c.env.DB.prepare(
-      'delete from "session" where "userId" = ? and id != ?',
-    )
-      .bind(user.id, current ?? "")
-      .run();
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        'delete from "session" where "userId" = ? and id != ?',
+      ).bind(user.id, current ?? ""),
+      auditStatement(c.env.DB, user.id, "sign_out_others", "user", user.id),
+    ]);
     return c.body(null, 204);
   });
 
