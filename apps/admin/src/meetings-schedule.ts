@@ -31,15 +31,15 @@ export async function materializeMeetings(
   if (wanted.length === 0) return { created: 0 };
 
   const results = await db.batch(
-    wanted.map((o) =>
+    wanted.map((date) =>
       db
         .prepare(
           `insert or ignore into meetings (id, type, date, time, location, created_by, created_at)
            values (?, 'board', ?, ?, ?, null, ?)`,
         )
         .bind(
-          `${o.date}-board`,
-          o.date,
+          `${date}-board`,
+          date,
           board.time,
           board.location,
           now.toISOString(),
