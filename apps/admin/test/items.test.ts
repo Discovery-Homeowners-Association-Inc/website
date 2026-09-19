@@ -222,6 +222,37 @@ describe("publish dates and expiry", () => {
       (await call(secretary, "GET", `/api/items/${gone.json.id}`)).status,
     ).toBe(200);
   });
+
+  it("does not delete an item before its expiry when the offset is not UTC", async () => {
+    // 11 pm Central on the 19th is 4 am UTC on the 20th. Compared as text
+    // against a UTC "now", "-05:00" sorted before "Z" and the item was deleted
+    // four and a half hours early.
+    const item = await call(secretary, "POST", "/api/items", {
+      ...news("Evening deadline"),
+      meta: {
+        publish_at: "2026-09-01T09:00:00-04:00",
+        expires_at: "2026-09-19T23:00:00-05:00",
+        expiry_action: "delete",
+      },
+    });
+    await publishNow(item.json.id);
+    await runScheduled(
+      env,
+      { siteChanged: async () => {} },
+      new Date("2026-09-19T23:30:00Z"),
+    );
+    expect(
+      (await call(secretary, "GET", `/api/items/${item.json.id}`)).status,
+    ).toBe(200);
+    await runScheduled(
+      env,
+      { siteChanged: async () => {} },
+      new Date("2026-09-20T05:00:00Z"),
+    );
+    expect(
+      (await call(secretary, "GET", `/api/items/${item.json.id}`)).status,
+    ).toBe(404);
+  });
 });
 
 describe("the public snapshot", () => {

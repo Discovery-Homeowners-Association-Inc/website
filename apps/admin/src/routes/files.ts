@@ -137,6 +137,8 @@ export function fileRoutes() {
  */
 export async function servePublicFile(env: Env, id: string): Promise<Response> {
   const now = new Date().toISOString();
+  // Text comparison is correct because every stored instant is UTC (see
+  // `ItemMeta` in @dhoa/shared and migration 0007).
   const shown = await env.DB.prepare(
     `select 1 from items
       where kind = 'document'

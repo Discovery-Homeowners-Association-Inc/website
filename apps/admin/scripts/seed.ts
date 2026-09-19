@@ -65,7 +65,7 @@ for (const raw of read("items.json")) {
   const id = stableId("item", kind, slug);
   const json = q(JSON.stringify(body));
   lines.push(
-    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${json}, ${q(raw.publish_at)}, ${q(now)}, ${q(now)});`,
+    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${json}, ${q(new Date(raw.publish_at).toISOString())}, ${q(now)}, ${q(now)});`,
   );
   /*
    * Page copy that nobody has edited follows the repository.
