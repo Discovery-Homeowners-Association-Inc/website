@@ -2,7 +2,10 @@
  * Turns seed/*.json into SQL and KV puts so the first database can be filled
  * locally or remotely:
  *   node scripts/seed.ts            -> writes seed/seed.sql, seed/settings.sql
- *                                      and seed/kv.sh
+ *                                      and seed/kv.sh. settings.sql is what
+ *                                      the deploy applies on every push: the
+ *                                      settings and page copy a database does
+ *                                      not have yet, and nothing else.
  *   just seed-local                 -> applies both to the local dev database
  */
 import { createHash } from "node:crypto";
@@ -51,6 +54,7 @@ for (const name of readdirSync(join(dir, "files"))) {
   );
 }
 
+const pagesSql: string[] = [];
 for (const raw of read("items.json")) {
   const kind = raw.kind as keyof typeof ITEM_BODIES;
   if (kind === "document") {
@@ -59,9 +63,27 @@ for (const raw of read("items.json")) {
   const body = ITEM_BODIES[kind].parse(raw.body);
   const slug = raw.slug ?? slugify(body.title);
   const id = stableId("item", kind, slug);
+  const json = q(JSON.stringify(body));
   lines.push(
-    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${q(JSON.stringify(body))}, ${q(raw.publish_at)}, ${q(now)}, ${q(now)});`,
+    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${json}, ${q(raw.publish_at)}, ${q(now)}, ${q(now)});`,
   );
+  /*
+   * Page copy that nobody has edited follows the repository.
+   *
+   * The pages are written here and seeded; once a person edits one in the
+   * admin app it is theirs and this never touches it again -- which is what
+   * `updated_at = created_at` tests, since the seed writes both the same. It
+   * exists because a correction in the repository otherwise never reaches the
+   * site: `insert or ignore` skips the row, so the live committees page went
+   * on saying "Three standing committees" above a list of five.
+   *
+   * Only pages. News, events and documents are the board's own writing from
+   * the first word, so nothing here should ever overwrite one.
+   */
+  if (kind === "page")
+    pagesSql.push(
+      `update items set body = ${json}, updated_at = ${q(now)} where kind = 'page' and slug = ${q(slug)} and updated_at = created_at and body <> ${json};`,
+    );
 }
 
 /*
@@ -81,8 +103,21 @@ const settings = read("settings.json");
 const settingsSql: string[] = [];
 for (const [key, schema] of Object.entries(SETTINGS)) {
   const value = schema.parse(settings[key]);
+  const json = q(JSON.stringify(value));
+  // A group the database does not have at all.
   settingsSql.push(
-    `insert or ignore into settings (key, value, updated_at) values (${q(key)}, ${q(JSON.stringify(value))}, ${q(now)});`,
+    `insert or ignore into settings (key, value, updated_at) values (${q(key)}, ${json}, ${q(now)});`,
+  );
+  /*
+   * A field the group does not have yet. `json_patch(seed, current)` takes the
+   * seeded object as the base and lets the stored one override it, so every
+   * value the board has edited survives and only keys they have never seen are
+   * added. Creating the row was not enough on its own: `parks` already existed
+   * when `places` was added to it, so the row was left alone and the map on
+   * the live site had no markers to draw.
+   */
+  settingsSql.push(
+    `update settings set value = json_patch(json(${json}), value), updated_at = ${q(now)} where key = ${q(key)} and json_patch(json(${json}), value) <> value;`,
   );
 }
 lines.push(...settingsSql);
@@ -109,7 +144,10 @@ for (const raw of read("committees.json")) {
 }
 
 writeFileSync(join(dir, "seed.sql"), lines.join("\n") + "\n");
-writeFileSync(join(dir, "settings.sql"), settingsSql.join("\n") + "\n");
+writeFileSync(
+  join(dir, "settings.sql"),
+  [...settingsSql, ...pagesSql].join("\n") + "\n",
+);
 writeFileSync(join(dir, "kv.sh"), kv.join("\n") + "\n", { mode: 0o755 });
 console.log(
   `wrote ${lines.length} statements and ${fileIds.size} file uploads`,
