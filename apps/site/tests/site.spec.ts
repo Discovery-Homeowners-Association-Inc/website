@@ -86,6 +86,16 @@ test("the menu button opens the navigation on a phone", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Pay dues" })).toBeVisible();
 });
 
+test("every document link says what it is, and a Spanish one says so", async ({
+  page,
+}) => {
+  await page.goto("/documents/");
+  const links = page.locator(".tasks a[href^='/documents/']");
+  expect(await links.count()).toBeGreaterThan(0);
+  for (const text of await links.allInnerTexts())
+    expect(text).toMatch(/\((PDF|image)(, Spanish)?\)$/);
+});
+
 test("the calendar feed is valid iCalendar", async ({ request }) => {
   const res = await request.get("/calendar.ics");
   expect(res.ok()).toBe(true);
