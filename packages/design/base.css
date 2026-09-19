@@ -95,6 +95,8 @@
   --rule: #c9d2d8;
   --warn: #8a3b12;
   --warn-soft: #fbe6d4;
+  /* --rule is a divider at 1.5:1; a control boundary needs 3:1 (WCAG 1.4.11). */
+  --control-border: #6f7e8a;
 
   --font-display:
     "Bricolage Grotesque Variable", "Display fallback Arial",
@@ -159,6 +161,7 @@
     --rule: #2a3a46;
     --warn: #f7b58a;
     --warn-soft: #3a2418;
+    --control-border: #7f8f9c;
   }
 }
 
@@ -613,7 +616,7 @@ textarea {
   line-height: 1.2;
   color: var(--ink);
   background: var(--surface);
-  border: 2px solid var(--rule);
+  border: 2px solid var(--control-border);
   border-radius: var(--radius);
   padding: 0.55rem 0.8rem;
   /*

@@ -201,7 +201,7 @@
   flex: 1 1 14rem;
   font: inherit;
   padding: 0.65rem 0.8rem;
-  border: 2px solid var(--rule);
+  border: 2px solid var(--control-border);
   border-radius: var(--radius);
   background: var(--paper);
   color: var(--ink);
