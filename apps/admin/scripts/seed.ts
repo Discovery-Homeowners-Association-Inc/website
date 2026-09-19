@@ -1,7 +1,8 @@
 /**
  * Turns seed/*.json into SQL and KV puts so the first database can be filled
  * locally or remotely:
- *   node scripts/seed.ts            -> writes seed/seed.sql and seed/kv.sh
+ *   node scripts/seed.ts            -> writes seed/seed.sql, seed/settings.sql
+ *                                      and seed/kv.sh
  *   just seed-local                 -> applies both to the local dev database
  */
 import { createHash } from "node:crypto";
@@ -63,13 +64,28 @@ for (const raw of read("items.json")) {
   );
 }
 
+/*
+ * Settings are written twice: into the whole seed, and into a file of their
+ * own that the deploy applies on every push.
+ *
+ * A settings group added in code is a row the database does not have, and
+ * `readSettings` refuses to answer without it -- which takes out the public
+ * snapshot, and with it every site build. That is what happened when
+ * `agenda-templates` arrived: the deploy applied the migrations, nothing
+ * created the row, and the site quietly stopped updating.
+ *
+ * `insert or ignore`, so this can only ever add the ones that are missing. A
+ * value the board has edited is never touched.
+ */
 const settings = read("settings.json");
+const settingsSql: string[] = [];
 for (const [key, schema] of Object.entries(SETTINGS)) {
   const value = schema.parse(settings[key]);
-  lines.push(
+  settingsSql.push(
     `insert or ignore into settings (key, value, updated_at) values (${q(key)}, ${q(JSON.stringify(value))}, ${q(now)});`,
   );
 }
+lines.push(...settingsSql);
 
 const seenNames = new Set<string>();
 for (const raw of read("people.json")) {
@@ -93,6 +109,7 @@ for (const raw of read("committees.json")) {
 }
 
 writeFileSync(join(dir, "seed.sql"), lines.join("\n") + "\n");
+writeFileSync(join(dir, "settings.sql"), settingsSql.join("\n") + "\n");
 writeFileSync(join(dir, "kv.sh"), kv.join("\n") + "\n", { mode: 0o755 });
 console.log(
   `wrote ${lines.length} statements and ${fileIds.size} file uploads`,
