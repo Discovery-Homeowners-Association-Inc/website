@@ -63,6 +63,18 @@ describe("roster", () => {
         .term_end,
     ).toBe("2026-01-31");
   });
+
+  it("records nothing in the log for a person who does not exist", async () => {
+    const r = await call(secretary, "PUT", "/api/roster/people/nobody", {
+      name: "Ghost",
+    });
+    expect(r.status).toBe(404);
+    expect(
+      await env.DB.prepare(
+        "select 1 from audit_log where entity = 'person' and entity_id = 'nobody'",
+      ).first(),
+    ).toBeNull();
+  });
 });
 
 describe("files", () => {

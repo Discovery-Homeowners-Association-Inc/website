@@ -279,18 +279,29 @@ export function minutesRoutes() {
      * is conditional on the status not having moved in between, so the way to
      * find out whether it did is to ask how many rows changed -- reporting the
      * transition without asking told the caller a move had happened when the
-     * database had refused it.
+     * database had refused it. The audit statement is guarded by the same
+     * condition and runs first, so a refused update leaves no log entry
+     * behind.
      */
+    const still: Guard = {
+      sql: "select 1 from minutes where meeting_id = ? and status = ?",
+      binds: [m.id, minutes.status],
+    };
     const moved = await c.env.DB.batch([
+      auditStatement(
+        c.env.DB,
+        user.id,
+        "transition",
+        "minutes",
+        m.id,
+        { from: minutes.status, to },
+        still,
+      ),
       c.env.DB.prepare(
         "update minutes set status = ? where meeting_id = ? and status = ?",
       ).bind(to, m.id, minutes.status),
-      auditStatement(c.env.DB, user.id, "transition", "minutes", m.id, {
-        from: minutes.status,
-        to,
-      }),
     ]);
-    if (moved[0]?.meta.changes !== 1)
+    if (moved[1]?.meta.changes !== 1)
       throw new HTTPException(409, {
         message:
           "Someone else moved these minutes while you were looking. Reload to see where they are now.",
@@ -506,17 +517,25 @@ export function minutesRoutes() {
           message: "Only approved minutes can be marked as uploaded to PayHOA.",
         });
       }
+      const stillApproved: Guard = {
+        sql: "select 1 from minutes where meeting_id = ? and status = 'approved'",
+        binds: [m.id],
+      };
       const filed = await c.env.DB.batch([
+        auditStatement(
+          c.env.DB,
+          user.id,
+          "file",
+          "minutes",
+          m.id,
+          { version: current.version, sha256: current.sha256, note },
+          stillApproved,
+        ),
         c.env.DB.prepare(
           "update minutes set status = 'filed', filed_at = ?, filed_by = ?, filed_note = ? where meeting_id = ? and status = 'approved'",
         ).bind(nowIso(), user.id, note, m.id),
-        auditStatement(c.env.DB, user.id, "file", "minutes", m.id, {
-          version: current.version,
-          sha256: current.sha256,
-          note,
-        }),
       ]);
-      if (filed[0]?.meta.changes !== 1)
+      if (filed[1]?.meta.changes !== 1)
         throw new HTTPException(409, {
           message:
             "Someone else moved these minutes while you were looking. Reload to see where they are now.",

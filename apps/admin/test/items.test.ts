@@ -146,6 +146,33 @@ describe("content items", () => {
       (await call(admin, "DELETE", `/api/items/${theirs.json.id}`)).status,
     ).toBe(204);
   });
+
+  it("refuses an action against a status that has moved, and logs nothing for it", async () => {
+    const created = await call(secretary, "POST", "/api/items", news("Moving"));
+    const id = created.json.id;
+    await call(secretary, "POST", `/api/items/${id}/action`, {
+      action: "submit",
+    });
+    // Two approvers read the pending item; the first approves it.
+    expect(
+      (
+        await call(admin, "POST", `/api/items/${id}/action`, {
+          action: "approve",
+        })
+      ).json.status,
+    ).toBe("published");
+    // The second still has a pending item on screen and approves it too.
+    const again = await call(director, "POST", `/api/items/${id}/action`, {
+      action: "approve",
+    });
+    expect(again.status).toBe(409);
+    const { results } = await env.DB.prepare(
+      "select 1 from audit_log where action = 'approve' and entity_id = ?",
+    )
+      .bind(id)
+      .all();
+    expect(results).toHaveLength(1);
+  });
 });
 
 describe("publish dates and expiry", () => {

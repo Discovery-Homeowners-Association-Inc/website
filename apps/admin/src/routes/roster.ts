@@ -2,7 +2,7 @@ import { Committee, Person } from "@dhoa/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { hasRole, requireRole } from "../access.ts";
-import { auditStatement, nowIso } from "../db.ts";
+import { auditStatement, nowIso, type Guard } from "../db.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -80,15 +80,25 @@ export function rosterRoutes(deps: AppDeps) {
     const id = c.req.param("id");
     const person = Person.parse(await c.req.json());
     const actor = c.get("user").id;
+    const exists: Guard = {
+      sql: "select 1 from people where id = ?",
+      binds: [id],
+    };
     const r = await c.env.DB.batch([
+      auditStatement(
+        c.env.DB,
+        actor,
+        "update",
+        "person",
+        id,
+        { name: person.name },
+        exists,
+      ),
       c.env.DB.prepare(
         "update people set data = ?, updated_at = ? where id = ?",
       ).bind(JSON.stringify(person), nowIso(), id),
-      auditStatement(c.env.DB, actor, "update", "person", id, {
-        name: person.name,
-      }),
     ]);
-    if (r[0]?.meta.changes !== 1)
+    if (r[1]?.meta.changes !== 1)
       throw new HTTPException(404, {
         message: "That person is not on the roster.",
       });

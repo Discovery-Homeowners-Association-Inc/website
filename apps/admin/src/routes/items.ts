@@ -15,7 +15,12 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { hasRole, requireRole } from "../access.ts";
-import { auditStatement, isConstraintError, nowIso } from "../db.ts";
+import {
+  auditStatement,
+  isConstraintError,
+  nowIso,
+  type Guard,
+} from "../db.ts";
 import { approvalsSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -224,16 +229,29 @@ export function itemRoutes(deps: AppDeps) {
       publish: [user.id, nowIso()],
       unpublish: [note, null],
     };
-    await c.env.DB.batch([
+    const still: Guard = {
+      sql: "select 1 from items where id = ? and status = ?",
+      binds: [row.id, row.status],
+    };
+    const moved = await c.env.DB.batch([
+      auditStatement(
+        c.env.DB,
+        user.id,
+        action,
+        row.kind,
+        row.id,
+        { from: row.status, to: next, note },
+        still,
+      ),
       c.env.DB.prepare(
         `update items set status = ?, ${sets[action]}, updated_at = ? where id = ? and status = ?`,
       ).bind(next, ...binds[action], nowIso(), row.id, row.status),
-      auditStatement(c.env.DB, user.id, action, row.kind, row.id, {
-        from: row.status,
-        to: next,
-        note,
-      }),
     ]);
+    if (moved[1]?.meta.changes !== 1)
+      throw new HTTPException(409, {
+        message:
+          "This item changed while you were looking at it. Reload to see where it is now.",
+      });
     if (next === "published" || row.status === "published")
       await deps.siteChanged(c.env, `${row.kind} ${row.slug} ${action}`);
     return c.json(expand(await itemOr404(c.env.DB, row.id)));
