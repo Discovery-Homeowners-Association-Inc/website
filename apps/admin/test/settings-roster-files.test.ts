@@ -307,8 +307,8 @@ describe("what the roster hands out", () => {
       committees: [],
       chairs: [],
       note: "",
-      started_on: "2026-01-01",
-      ended_on: "",
+      term_start: "2026-01-01",
+      term_end: null,
     };
     expect(
       (await call(secretary, "POST", "/api/roster/people", person)).status,

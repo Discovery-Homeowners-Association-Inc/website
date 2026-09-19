@@ -15,10 +15,13 @@ export default defineConfig(async () => {
         miniflare: {
           bindings: {
             TEST_MIGRATIONS: migrations,
+            BETTER_AUTH_URL: "http://test.invalid",
             BETTER_AUTH_SECRET:
               "test-secret-that-is-at-least-32-characters-long",
             GOOGLE_CLIENT_ID: "test",
             GOOGLE_CLIENT_SECRET: "test",
+            DEV_SIGN_IN: "false",
+            BOOTSTRAP_TOKEN: "",
           },
         },
       }),
