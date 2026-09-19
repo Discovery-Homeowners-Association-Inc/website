@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
 import DocumentList from "../../components/DocumentList.astro";
-import { email, org, pageData } from "../../lib/data";
+import { committees, email, org, pageData } from "../../lib/data";
 import { longDate } from "../../lib/dates";
 import { page } from "../../lib/pages";
 
@@ -94,8 +94,10 @@ const reg = org.external.pool_registration;
     <aside class="panel">
       <h2>Questions about the pool</h2>
       <p>
-        Email the Pool &amp; Recreation Committee at{" "}
-        <a href={`mailto:${email("pool_rec")}`}>{email("pool_rec")}</a>.
+        Email the{" "}
+        {committees.find((c) => c.slug === "pool-rec")?.name ??
+          "Pool & Recreation Committee"}{" "}
+        at <a href={`mailto:${email("pool_rec")}`}>{email("pool_rec")}</a>.
       </p>
     </aside>
   </div>

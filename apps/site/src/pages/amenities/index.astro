@@ -1,5 +1,6 @@
 ---
 import SectionIndex from "../../components/SectionIndex.astro";
+import { parks } from "../../lib/data";
 ---
 
 <SectionIndex
@@ -23,7 +24,7 @@ import SectionIndex from "../../components/SectionIndex.astro";
     {
       href: "/amenities/parks/",
       label: "Parks and playgrounds",
-      note: "Twenty parks, inspected every year",
+      note: `${parks.count} parks, inspected every year`,
     },
   ]}
 />

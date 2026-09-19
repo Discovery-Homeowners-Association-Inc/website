@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
 import { page } from "../../lib/pages";
+import { board } from "../../lib/data";
 
 const p = await page("about");
 const sub = [
@@ -19,7 +20,7 @@ const sub = [
   {
     href: "/board/",
     label: "The board",
-    note: "Seven neighbors, elected by the membership",
+    note: `${board.members.length} neighbors, elected by the membership`,
   },
   {
     href: "/board/projects/",

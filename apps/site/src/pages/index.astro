@@ -5,6 +5,7 @@ import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
 import { dues, newsletter, org, telHref, trash } from "../lib/data";
+import { settings } from "../lib/snapshot";
 import { meetings, upcoming } from "../lib/calendar";
 import {
   dateOf,
@@ -67,7 +68,7 @@ const tasks = [
   {
     href: "/amenities/recreation-center/",
     label: "Rent the Recreation Center",
-    note: "Parties and meetings, up to 49 people",
+    note: `Parties and meetings, up to ${settings["recreation-center"].capacity} people`,
   },
   {
     href: "/rules/trash-recycling/",
