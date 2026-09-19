@@ -8,7 +8,7 @@
   padding-block: var(--space-4) var(--space-5);
 }
 
-@media (min-width: 56rem) {
+@media (width >= 56rem) {
   .hero {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
@@ -123,13 +123,13 @@
   margin: 0;
 }
 
-@media (min-width: 44rem) {
+@media (width >= 44rem) {
   .glance {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 70rem) {
+@media (width >= 70rem) {
   .glance {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -176,7 +176,7 @@
   align-items: end;
 }
 
-@media (min-width: 56rem) {
+@media (width >= 56rem) {
   .signup .wrap {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -217,7 +217,7 @@
    */
   border-top: 1px solid var(--rule);
   padding-block: var(--space-5);
-  font-size: var(--step--1);
+  font-size: 1rem;
 }
 
 .site-footer a {
@@ -229,7 +229,7 @@
   gap: var(--space-4);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .site-footer .wrap {
     grid-template-columns: 2fr 1fr 1fr;
   }
@@ -248,6 +248,12 @@
 
 .site-footer address {
   font-style: normal;
+}
+
+/* WCAG 2.2 target size, and readers the body size was chosen for. */
+.site-footer address a {
+  display: inline-block;
+  padding-block: 0.2rem;
 }
 
 /* ── Print ───────────────────────────────────────────────────────────────── */

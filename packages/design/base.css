@@ -105,7 +105,7 @@
     "Atkinson Hyperlegible Next Variable", "Body fallback Arial",
     "Body fallback Noto", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --step--1: 0.889rem;
+  --step--1: 0.9rem;
   --step-0: 1.125rem;
   --step-1: 1.406rem;
   --step-2: 1.758rem;
@@ -351,7 +351,7 @@ main {
   gap: var(--space-5);
 }
 
-@media (min-width: 60rem) {
+@media (width >= 60rem) {
   .with-aside {
     grid-template-columns: minmax(0, 1fr) 20rem;
     align-items: start;
@@ -505,14 +505,14 @@ main {
 }
 
 /* Middle: links wrap onto their own row, so the header takes two rows. */
-@media (min-width: 44rem) and (max-width: 70.99rem) {
+@media (width >= 44rem) and (width < 71rem) {
   :root {
     --header-height: 124px;
   }
 }
 
 /* Wide: everything on one row. */
-@media (min-width: 71rem) {
+@media (width >= 71rem) {
   .site-header .wrap {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "brand nav action";
@@ -523,7 +523,7 @@ main {
 }
 
 /* Phone: one row, with the links and the action in a panel over the page. */
-@media (max-width: 43.99rem) {
+@media (width < 44rem) {
   :root {
     --header-height: 60px;
   }
@@ -581,7 +581,7 @@ main {
 
 /* Narrowest phones: the locality line is decoration, and dropping it keeps the
  * brand to one row beside the Menu button instead of three. */
-@media (max-width: 23rem) {
+@media (width < 23rem) {
   .brand small {
     display: none;
   }
@@ -733,7 +733,7 @@ textarea:focus-visible {
   column-gap: var(--space-5);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .tasks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -809,7 +809,7 @@ textarea:focus-visible {
   gap: var(--space-5);
 }
 
-@media (min-width: 56rem) {
+@media (width >= 56rem) {
   .two-up {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -935,7 +935,7 @@ td.amount {
   gap: 0 var(--space-5);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .people {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -975,7 +975,7 @@ details.group > ul {
   gap: var(--space-3) var(--space-5);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   details.group > ul {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
