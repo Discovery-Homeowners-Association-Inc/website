@@ -56,7 +56,7 @@ export function auditRoutes() {
     // `detail` goes out as the JSON text it is stored as, rather than parsed
     // here. Parsing two thousand of them is work this Worker has 10 ms to do,
     // and the only caller is a browser that is about to parse the response
-    // anyway. See DECISIONS #7: CPU-heavy work belongs in the browser.
+    // anyway. See CLAUDE.md: CPU-heavy work belongs in the browser.
     return c.json(results);
   });
 

@@ -20,7 +20,7 @@
     },
   ],
   // Uploaded files (PDFs) live in KV: free on the Workers Free plan, values up
-  // to 25 MiB. D1 rows cap at 2 MB and R2 needs a card. See DECISIONS.md #11.
+  // to 25 MiB. D1 rows cap at 2 MB and R2 needs a card.
   "kv_namespaces": [
     {
       "binding": "FILES",
