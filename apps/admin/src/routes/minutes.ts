@@ -9,7 +9,12 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { hasRole, requireRole } from "../access.ts";
-import { auditStatement, isConstraintError, nowIso } from "../db.ts";
+import {
+  auditStatement,
+  isConstraintError,
+  nowIso,
+  type Guard,
+} from "../db.ts";
 import type { AppEnv } from "../types.ts";
 import { meetingOr404 } from "./meetings.ts";
 
@@ -51,6 +56,81 @@ async function load(db: D1Database, meetingId: string) {
       message: "The current version of these minutes is missing.",
     });
   return { minutes, current };
+}
+
+export type VoteInput = {
+  meetingId: string;
+  version: number;
+  sha256: string;
+  voted_on: string;
+  motion_by: string;
+  seconded_by: string;
+  yes: number;
+  no: number;
+  abstain: number;
+  actorId: string;
+};
+
+/**
+ * Records the vote and approves the minutes, or does neither.
+ *
+ * Every statement is conditional on the same guard: the minutes are still
+ * ready for a vote at the version the board saw. The update is last, so the
+ * inserts before it test the state as it was. A guard that fails changes no
+ * rows anywhere -- the earlier version inserted the vote unconditionally and
+ * relied on a thrown error to roll it back, but a zero-row update is not an
+ * error, so the vote row stayed and every later vote hit its primary key.
+ */
+export async function recordVote(
+  db: D1Database,
+  input: VoteInput,
+): Promise<boolean> {
+  const ready: Guard = {
+    sql: "select 1 from minutes where meeting_id = ? and status = 'ready_for_vote' and current_version = ?",
+    binds: [input.meetingId, input.version],
+  };
+  const done = await db.batch([
+    db
+      .prepare(
+        `insert into votes (meeting_id, version, sha256, voted_on, motion_by, seconded_by, yes, no, abstain, recorded_by, recorded_at)
+         select ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? where exists (${ready.sql})`,
+      )
+      .bind(
+        input.meetingId,
+        input.version,
+        input.sha256,
+        input.voted_on,
+        input.motion_by,
+        input.seconded_by,
+        input.yes,
+        input.no,
+        input.abstain,
+        input.actorId,
+        nowIso(),
+        ...ready.binds,
+      ),
+    auditStatement(
+      db,
+      input.actorId,
+      "approve",
+      "minutes",
+      input.meetingId,
+      {
+        version: input.version,
+        sha256: input.sha256,
+        yes: input.yes,
+        no: input.no,
+        abstain: input.abstain,
+      },
+      ready,
+    ),
+    db
+      .prepare(
+        "update minutes set status = 'approved' where meeting_id = ? and status = 'ready_for_vote' and current_version = ?",
+      )
+      .bind(input.meetingId, input.version),
+  ]);
+  return done[2]?.meta.changes === 1;
 }
 
 export function minutesRoutes() {
@@ -357,41 +437,14 @@ export function minutesRoutes() {
           message:
             "The motion to approve did not carry, so the minutes stay ready for a vote.",
         });
-      /*
-       * The vote row goes in unconditionally and the approval is conditional,
-       * so a status that moved in between would have left a recorded vote for
-       * minutes that were never approved -- and the caller told they were. D1
-       * runs a batch as one transaction, so throwing on a zero-row update
-       * rolls the vote back with it.
-       */
-      const approved = await c.env.DB.batch([
-        c.env.DB.prepare(
-          "insert into votes (meeting_id, version, sha256, voted_on, motion_by, seconded_by, yes, no, abstain, recorded_by, recorded_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        ).bind(
-          m.id,
-          current.version,
-          current.sha256,
-          input.voted_on,
-          input.motion_by,
-          input.seconded_by,
-          input.yes,
-          input.no,
-          input.abstain,
-          user.id,
-          nowIso(),
-        ),
-        c.env.DB.prepare(
-          "update minutes set status = 'approved' where meeting_id = ? and status = 'ready_for_vote' and current_version = ?",
-        ).bind(m.id, current.version),
-        auditStatement(c.env.DB, user.id, "approve", "minutes", m.id, {
-          version: current.version,
-          sha256: current.sha256,
-          yes: input.yes,
-          no: input.no,
-          abstain: input.abstain,
-        }),
-      ]);
-      if (approved[1]?.meta.changes !== 1)
+      const approved = await recordVote(c.env.DB, {
+        ...input,
+        meetingId: m.id,
+        version: current.version,
+        sha256: current.sha256,
+        actorId: user.id,
+      });
+      if (!approved)
         throw new HTTPException(409, {
           message:
             "Someone else moved these minutes while you were looking. Reload to see where they are now.",

@@ -1,4 +1,6 @@
+import { env } from "cloudflare:workers";
 import { beforeEach, describe, expect, it } from "vitest";
+import { recordVote } from "../src/routes/minutes.ts";
 import { call, makeUser } from "./helpers.ts";
 
 const body = (discussion: string) => ({
@@ -255,6 +257,56 @@ describe("minutes, from draft to filed", () => {
     });
     expect(bad.status).toBe(400);
     expect(bad.json.error).toMatch(/missing or invalid/);
+  });
+
+  it("writes nothing when the minutes stopped being ready between the check and the vote", async () => {
+    const v1 = await call(secretary, "PUT", path(), {
+      base_version: 0,
+      body: body("Draft"),
+    });
+    await call(secretary, "POST", path("/transition"), { to: "in_review" });
+    // The route checks the status before it writes. This calls the write on
+    // its own, which is what happens when the status moves in between.
+    const approved = await recordVote(env.DB, {
+      meetingId: meeting,
+      version: 1,
+      sha256: v1.json.sha256,
+      voted_on: "2026-11-17",
+      motion_by: "A",
+      seconded_by: "B",
+      yes: 5,
+      no: 0,
+      abstain: 0,
+      actorId: director,
+    });
+    expect(approved).toBe(false);
+    expect(
+      await env.DB.prepare("select 1 from votes where meeting_id = ?")
+        .bind(meeting)
+        .first(),
+    ).toBeNull();
+    expect(
+      await env.DB.prepare(
+        "select 1 from audit_log where action = 'approve' and entity_id = ?",
+      )
+        .bind(meeting)
+        .first(),
+    ).toBeNull();
+    // Ready again: the same vote goes through, which the primary key used to prevent.
+    await call(secretary, "POST", path("/transition"), {
+      to: "ready_for_vote",
+    });
+    const ok = await call(director, "POST", path("/vote"), {
+      version: 1,
+      sha256: v1.json.sha256,
+      voted_on: "2026-11-17",
+      motion_by: "A",
+      seconded_by: "B",
+      yes: 5,
+      no: 0,
+      abstain: 0,
+    });
+    expect(ok.json.status).toBe("approved");
   });
 });
 
