@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayInYear } from "./dates.ts";
+import { dayInYear, eventWhen } from "./dates.ts";
 
 describe("dayInYear", () => {
   it("turns a due date the board wrote into a calendar date", () => {
@@ -17,5 +17,26 @@ describe("dayInYear", () => {
   it("says so rather than guessing when it cannot parse", () => {
     expect(dayInYear("Whenever", 2026)).toBeNull();
     expect(dayInYear("", 2026)).toBeNull();
+  });
+});
+
+describe("eventWhen", () => {
+  it("gives one date for a same-day event", () => {
+    expect(
+      eventWhen(
+        new Date("2026-05-23T16:00:00Z"),
+        new Date("2026-05-24T00:00:00Z"),
+      ),
+    ).toBe("Saturday, May 23, 2026, 12:00 pm to 8:00 pm");
+  });
+  it("gives both dates when the event runs past midnight", () => {
+    expect(
+      eventWhen(
+        new Date("2026-05-23T16:00:00Z"),
+        new Date("2026-05-24T16:00:00Z"),
+      ),
+    ).toBe(
+      "Saturday, May 23, 2026, 12:00 pm to Sunday, May 24, 2026, 12:00 pm",
+    );
   });
 });

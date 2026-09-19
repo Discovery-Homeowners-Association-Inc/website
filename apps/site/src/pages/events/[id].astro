@@ -3,7 +3,7 @@ import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import { email } from "../../lib/data";
-import { dateOf, longDate, timeOf } from "../../lib/dates";
+import { eventWhen } from "../../lib/dates";
 
 export async function getStaticPaths() {
   return (await getCollection("events")).map((e) => ({
@@ -31,7 +31,9 @@ const { Content } = await render(item);
       <dl>
         <dt>When</dt>
         <dd>
-          {longDate(dateOf(e.start))}, {timeOf(e.start)} to {timeOf(e.end)}
+          <time datetime={e.start.toISOString()}>
+            {eventWhen(e.start, e.end)}
+          </time>
         </dd>
         <dt>Where</dt>
         <dd>{e.location}</dd>
