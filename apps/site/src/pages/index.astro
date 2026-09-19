@@ -5,7 +5,7 @@ import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
 import { dues, newsletter, org, telHref, trash } from "../lib/data";
-import { boardMeetings, upcoming } from "../lib/calendar";
+import { meetings, upcoming } from "../lib/calendar";
 import {
   dateOf,
   dayInYear,
@@ -15,7 +15,7 @@ import {
 } from "../lib/dates";
 
 const today = todayInNewYork();
-const [nextMeeting] = await boardMeetings(today, 2);
+const [nextMeeting] = await meetings(today, 1, { type: "board" });
 const coming = await upcoming(4, today);
 const news = (await getCollection("news"))
   .toSorted(

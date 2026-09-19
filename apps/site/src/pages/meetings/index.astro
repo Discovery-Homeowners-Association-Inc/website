@@ -4,12 +4,12 @@ import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
 import { email, org } from "../../lib/data";
-import { boardMeetings } from "../../lib/calendar";
+import { meetings } from "../../lib/calendar";
 import { dayOfMonth, longDate, monthShort } from "../../lib/dates";
 import { page } from "../../lib/pages";
 
 const p = await page("meetings");
-const upcoming = await boardMeetings(todayInNewYork(), 6);
+const upcoming = await meetings(todayInNewYork(), 6);
 ---
 
 <Base title={p.title} description={p.summary}>
@@ -18,7 +18,7 @@ const upcoming = await boardMeetings(todayInNewYork(), 6);
     <div>
       <section aria-labelledby="upcoming-title">
         <h2 id="upcoming-title" class="first">
-          Upcoming board meetings
+          Upcoming meetings
         </h2>
         <ul class="dated">
           {upcoming.map((m) => (
@@ -29,7 +29,10 @@ const upcoming = await boardMeetings(todayInNewYork(), 6);
               </time>
               <div>
                 <h3>
-                  <a href={m.href}>{longDate(m.date)}</a>
+                  <a href={m.href}>
+                    {m.title !== "Board meeting" && `${m.title}, `}
+                    {longDate(m.date)}
+                  </a>
                 </h3>
                 <p>
                   {m.time}, {m.location}

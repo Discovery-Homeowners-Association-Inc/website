@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import { todayInNewYork } from "@dhoa/shared";
-import { boardMeetings } from "../lib/calendar";
+import { meetings } from "../lib/calendar";
 import { escapeText as esc, foldLine as fold } from "../lib/ics";
 import { org } from "../lib/data";
 
@@ -63,13 +63,17 @@ export const GET: APIRoute = async ({ site }) => {
    * the entry; leaving it out of the feed leaves it in their calendar, and they
    * turn up to a meeting that is not happening.
    */
-  for (const m of await boardMeetings(start, 24, { includeCanceled: true })) {
+  for (const m of await meetings(start, Infinity, { includeCanceled: true })) {
     const s = local(m.date, m.time);
     lines.push(
       "BEGIN:VEVENT",
       // The record's id, not its date: a meeting that moves has to update the
       // entry a subscriber already has, rather than becoming a second one that
       // never goes away.
+      //
+      // The prefix stays "board-", even for every other kind of meeting now
+      // included here, so an existing subscriber's calendar entries keep the
+      // same UID and are updated in place rather than duplicated.
       `UID:board-${m.id}@discoveryhomeowners.com`,
       `DTSTAMP:${stamp}`,
       `DTSTART;TZID=America/New_York:${s}`,
