@@ -78,6 +78,8 @@ export function createApp(deps: AppDeps) {
   app.onError((err, c) => {
     if (err instanceof HTTPException)
       return c.json({ error: err.message }, err.status);
+    if (err instanceof SyntaxError)
+      return c.json({ error: "The request body is not valid JSON." }, 400);
     if (err instanceof ZodError) {
       const first = err.issues[0];
       const where = first?.path.length ? ` (${first.path.join(" › ")})` : "";

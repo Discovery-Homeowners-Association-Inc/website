@@ -115,23 +115,32 @@ export function itemRoutes(deps: AppDeps) {
     const taken = new Set(existing.map((r) => r.slug));
     let slug = wanted;
     for (let n = 2; taken.has(slug); n++) slug = `${wanted}-${n}`;
-    await c.env.DB.batch([
-      c.env.DB.prepare(
-        "insert into items (id, kind, slug, status, body, publish_at, expires_at, expiry_action, author_id, created_at, updated_at) values (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)",
-      ).bind(
-        id,
-        kind,
-        slug,
-        JSON.stringify(body),
-        meta.publish_at,
-        meta.expires_at,
-        meta.expiry_action,
-        actor,
-        nowIso(),
-        nowIso(),
-      ),
-      auditStatement(c.env.DB, actor, "create", kind, id, { slug }),
-    ]);
+    try {
+      await c.env.DB.batch([
+        c.env.DB.prepare(
+          "insert into items (id, kind, slug, status, body, publish_at, expires_at, expiry_action, author_id, created_at, updated_at) values (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)",
+        ).bind(
+          id,
+          kind,
+          slug,
+          JSON.stringify(body),
+          meta.publish_at,
+          meta.expires_at,
+          meta.expiry_action,
+          actor,
+          nowIso(),
+          nowIso(),
+        ),
+        auditStatement(c.env.DB, actor, "create", kind, id, { slug }),
+      ]);
+    } catch (e) {
+      if (isConstraintError(e))
+        throw new HTTPException(409, {
+          message:
+            "Another item of this kind was just created with the same web address. Try again.",
+        });
+      throw e;
+    }
     return c.json(expand(await itemOr404(c.env.DB, id)), 201);
   });
 

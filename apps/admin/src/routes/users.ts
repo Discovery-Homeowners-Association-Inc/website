@@ -113,6 +113,12 @@ export function userRoutes(deps: AppDeps) {
         message: "You cannot remove your own administrator role.",
       });
     }
+    if (
+      !(await c.env.DB.prepare('select 1 from "user" where id = ?')
+        .bind(id)
+        .first())
+    )
+      throw new HTTPException(404, { message: "That person does not exist." });
     await c.env.DB.batch([
       c.env.DB.prepare("delete from former_members where user_id = ?").bind(id),
       c.env.DB.prepare("delete from user_roles where user_id = ?").bind(id),

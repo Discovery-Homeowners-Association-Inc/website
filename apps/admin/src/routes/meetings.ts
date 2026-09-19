@@ -96,19 +96,27 @@ export function meetingRoutes(deps: AppDeps) {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
     const patch = MeetingPatch.parse(await c.req.json());
     const next = { ...m, ...patch };
-    await c.env.DB.batch([
-      c.env.DB.prepare(
-        "update meetings set date = ?, time = ?, location = ?, status = ? where id = ?",
-      ).bind(next.date, next.time, next.location, next.status, m.id),
-      auditStatement(
-        c.env.DB,
-        c.get("user").id,
-        "update",
-        "meeting",
-        m.id,
-        patch,
-      ),
-    ]);
+    try {
+      await c.env.DB.batch([
+        c.env.DB.prepare(
+          "update meetings set date = ?, time = ?, location = ?, status = ? where id = ?",
+        ).bind(next.date, next.time, next.location, next.status, m.id),
+        auditStatement(
+          c.env.DB,
+          c.get("user").id,
+          "update",
+          "meeting",
+          m.id,
+          patch,
+        ),
+      ]);
+    } catch (e) {
+      if (isConstraintError(e))
+        throw new HTTPException(409, {
+          message: "There is already a meeting of that type on that date.",
+        });
+      throw e;
+    }
     // The public site lists every meeting and its status, so moving one or
     // calling it off has to reach the site. Without this a canceled meeting
     // stayed on the calendar as scheduled until an unrelated edit happened to
