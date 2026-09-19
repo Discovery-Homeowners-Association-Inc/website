@@ -33,6 +33,14 @@
   "triggers": { "crons": ["0 10 * * *"] },
   "vars": {
     "BETTER_AUTH_URL": "https://dhoa-admin.discoveryhomeownersassociation.workers.dev",
+    // Where the public site is served. The admin app links "View on the site"
+    // here; the custom domain replaces it at the cutover.
+    "SITE_URL": "https://dhoa-site.discoveryhomeownersassociation.workers.dev",
+    // The repository the Worker asks to rebuild the site. Not secret, and set
+    // here rather than in the dashboard: `wrangler deploy` replaces every plain
+    // variable on each deploy, so a dashboard value silently disappears and
+    // rebuild-on-publish stops without an error.
+    "GITHUB_REPO": "Discovery-Homeowners-Association-Inc/website",
   },
   // Secrets, set with `wrangler secret put` (or .dev.vars locally):
   //   BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BOOTSTRAP_TOKEN,

@@ -24,6 +24,7 @@ export function profileRoutes(deps: AppDeps) {
       ...user,
       provider: account?.provider ?? null,
       sessions: sessions.results,
+      site_url: c.env.SITE_URL,
     });
   });
 

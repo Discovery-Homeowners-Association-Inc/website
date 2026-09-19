@@ -270,6 +270,12 @@ describe("profile", () => {
         .first(),
     ).not.toBeNull();
   });
+
+  it("tells the admin app where the public site is", async () => {
+    const me = await makeUser(["editor"]);
+    const res = await call(me, "GET", "/api/me");
+    expect(res.json.site_url).toMatch(/^https:\/\//);
+  });
 });
 
 describe("what the roster hands out", () => {
