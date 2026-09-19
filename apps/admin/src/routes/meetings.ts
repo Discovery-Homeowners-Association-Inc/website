@@ -85,6 +85,9 @@ export function meetingRoutes(deps: AppDeps) {
       ],
       "There is already a meeting of that type on that date.",
     );
+    // The public site lists every meeting, so a newly scheduled one has to
+    // reach the site rather than wait for an unrelated edit to trigger a rebuild.
+    await deps.siteChanged(c.env, `meeting ${id}`);
     return c.json({ id, ...input, status: "scheduled" }, 201);
   });
 

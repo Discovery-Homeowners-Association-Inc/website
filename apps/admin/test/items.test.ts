@@ -307,6 +307,11 @@ describe("the public snapshot", () => {
     );
     expect(draft.json.status).toBe("draft");
   });
+
+  it("never includes approvals, a workflow switch the site never reads", async () => {
+    const site = await call(null, "GET", "/api/public/site.json");
+    expect(site.json.settings.approvals).toBeUndefined();
+  });
 });
 
 describe("slugs", () => {

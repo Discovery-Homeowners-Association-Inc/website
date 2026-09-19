@@ -79,6 +79,23 @@ test("the nightly job's changes reach the site", async () => {
   expect(after.length).toBeGreaterThan(before.length);
 });
 
+test("creating a meeting reaches the site", async () => {
+  await call(null, "GET", "/api/public/site.json");
+  const secretary = await makeUser(["secretary"]);
+  const made = await call(secretary, "POST", "/api/meetings", {
+    type: "special",
+    date: "2029-10-05",
+    time: "7:00 pm",
+    location: "Discovery Recreation Center",
+  });
+  expect(made.status).toBe(201);
+  const id = made.json.id as string;
+  const site = await call(null, "GET", "/api/public/site.json");
+  expect(
+    (site.json.meetings as { id: string }[]).some((m) => m.id === id),
+  ).toBe(true);
+});
+
 test("publishing an agenda and canceling a meeting both reach the site", async () => {
   const secretary = await makeUser(["secretary"]);
   const made = await call(secretary, "POST", "/api/meetings", {
