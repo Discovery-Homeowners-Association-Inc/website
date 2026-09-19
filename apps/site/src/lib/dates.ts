@@ -15,6 +15,9 @@ export const dateOf = (d: Date) =>
     day: "2-digit",
   }).format(d);
 
+/** The four-digit year of an ISO date, to decide whether a dated item needs it spelled out. */
+export const yearOf = (iso: string) => iso.slice(0, 4);
+
 export const timeOf = (d: Date) =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: TZ,

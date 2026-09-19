@@ -13,6 +13,7 @@ import {
   dayOfMonth,
   longDate,
   monthShort,
+  yearOf,
 } from "../lib/dates";
 
 const today = todayInNewYork();
@@ -207,20 +208,24 @@ const streets = [
     <section aria-labelledby="news-title">
       <h2 id="news-title">News from the board</h2>
       <ul class="dated">
-        {news.map((n) => (
-          <li>
-            <time datetime={dateOf(n.data.date)}>
-              {monthShort(dateOf(n.data.date))}
-              <span>{dayOfMonth(dateOf(n.data.date))}</span>
-            </time>
-            <div>
-              <h3>
-                <a href={`/news/${n.id}/`}>{n.data.title}</a>
-              </h3>
-              <p>{n.data.summary}</p>
-            </div>
-          </li>
-        ))}
+        {news.map((n) => {
+          const d = dateOf(n.data.date);
+          return (
+            <li>
+              <time datetime={d}>
+                {monthShort(d)}
+                <span>{dayOfMonth(d)}</span>
+                {yearOf(d) !== today.slice(0, 4) && <small>{yearOf(d)}</small>}
+              </time>
+              <div>
+                <h3>
+                  <a href={`/news/${n.id}/`}>{n.data.title}</a>
+                </h3>
+                <p>{n.data.summary}</p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <p>
         <a href="/news/">All news</a>

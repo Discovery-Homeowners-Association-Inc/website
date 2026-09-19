@@ -3,7 +3,13 @@ import { getCollection } from "astro:content";
 import { todayInNewYork } from "@dhoa/shared";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
-import { dateOf, dayOfMonth, monthShort, newsDate } from "../../lib/dates";
+import {
+  dateOf,
+  dayOfMonth,
+  monthShort,
+  newsDate,
+  yearOf,
+} from "../../lib/dates";
 import { upcoming } from "../../lib/calendar";
 
 const news = (await getCollection("news")).toSorted(
@@ -38,6 +44,7 @@ const past = (await getCollection("events"))
               <time datetime={d}>
                 {monthShort(d)}
                 <span>{dayOfMonth(d)}</span>
+                {yearOf(d) !== today.slice(0, 4) && <small>{yearOf(d)}</small>}
               </time>
               <div>
                 <h3>
