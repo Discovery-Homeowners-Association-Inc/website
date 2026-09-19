@@ -6,7 +6,7 @@ import { runScheduled } from "../src/scheduled.ts";
 import { call, makeUser, seedSettings } from "./helpers.ts";
 
 /**
- * The public snapshot builds the whole site in one request -- five queries and
+ * The public snapshot builds the whole site in one request -- six queries and
  * the serialization of every published item, 22 to 35 ms of CPU on the deployed
  * Worker against a 10 ms limit -- so it is held in the edge cache.
  *
@@ -121,7 +121,9 @@ test("publishing an agenda and canceling a meeting both reach the site", async (
     (await call(secretary, "POST", `/api/meetings/${id}/agenda/publish`))
       .status,
   ).toBe(200);
-  expect((await onTheSite())?.agenda).not.toBeNull();
+  const published = await onTheSite();
+  expect(published).toBeDefined();
+  expect(published!.agenda).not.toBeNull();
   expect(
     (
       await call(secretary, "PATCH", `/api/meetings/${id}`, {

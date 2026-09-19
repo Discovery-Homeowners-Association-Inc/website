@@ -50,7 +50,7 @@ export function publicRoutes(cache: SnapshotCache = edgeCache) {
     if (hit) return new Response(hit.body, hit);
 
     /*
-     * The snapshot is expensive: five queries and the serialization of every
+     * The snapshot is expensive: six queries and the serialization of every
      * published item, measured at 22 to 35 ms of CPU on the deployed Worker
      * against a 10 ms Workers Free limit. The cache key carries the site
      * version, so a stale entry is never served.

@@ -1,10 +1,7 @@
 import { todayInNewYork } from "@dhoa/shared";
 import { env } from "cloudflare:workers";
 import { beforeAll, expect, test } from "vitest";
-import {
-  materializeMeetings,
-  reconcileMeetings,
-} from "../src/meetings-schedule.ts";
+import { materializeMeetings } from "../src/meetings-schedule.ts";
 import { call, makeUser, seedSettings } from "./helpers.ts";
 
 /**

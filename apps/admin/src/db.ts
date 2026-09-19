@@ -70,7 +70,7 @@ export const isConstraintError = (e: unknown) =>
 
 /**
  * Runs a batch and turns a uniqueness violation into a 409 with a message a
- * person can act on. Four routes had written the catch out by hand.
+ * person can act on. Six call sites had written the catch out by hand.
  */
 export async function batchOr409(
   db: D1Database,

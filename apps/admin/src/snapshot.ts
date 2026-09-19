@@ -67,7 +67,7 @@ export async function buildSnapshot(
       }));
   return {
     generated_at: now.toISOString(),
-    // The board's own settings stay in the admin app; see ADMIN_ONLY_SETTINGS.
+    // The board's own settings stay in the admin app; see PUBLIC_SETTINGS.
     settings: Object.fromEntries(
       Object.entries(allSettings).filter(([k]) =>
         Object.keys(PUBLIC_SETTINGS).includes(k),

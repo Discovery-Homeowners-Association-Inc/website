@@ -54,6 +54,11 @@ export function fileRoutes() {
           "That file is larger than 20 MB. Compress it or split it first.",
       });
     const bytes = await file.arrayBuffer();
+    // Computed here, on purpose, rather than trusted from the client: the id
+    // is the hash, so a client-supplied hash would let an insider point a
+    // later upload at someone else's bytes. A typical PDF hashes in
+    // single-digit milliseconds, so doing it server-side costs nothing worth
+    // avoiding.
     const sha256 = hex(await crypto.subtle.digest("SHA-256", bytes));
     const id = sha256.slice(0, 32);
     const actor = c.get("user").id;
