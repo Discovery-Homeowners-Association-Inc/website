@@ -16,6 +16,7 @@ const upcoming = await meetings(todayInNewYork(), 6);
   <PageHead title={p.title} summary={p.summary} />
   <div class="with-aside">
     <div>
+      <Prose id="meetings" part="intro" />
       <section aria-labelledby="upcoming-title">
         <h2 id="upcoming-title" class="first">
           Upcoming meetings
@@ -62,7 +63,7 @@ const upcoming = await meetings(todayInNewYork(), 6);
         </p>
       </section>
 
-      <Prose id="meetings" />
+      <Prose id="meetings" part="rest" />
     </div>
     <aside class="panel">
       <h2>Attending</h2>

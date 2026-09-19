@@ -4,11 +4,15 @@ import { pageEntry } from "../lib/pages";
 
 interface Props {
   id: string;
+  part?: "intro" | "rest";
 }
-const entry = await pageEntry(Astro.props.id);
+const { id, part } = Astro.props;
+const entry = await pageEntry(part ? `${id}--${part}` : id);
 const { Content } = await render(entry);
 ---
 
-<div class="prose">
-  <Content />
-</div>
+{entry.body && (
+  <div class="prose">
+    <Content />
+  </div>
+)}

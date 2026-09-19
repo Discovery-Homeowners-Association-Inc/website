@@ -16,7 +16,7 @@
     "order": 2
   },
   {
-    "name": "Robert \"Bob\" Thornton",
+    "name": "Robert “Bob” Thornton",
     "office": "Treasurer",
     "committees": [],
     "chairs": [],
@@ -32,7 +32,7 @@
     "order": 4
   },
   {
-    "name": "Robert \"Bobby\" Brown",
+    "name": "Robert “Bobby” Brown",
     "office": "Director",
     "committees": ["acc"],
     "chairs": ["acc"],

@@ -18,7 +18,7 @@ const p = await page("parks");
   />
   <div class="with-aside">
     <div>
-      <Prose id="parks" />
+      <Prose id="parks" part="intro" />
       {parks.places.length > 0 && (
         <Fragment>
           <h2>Where they are</h2>
@@ -28,6 +28,7 @@ const p = await page("parks");
       <h2>Inspections</h2>
       <p class="prose">{parks.inspection_note}</p>
       <p class="prose">{parks.report_note}</p>
+      <Prose id="parks" part="rest" />
     </div>
     <aside>
       <OfficePanel />
