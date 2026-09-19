@@ -1,4 +1,4 @@
-import { AgendaBody, MinutesBody } from "@dhoa/shared";
+import { AgendaBody, MEETING_TIME, MinutesBody } from "@dhoa/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -12,10 +12,7 @@ import type { AppDeps } from "../app.ts";
 const MeetingInput = z.object({
   type: z.enum(["board", "annual", "special", "pool-rec"]),
   date: z.iso.date(),
-  time: z
-    .string()
-    .trim()
-    .regex(/^\d{1,2}:\d{2} (am|pm)$/, "Use a time like 7:00 pm"),
+  time: z.string().trim().regex(MEETING_TIME, "Use a time like 7:00 pm"),
   location: z.string().trim().min(1).max(200),
 });
 

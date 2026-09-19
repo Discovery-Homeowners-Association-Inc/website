@@ -7,6 +7,9 @@ import { z } from "zod";
 
 const s = z.string().trim();
 const url = z.url().or(z.literal("")).default("");
+/** "7:00 pm": the one form the calendar feed can turn into an instant. */
+export const MEETING_TIME = /^(1[0-2]|0?[1-9]):[0-5]\d (am|pm)$/i;
+const meetingTime = s.regex(MEETING_TIME, "Use a time like 7:00 pm");
 const Fee = z.object({
   label: s,
   amount: s,
@@ -72,11 +75,11 @@ export const Organization = z.object({
       rule: s,
       ordinal: Ordinal,
       weekday: Weekday,
-      time: s,
+      time: meetingTime,
       location: s,
       open_to: s.default(""),
     }),
-    pool_rec: z.object({ rule: s, time: s, location: s }),
+    pool_rec: z.object({ rule: s, time: meetingTime, location: s }),
   }),
   external: z.object({
     payhoa: z.object({
