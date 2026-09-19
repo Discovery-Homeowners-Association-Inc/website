@@ -1,4 +1,4 @@
-import type { Role } from "@dhoa/shared";
+import { ROLES, type Role } from "@dhoa/shared";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import { grantsFor } from "./db.ts";
@@ -8,6 +8,19 @@ export const hasRole = (
   grants: AppEnv["Variables"]["user"]["grants"],
   ...roles: Role[]
 ) => grants.some((g) => roles.includes(g.role) && g.scope === "");
+
+/*
+ * The roles a person holds across the whole site, as opposed to one committee.
+ * Read from the database, so checked rather than asserted: a row naming a role
+ * this build does not have is dropped, not believed.
+ */
+export const rolesOf = (grants: { role: string; scope: string }[]): Role[] =>
+  grants
+    .filter((g) => g.scope === "")
+    .map((g) => g.role)
+    .filter((role): role is Role =>
+      (ROLES as readonly string[]).includes(role),
+    );
 
 /** Rejects anonymous requests and people with no role at all. Every admin route sits behind this. */
 export const requireUser = (resolve: ResolveUser) =>

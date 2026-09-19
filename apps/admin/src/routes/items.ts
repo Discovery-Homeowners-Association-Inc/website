@@ -3,24 +3,18 @@ import {
   ITEM_BODIES,
   ITEM_KINDS,
   ItemMeta,
-  ROLES,
   type ItemAction,
   type ItemKind,
   type ItemState,
-  type Role,
   itemActions,
   slugify,
 } from "@dhoa/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { hasRole, requireRole } from "../access.ts";
-import {
-  auditStatement,
-  isConstraintError,
-  nowIso,
-  type Guard,
-} from "../db.ts";
+import { hasRole, requireRole, rolesOf } from "../access.ts";
+import { auditStatement, batchOr409, nowIso, type Guard } from "../db.ts";
+import { Note } from "../inputs.ts";
 import { approvalsSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -45,18 +39,6 @@ export type ItemRow = {
 };
 
 const Kind = z.enum(ITEM_KINDS);
-/*
- * The roles a person holds across the whole site, as opposed to one committee.
- * Read from the database, so checked rather than asserted: a row naming a role
- * this build does not have is dropped, not believed.
- */
-const rolesOf = (grants: { role: string; scope: string }[]): Role[] =>
-  grants
-    .filter((g) => g.scope === "")
-    .map((g) => g.role)
-    .filter((role): role is Role =>
-      (ROLES as readonly string[]).includes(role),
-    );
 const expand = (r: ItemRow) => ({ ...r, body: JSON.parse(r.body) });
 
 export async function itemOr404(db: D1Database, id: string) {
@@ -115,8 +97,9 @@ export function itemRoutes(deps: AppDeps) {
     const taken = new Set(existing.map((r) => r.slug));
     let slug = wanted;
     for (let n = 2; taken.has(slug); n++) slug = `${wanted}-${n}`;
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "insert into items (id, kind, slug, status, body, publish_at, expires_at, expiry_action, author_id, created_at, updated_at) values (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)",
         ).bind(
@@ -132,15 +115,9 @@ export function itemRoutes(deps: AppDeps) {
           nowIso(),
         ),
         auditStatement(c.env.DB, actor, "create", kind, id, { slug }),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message:
-            "Another item of this kind was just created with the same web address. Try again.",
-        });
-      throw e;
-    }
+      ],
+      "Another item of this kind was just created with the same web address. Try again.",
+    );
     return c.json(expand(await itemOr404(c.env.DB, id)), 201);
   });
 
@@ -167,8 +144,9 @@ export function itemRoutes(deps: AppDeps) {
       typeof raw.slug === "string" && raw.slug && staff
         ? slugify(raw.slug)
         : row.slug;
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "update items set body = ?, publish_at = ?, expires_at = ?, expiry_action = ?, slug = ?, updated_at = ? where id = ?",
         ).bind(
@@ -181,15 +159,9 @@ export function itemRoutes(deps: AppDeps) {
           row.id,
         ),
         auditStatement(c.env.DB, user.id, "update", row.kind, row.id),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message:
-            "Another item of this kind already uses that web address (slug).",
-        });
-      throw e;
-    }
+      ],
+      "Another item of this kind already uses that web address (slug).",
+    );
     if (row.status === "published")
       await deps.siteChanged(c.env, `${row.kind} ${slug} updated`);
     return c.json(expand(await itemOr404(c.env.DB, row.id)));
@@ -198,13 +170,10 @@ export function itemRoutes(deps: AppDeps) {
   /** Submit, approve, reject, publish or unpublish. The rules live in @dhoa/shared. */
   app.post("/:id/action", async (c) => {
     const row = await itemOr404(c.env.DB, c.req.param("id"));
-    const input = z
-      .object({
-        action: z.enum(["submit", "approve", "reject", "publish", "unpublish"]),
-        note: z.string().trim().max(500).default(""),
-        seen_updated_at: z.string().optional(),
-      })
-      .parse(await c.req.json());
+    const input = Note.extend({
+      action: z.enum(["submit", "approve", "reject", "publish", "unpublish"]),
+      seen_updated_at: z.string().optional(),
+    }).parse(await c.req.json());
     const user = c.get("user");
     const requiresApproval = (await approvalsSetting(c.env.DB))[row.kind];
     const allowed = itemActions({

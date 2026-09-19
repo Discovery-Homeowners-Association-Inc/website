@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
-import { auditStatement, isConstraintError, nowIso } from "../db.ts";
+import { auditStatement, batchOr409, nowIso } from "../db.ts";
 import { readSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -67,8 +67,9 @@ export function meetingRoutes(deps: AppDeps) {
     const input = MeetingInput.parse(await c.req.json());
     const id = `${input.date}-${input.type}`;
     const actor = c.get("user").id;
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "insert into meetings (id, type, date, time, location, created_by, created_at) values (?, ?, ?, ?, ?, ?, ?)",
         ).bind(
@@ -81,14 +82,9 @@ export function meetingRoutes(deps: AppDeps) {
           nowIso(),
         ),
         auditStatement(c.env.DB, actor, "create", "meeting", id, input),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message: "There is already a meeting of that type on that date.",
-        });
-      throw e;
-    }
+      ],
+      "There is already a meeting of that type on that date.",
+    );
     return c.json({ id, ...input, status: "scheduled" }, 201);
   });
 
@@ -96,8 +92,9 @@ export function meetingRoutes(deps: AppDeps) {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
     const patch = MeetingPatch.parse(await c.req.json());
     const next = { ...m, ...patch };
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "update meetings set date = ?, time = ?, location = ?, status = ? where id = ?",
         ).bind(next.date, next.time, next.location, next.status, m.id),
@@ -109,14 +106,9 @@ export function meetingRoutes(deps: AppDeps) {
           m.id,
           patch,
         ),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message: "There is already a meeting of that type on that date.",
-        });
-      throw e;
-    }
+      ],
+      "There is already a meeting of that type on that date.",
+    );
     // The public site lists every meeting and its status, so moving one or
     // calling it off has to reach the site. Without this a canceled meeting
     // stayed on the calendar as scheduled until an unrelated edit happened to
@@ -219,8 +211,9 @@ export function meetingRoutes(deps: AppDeps) {
     const version = current + 1;
     // D1 runs a batch as one transaction. If someone else saved first, the
     // version row already exists, the primary key rejects it, and nothing commits.
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "insert into agenda_versions (meeting_id, version, body, author_id, created_at) values (?, ?, ?, ?, ?)",
         ).bind(m.id, version, JSON.stringify(input.body), actor, nowIso()),
@@ -228,15 +221,9 @@ export function meetingRoutes(deps: AppDeps) {
           "insert into agendas (meeting_id, current_version) values (?, ?) on conflict (meeting_id) do update set current_version = excluded.current_version",
         ).bind(m.id, version),
         auditStatement(c.env.DB, actor, "save", "agenda", m.id, { version }),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message:
-            "Someone else saved this agenda. Reload to see their changes.",
-        });
-      throw e;
-    }
+      ],
+      "Someone else saved this agenda. Reload to see their changes.",
+    );
     return c.json({ version });
   });
 

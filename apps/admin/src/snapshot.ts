@@ -1,6 +1,6 @@
 import {
-  ADMIN_ONLY_SETTINGS,
   ITEM_BODIES,
+  PUBLIC_SETTINGS,
   type SiteSnapshot,
   isVisible,
   toPublicPerson,
@@ -64,8 +64,8 @@ export async function buildSnapshot(
     generated_at: now.toISOString(),
     // The board's own settings stay in the admin app; see ADMIN_ONLY_SETTINGS.
     settings: Object.fromEntries(
-      Object.entries(allSettings).filter(
-        ([k]) => !(ADMIN_ONLY_SETTINGS as readonly string[]).includes(k),
+      Object.entries(allSettings).filter(([k]) =>
+        Object.keys(PUBLIC_SETTINGS).includes(k),
       ),
     ) as SiteSnapshot["settings"],
     people: people.map(toPublicPerson),

@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, grantsFor, nowIso } from "../db.ts";
+import { Note } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -137,9 +138,7 @@ export function userRoutes(deps: AppDeps) {
       throw new HTTPException(422, {
         message: "You cannot remove your own access.",
       });
-    const note = z
-      .object({ note: z.string().trim().max(500).default("") })
-      .parse(await c.req.json().catch(() => ({})));
+    const note = Note.parse(await c.req.json().catch(() => ({})));
     const user = await c.env.DB.prepare('select id from "user" where id = ?')
       .bind(id)
       .first();

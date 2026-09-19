@@ -1,3 +1,4 @@
+import { HTTPException } from "hono/http-exception";
 import type { Grant } from "./types.ts";
 
 export const nowIso = () => new Date().toISOString();
@@ -66,3 +67,20 @@ export function auditStatement(
 
 export const isConstraintError = (e: unknown) =>
   /UNIQUE constraint failed|PRIMARY KEY/i.test(String(e));
+
+/**
+ * Runs a batch and turns a uniqueness violation into a 409 with a message a
+ * person can act on. Four routes had written the catch out by hand.
+ */
+export async function batchOr409(
+  db: D1Database,
+  statements: D1PreparedStatement[],
+  message: string,
+) {
+  try {
+    return await db.batch(statements);
+  } catch (e) {
+    if (isConstraintError(e)) throw new HTTPException(409, { message });
+    throw e;
+  }
+}

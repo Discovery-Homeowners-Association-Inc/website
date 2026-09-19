@@ -8,13 +8,9 @@ import {
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { hasRole, requireRole } from "../access.ts";
-import {
-  auditStatement,
-  isConstraintError,
-  nowIso,
-  type Guard,
-} from "../db.ts";
+import { hasRole, requireRole, rolesOf } from "../access.ts";
+import { auditStatement, batchOr409, nowIso, type Guard } from "../db.ts";
+import { Note } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import { meetingOr404 } from "./meetings.ts";
 
@@ -36,15 +32,17 @@ type VersionRow = {
 
 const EDITABLE: MinutesState[] = ["draft", "in_review", "ready_for_vote"];
 
-async function load(db: D1Database, meetingId: string) {
+/** Who wrote a row, with former members still named. Three queries share it. */
+const AUTHOR = `u.name as author, f.user_id is not null as author_former`;
+const AUTHOR_JOIN = (col: string) =>
+  `left join "user" u on u.id = ${col} left join former_members f on f.user_id = ${col}`;
+
+async function loadMaybe(db: D1Database, meetingId: string) {
   const minutes = await db
     .prepare("select * from minutes where meeting_id = ?")
     .bind(meetingId)
     .first<MinutesRow>();
-  if (!minutes)
-    throw new HTTPException(404, {
-      message: "No minutes have been started for this meeting.",
-    });
+  if (!minutes) return null;
   const current = await db
     .prepare(
       "select * from minutes_versions where meeting_id = ? and version = ?",
@@ -56,6 +54,15 @@ async function load(db: D1Database, meetingId: string) {
       message: "The current version of these minutes is missing.",
     });
   return { minutes, current };
+}
+
+async function load(db: D1Database, meetingId: string) {
+  const loaded = await loadMaybe(db, meetingId);
+  if (!loaded)
+    throw new HTTPException(404, {
+      message: "No minutes have been started for this meeting.",
+    });
+  return loaded;
 }
 
 export type VoteInput = {
@@ -140,24 +147,20 @@ export function minutesRoutes() {
 
   app.get("/:id/minutes", async (c) => {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
-    const row = await c.env.DB.prepare(
-      "select * from minutes where meeting_id = ?",
-    )
-      .bind(m.id)
-      .first<MinutesRow>();
-    if (!row) return c.json({ meeting: m, minutes: null });
-    const { current } = await load(c.env.DB, m.id);
+    const loaded = await loadMaybe(c.env.DB, m.id);
+    if (!loaded) return c.json({ meeting: m, minutes: null });
+    const { minutes: row, current } = loaded;
     const [versions, comments, reviews, vote] = await Promise.all([
       c.env.DB.prepare(
-        `select v.version, v.sha256, v.change_note, v.created_at, u.name as author, f.user_id is not null as author_former
-           from minutes_versions v left join "user" u on u.id = v.author_id left join former_members f on f.user_id = v.author_id
+        `select v.version, v.sha256, v.change_note, v.created_at, ${AUTHOR}
+           from minutes_versions v ${AUTHOR_JOIN("v.author_id")}
           where v.meeting_id = ? order by v.version desc`,
       )
         .bind(m.id)
         .all(),
       c.env.DB.prepare(
-        `select c.*, u.name as author, f.user_id is not null as author_former
-           from review_comments c left join "user" u on u.id = c.author_id left join former_members f on f.user_id = c.author_id
+        `select c.*, ${AUTHOR}
+           from review_comments c ${AUTHOR_JOIN("c.author_id")}
           where c.meeting_id = ? order by c.created_at`,
       )
         .bind(m.id)
@@ -223,8 +226,9 @@ export function minutesRoutes() {
     }
     const version = current + 1;
     const actor = c.get("user").id;
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "insert into minutes_versions (meeting_id, version, body, sha256, change_note, author_id, created_at) values (?, ?, ?, ?, ?, ?, ?)",
         ).bind(
@@ -243,15 +247,9 @@ export function minutesRoutes() {
           version,
           sha256: sha,
         }),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message:
-            "Someone else saved these minutes. Reload to see their changes.",
-        });
-      throw e;
-    }
+      ],
+      "Someone else saved these minutes. Reload to see their changes.",
+    );
     return c.json({ version, sha256: sha });
   });
 
@@ -263,13 +261,7 @@ export function minutesRoutes() {
       .parse(await c.req.json());
     const { minutes } = await load(c.env.DB, m.id);
     const user = c.get("user");
-    if (
-      !canTransition(
-        minutes.status,
-        to,
-        user.grants.filter((g) => g.scope === "").map((g) => g.role),
-      )
-    ) {
+    if (!canTransition(minutes.status, to, rolesOf(user.grants))) {
       throw new HTTPException(409, {
         message: `Minutes that are ${minutes.status.replaceAll("_", " ")} cannot be moved to ${to.replaceAll("_", " ")}.`,
       });
@@ -434,13 +426,7 @@ export function minutesRoutes() {
         .parse(await c.req.json());
       const { minutes, current } = await load(c.env.DB, m.id);
       const user = c.get("user");
-      if (
-        !canTransition(
-          minutes.status,
-          "approved",
-          user.grants.filter((g) => g.scope === "").map((g) => g.role),
-        )
-      ) {
+      if (!canTransition(minutes.status, "approved", rolesOf(user.grants))) {
         throw new HTTPException(409, {
           message:
             "Minutes must be ready for a vote before the vote is recorded.",
@@ -513,18 +499,10 @@ export function minutesRoutes() {
     requireRole("secretary", "admin"),
     async (c) => {
       const m = await meetingOr404(c.env.DB, c.req.param("id"));
-      const { note } = z
-        .object({ note: z.string().trim().max(500).default("") })
-        .parse(await c.req.json());
+      const { note } = Note.parse(await c.req.json());
       const { minutes, current } = await load(c.env.DB, m.id);
       const user = c.get("user");
-      if (
-        !canTransition(
-          minutes.status,
-          "filed",
-          user.grants.filter((g) => g.scope === "").map((g) => g.role),
-        )
-      ) {
+      if (!canTransition(minutes.status, "filed", rolesOf(user.grants))) {
         throw new HTTPException(409, {
           message: "Only approved minutes can be marked as uploaded to PayHOA.",
         });
