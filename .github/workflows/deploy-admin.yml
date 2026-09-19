@@ -46,6 +46,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: pnpm exec wrangler d1 migrations apply dhoa --remote
+      # A settings group added in code is a row the database does not have, and
+      # the Worker refuses to build the public snapshot without it -- which
+      # takes the site's build down with it. `insert or ignore`, so a value the
+      # board has edited is never touched.
+      - name: Create any settings the database does not have yet
+        working-directory: apps/admin
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node scripts/seed.ts
+          pnpm exec wrangler d1 execute dhoa --remote --yes --file seed/settings.sql
       - name: Deploy the Worker
         working-directory: apps/admin
         env:
