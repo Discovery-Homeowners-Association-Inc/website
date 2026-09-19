@@ -1,0 +1,26 @@
+---
+import { email, org } from "../lib/data";
+---
+
+<aside class="panel">
+  <h2>Attending</h2>
+  <dl>
+    <dt>When</dt>
+    <dd>
+      {org.meetings.board.rule}, {org.meetings.board.time}
+    </dd>
+    <dt>Where</dt>
+    <dd>
+      {org.meetings.board.location}, {org.office.street}
+    </dd>
+    <dt>Who</dt>
+    <dd>{org.meetings.board.open_to}</dd>
+    <dt>Add an item to the agenda</dt>
+    <dd>
+      <a href={`mailto:${email("general")}`}>{email("general")}</a>
+    </dd>
+  </dl>
+  <p>
+    <a href="/calendar.ics">Add meetings to your calendar</a>
+  </p>
+</aside>

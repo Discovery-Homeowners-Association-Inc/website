@@ -96,6 +96,18 @@ test("every document link says what it is, and a Spanish one says so", async ({
     expect(text).toMatch(/\((PDF|image)(, Spanish)?\)$/);
 });
 
+test("a meeting is a link only once its agenda is posted", async ({ page }) => {
+  await page.goto("/meetings/");
+  const items = page.locator(".dated li");
+  expect(await items.count()).toBeGreaterThan(0);
+  for (let i = 0; i < (await items.count()); i++) {
+    const item = items.nth(i);
+    const linked = (await item.locator("h3 a").count()) > 0;
+    const posted = (await item.innerText()).includes("The agenda is posted.");
+    expect(linked, `item ${i}: linked=${linked} posted=${posted}`).toBe(posted);
+  }
+});
+
 test("the calendar feed is valid iCalendar", async ({ request }) => {
   const res = await request.get("/calendar.ics");
   expect(res.ok()).toBe(true);

@@ -188,7 +188,11 @@ const streets = [
             </time>
             <div>
               <h3>
-                <a href={c.href}>{c.title}</a>
+                {c.kind === "meeting" && !c.agendaPublished ? (
+                  c.title
+                ) : (
+                  <a href={c.href}>{c.title}</a>
+                )}
               </h3>
               <p>{[c.time, c.location].filter(Boolean).join(", ")}</p>
             </div>
