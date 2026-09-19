@@ -528,3 +528,13 @@ details.group.parkmap__all > ul {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ── Report a problem: urgent entries in a callout ──────────────────────── */
+.callout .people {
+  margin-bottom: 0;
+}
+
+.callout h2.first {
+  font-size: var(--step-1);
+  margin-bottom: var(--space-2);
+}

@@ -341,7 +341,7 @@
     "body": {
       "title": "Report a Problem",
       "summary": "Who to call, sorted by the kind of problem you have.",
-      "body": "Different problems go to different places, and calling the wrong one costs you a\nday. This is the whole list, most urgent first.\n\n<aside class=\"callout callout--warning\">\n\nFor anything immediate, urgent, or life-threatening, call **911**. Do not call\nthe office first.\n\n</aside>"
+      "body": "Different problems go to different places, and calling the wrong one costs you a\nday. This is the whole list, most urgent first."
     }
   },
   {
