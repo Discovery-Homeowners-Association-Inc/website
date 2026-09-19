@@ -2,6 +2,14 @@ import type { Grant } from "./types.ts";
 
 export const nowIso = () => new Date().toISOString();
 
+/** Marks the public site as changed. Run it after any write the site can see. */
+export const bumpSiteVersion = (db: D1Database) =>
+  db
+    .prepare(
+      "update site_version set version = version + 1, changed_at = ? where id = 1",
+    )
+    .bind(nowIso());
+
 export async function grantsFor(
   db: D1Database,
   userId: string,

@@ -120,6 +120,11 @@ for (const [key, schema] of Object.entries(SETTINGS)) {
     `update settings set value = json_patch(json(${json}), value), updated_at = ${q(now)} where key = ${q(key)} and json_patch(json(${json}), value) <> value;`,
   );
 }
+// Every deploy applies this file, and the site build that follows must not
+// read a snapshot built before it ran.
+settingsSql.push(
+  `update site_version set version = version + 1, changed_at = ${q(now)} where id = 1;`,
+);
 lines.push(...settingsSql);
 
 const seenNames = new Set<string>();

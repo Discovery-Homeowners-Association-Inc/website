@@ -1,18 +1,20 @@
 import { env } from "cloudflare:workers";
 import { beforeAll, expect, test } from "vitest";
-import { invalidateSnapshot } from "../src/routes/public.ts";
-import { call, makeUser, seedSettings, snapshotCache } from "./helpers.ts";
+import { siteChangeNotifier } from "../src/app.ts";
+import { bumpSiteVersion } from "../src/db.ts";
+import { runScheduled } from "../src/scheduled.ts";
+import { call, makeUser, seedSettings } from "./helpers.ts";
 
 /**
- * The public snapshot builds the whole site in one request: five queries and
- * the serialisation of every published item. Measured on the deployed Worker it
- * costs 22 to 35 ms of CPU against a 10 ms Workers Free limit, so it is held in
- * the edge cache rather than rebuilt for every caller.
+ * The public snapshot builds the whole site in one request -- five queries and
+ * the serialization of every published item, 22 to 35 ms of CPU on the deployed
+ * Worker against a 10 ms limit -- so it is held in the edge cache.
  *
- * Cheap is worthless if it is wrong. The site build runs straight after a
- * publish, so a stale snapshot would rebuild the site from its previous state.
- * Every content change clears the entry; `settings-roster-files.test.ts` proves
- * that wiring end to end by editing through a route and reading the snapshot.
+ * Cheap is worthless if it is wrong. The cache key carries `site_version`, a
+ * number every change bumps, so a stale entry is never served: the next
+ * request after a change has a key nothing was stored under. That holds for
+ * every data center, for the nightly job, and for writes that bypass the
+ * Worker, none of which clearing the entry could reach.
  */
 beforeAll(async () => {
   await seedSettings();
@@ -39,25 +41,45 @@ const setOfficeNameDirectly = async (name: string) => {
 
 test("the snapshot is served from cache instead of rebuilt every time", async () => {
   const before = await officeName();
-  // Changed behind the route's back: a cached response cannot see this, a
-  // rebuilt one would.
   await setOfficeNameDirectly("Changed Behind The Cache");
   expect(await officeName()).toBe(before);
 });
 
-test("clearing the cache makes the next request see the change", async () => {
+test("a write that bypasses the app is seen once it bumps the version", async () => {
   const stale = await officeName();
-  await setOfficeNameDirectly("Visible After Invalidation");
-  await invalidateSnapshot(env, snapshotCache);
+  await setOfficeNameDirectly("Visible After A Bump");
+  await bumpSiteVersion(env.DB).run();
   const fresh = await officeName();
   expect(fresh).not.toBe(stale);
-  expect(fresh).toBe("Visible After Invalidation");
+  expect(fresh).toBe("Visible After A Bump");
+});
+
+test("a change made through the app is seen at once", async () => {
+  const admin = await makeUser(["admin"]);
+  await officeName();
+  const parks = await call(admin, "GET", "/api/settings/parks");
+  await call(admin, "PUT", "/api/settings/parks", {
+    ...parks.json,
+    count: 23,
+  });
+  const site = await call(null, "GET", "/api/public/site.json");
+  expect(site.json.settings.parks.count).toBe(23);
+});
+
+test("the nightly job's changes reach the site", async () => {
+  const before = (await call(null, "GET", "/api/public/site.json")).json
+    .meetings as unknown[];
+  await runScheduled(
+    env,
+    { siteChanged: siteChangeNotifier(async () => {}) },
+    new Date("2026-01-05"),
+  );
+  const after = (await call(null, "GET", "/api/public/site.json")).json
+    .meetings as unknown[];
+  expect(after.length).toBeGreaterThan(before.length);
 });
 
 test("publishing an agenda and canceling a meeting both reach the site", async () => {
-  // The meetings routes had no way to say the site had changed, so a published
-  // agenda or a called-off meeting sat behind the cache until some unrelated
-  // edit happened to clear it. Residents were told a canceled meeting was on.
   const secretary = await makeUser(["secretary"]);
   const made = await call(secretary, "POST", "/api/meetings", {
     type: "board",
@@ -67,28 +89,22 @@ test("publishing an agenda and canceling a meeting both reach the site", async (
   });
   expect(made.status).toBe(201);
   const id = made.json.id as string;
-
   await call(secretary, "PUT", `/api/meetings/${id}/agenda`, {
     base_version: 0,
     body: { items: [{ id: "x", title: "Call to order" }] },
   });
-
   const onTheSite = async () => {
     const site = await call(null, "GET", "/api/public/site.json");
-    return (site.json.meetings as { id: string; status: string }[]).find(
-      (m) => m.id === id,
-    );
+    return (
+      site.json.meetings as { id: string; status: string; agenda: unknown }[]
+    ).find((m) => m.id === id);
   };
-
-  // Warm the cache so a stale entry would be the failure mode.
   await onTheSite();
   expect(
     (await call(secretary, "POST", `/api/meetings/${id}/agenda/publish`))
       .status,
   ).toBe(200);
-  expect(await onTheSite()).toBeTruthy();
-
-  await onTheSite();
+  expect((await onTheSite())?.agenda).not.toBeNull();
   expect(
     (
       await call(secretary, "PATCH", `/api/meetings/${id}`, {

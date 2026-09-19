@@ -5,62 +5,44 @@ import { buildSnapshot } from "../snapshot.ts";
 /**
  * Where the built snapshot is kept. Production uses the edge cache, which is
  * shared by every isolate in a colo; the tests pass an in-memory stand-in,
- * because `caches.default.delete()` never settles when it is called from inside
- * a request handler under the Workers test harness.
+ * because a stored `Response` holds an unread stream that cannot be cloned
+ * across tests.
  */
 export type SnapshotCache = {
   match(key: Request): Promise<Response | undefined>;
   put(key: Request, res: Response): Promise<void>;
-  delete(key: Request): Promise<void>;
 };
 
 export const edgeCache: SnapshotCache = {
   match: (key) => caches.default.match(key),
   put: (key, res) => caches.default.put(key, res),
-  delete: async (key) => void (await caches.default.delete(key)),
 };
+
+export async function siteVersion(db: D1Database): Promise<number> {
+  const row = await db
+    .prepare("select version from site_version where id = 1")
+    .first<{ version: number }>();
+  return row?.version ?? 0;
+}
 
 /**
  * The key is derived from BETTER_AUTH_URL rather than from the request, so one
- * entry is cached and cleared however the Worker was reached. The file URLs in
- * the body use the same origin, which keeps the cached body correct for every
- * caller instead of carrying whichever host happened to build it.
+ * entry serves every caller, and it carries the site version, so no entry
+ * outlives the content it was built from. One cheap read per request is the
+ * whole cost; the entry is per data center, which is why clearing it was never
+ * enough.
  */
-const snapshotKey = (env: Env) => {
+const snapshotKey = (env: Env, version: number) => {
   const url = new URL("/api/public/site.json", env.BETTER_AUTH_URL);
-  /*
-   * The deployed version is part of the key, so every deploy starts with a
-   * cold snapshot.
-   *
-   * The deploy writes settings and page copy straight to D1 with wrangler,
-   * which never passes through this Worker and so never reaches
-   * invalidateSnapshot. Without this the site build that follows reads
-   * whatever was cached up to five minutes earlier and ships it -- which is
-   * how a deploy that had already put the park markers in the database
-   * produced a parks page with no markers on it.
-   *
-   * One rebuild per deploy is the whole cost. Nothing a caller sends can
-   * change the key, so it is not a way to make the Worker do the expensive
-   * thing on demand.
-   */
-  const version = env.CF_VERSION_METADATA?.id;
-  if (version) url.searchParams.set("v", version);
+  url.searchParams.set("v", String(version));
   return new Request(url.toString());
 };
-
-/** Drop the cached snapshot. Called for every change to published content. */
-export async function invalidateSnapshot(
-  env: Env,
-  cache: SnapshotCache = edgeCache,
-): Promise<void> {
-  await cache.delete(snapshotKey(env));
-}
 
 /** No sign-in. Only what the public site is allowed to show. */
 export function publicRoutes(cache: SnapshotCache = edgeCache) {
   const app = new Hono<{ Bindings: Env }>();
   app.get("/site.json", async (c) => {
-    const key = snapshotKey(c.env);
+    const key = snapshotKey(c.env, await siteVersion(c.env.DB));
     const hit = await cache.match(key);
     // Copied, not returned as-is: a response out of the cache has immutable
     // headers, and the secureHeaders middleware adds to them on the way out.
@@ -68,10 +50,10 @@ export function publicRoutes(cache: SnapshotCache = edgeCache) {
     if (hit) return new Response(hit.body, hit);
 
     /*
-     * The snapshot is expensive: five queries and the serialisation of every
+     * The snapshot is expensive: five queries and the serialization of every
      * published item, measured at 22 to 35 ms of CPU on the deployed Worker
-     * against a 10 ms Workers Free limit. Every content change clears it, so
-     * the site build never sees a stale one.
+     * against a 10 ms Workers Free limit. The cache key carries the site
+     * version, so a stale entry is never served.
      */
     const origin = new URL(c.env.BETTER_AUTH_URL).origin;
     const snapshot = await buildSnapshot(

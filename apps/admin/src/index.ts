@@ -1,4 +1,4 @@
-import { createApp } from "./app.ts";
+import { createApp, siteChangeNotifier } from "./app.ts";
 import { type Auth, createAuth } from "./auth.ts";
 import { dispatchRebuild } from "./github.ts";
 import { runScheduled } from "./scheduled.ts";
@@ -43,6 +43,8 @@ const app = createApp({
 export default {
   fetch: app.fetch,
   scheduled: async (_controller, env, ctx) => {
-    ctx.waitUntil(runScheduled(env, { siteChanged }));
+    ctx.waitUntil(
+      runScheduled(env, { siteChanged: siteChangeNotifier(siteChanged) }),
+    );
   },
 } satisfies ExportedHandler<Env>;
