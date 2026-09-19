@@ -1,7 +1,11 @@
+import { todayInNewYork } from "@dhoa/shared";
 import { env } from "cloudflare:workers";
 import { beforeAll, expect, test } from "vitest";
-import { materializeMeetings } from "../src/meetings-schedule.ts";
-import { seedSettings } from "./helpers.ts";
+import {
+  materializeMeetings,
+  reconcileMeetings,
+} from "../src/meetings-schedule.ts";
+import { call, makeUser, seedSettings } from "./helpers.ts";
 
 /**
  * The board's schedule is a rule -- the third Tuesday of every month -- and the
@@ -104,4 +108,37 @@ test("a moved meeting keeps its slot, so the old date is not put back", async ()
     rows.some((m) => m.id !== first!.id && m.date === first!.date),
     "the scheduler re-created the meeting at its original date",
   ).toBe(false);
+});
+
+test("changing the rule replaces future rule-made meetings and keeps the ones with work on them", async () => {
+  await materializeMeetings(env.DB, new Date("2026-01-05"));
+  const secretary = await makeUser(["secretary"]);
+  // The November meeting has an agenda: it stays whatever the rule says,
+  // even though it is still in the future when the rule changes.
+  await call(secretary, "PUT", "/api/meetings/2026-11-17-board/agenda", {
+    base_version: 0,
+    body: { items: [{ id: "a", title: "Call to order" }] },
+  });
+  // The board moves to the second Wednesday. The PUT runs with the real
+  // clock, so "future" is judged from today.
+  const admin = await makeUser(["admin"]);
+  const org = (await call(admin, "GET", "/api/settings/organization")).json;
+  org.meetings.board = { ...org.meetings.board, ordinal: 2, weekday: 3 };
+  expect(
+    (await call(admin, "PUT", "/api/settings/organization", org)).status,
+  ).toBe(200);
+
+  const rows = await boardMeetings();
+  const ids = rows.map((r) => r.id);
+  // The old rule's third Tuesday in October is gone; the new rule's second
+  // Wednesday in October has taken its place.
+  expect(ids).not.toContain("2026-10-20-board");
+  expect(ids).toContain("2026-10-14-board");
+  // November's meeting has an agenda, so the rule change left it alone.
+  expect(ids).toContain("2026-11-17-board");
+  const today = todayInNewYork(new Date());
+  for (const row of rows.filter(
+    (r) => r.id !== "2026-11-17-board" && r.date >= today,
+  ))
+    expect(weekdayOf(row.date), `${row.date} is not a Wednesday`).toBe(3);
 });

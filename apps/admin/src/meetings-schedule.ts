@@ -50,3 +50,27 @@ export async function materializeMeetings(
     created: results.reduce((n, r) => n + (r.meta?.changes ?? 0), 0),
   };
 }
+
+/**
+ * After the rule changes. Future meetings the rule made -- created by nobody,
+ * still on the date their id records, with no agenda and no minutes -- are
+ * dropped and the rule fills the year again. A meeting someone moved, or one
+ * with work attached, is the board's and is left exactly where it is.
+ */
+export async function reconcileMeetings(
+  db: D1Database,
+  now = new Date(),
+): Promise<{ created: number; removed: number }> {
+  const removed = await db
+    .prepare(
+      `delete from meetings
+        where type = 'board' and created_by is null and status = 'scheduled'
+          and date >= ? and date = substr(id, 1, 10)
+          and id not in (select meeting_id from agendas)
+          and id not in (select meeting_id from minutes)`,
+    )
+    .bind(todayInNewYork(now))
+    .run();
+  const { created } = await materializeMeetings(db, now);
+  return { created, removed: removed.meta.changes ?? 0 };
+}

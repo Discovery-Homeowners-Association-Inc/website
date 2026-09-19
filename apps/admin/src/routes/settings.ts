@@ -9,6 +9,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { requireRole } from "../access.ts";
 import { auditStatement, nowIso } from "../db.ts";
+import { reconcileMeetings } from "../meetings-schedule.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -71,12 +72,31 @@ export function settingsRoutes(deps: AppDeps) {
       throw new HTTPException(404, { message: "No such settings group." });
     const value = SETTINGS[key].parse(await c.req.json());
     const actor = c.get("user").id;
+    let previous: Settings[SettingsKey] | undefined;
+    try {
+      previous = await readSetting(c.env.DB, key);
+    } catch {
+      previous = undefined;
+    }
     await c.env.DB.batch([
       c.env.DB.prepare(
         "insert into settings (key, value, updated_by, updated_at) values (?, ?, ?, ?) on conflict (key) do update set value = excluded.value, updated_by = excluded.updated_by, updated_at = excluded.updated_at",
       ).bind(key, JSON.stringify(value), actor, nowIso()),
       auditStatement(c.env.DB, actor, "update", "settings", key),
     ]);
+    if (key === "organization") {
+      const before = (previous as Settings["organization"] | undefined)
+        ?.meetings.board;
+      const after = (value as Settings["organization"]).meetings.board;
+      if (
+        !before ||
+        before.ordinal !== after.ordinal ||
+        before.weekday !== after.weekday ||
+        before.time !== after.time ||
+        before.location !== after.location
+      )
+        await reconcileMeetings(c.env.DB);
+    }
     if (key !== "approvals") await deps.siteChanged(c.env, `settings ${key}`);
     return c.json(value);
   });
