@@ -174,6 +174,12 @@ describe("files", () => {
     expect(served.status).toBe(200);
     expect(await served.text()).toBe("%PDF-1.4 bylaws");
 
+    const site = await call(null, "GET", "/api/public/site.json");
+    const listed = site.json.documents.find(
+      (d: { slug: string }) => d.slug === "bylaws",
+    );
+    expect(listed.file_type).toBe("application/pdf");
+
     // Unpublishing takes the file back out of public reach with the document.
     expect(
       (

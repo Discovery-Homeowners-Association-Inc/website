@@ -29,7 +29,12 @@ export const SiteSnapshot = z.object({
   news: z.array(z.object({ ...meta, body: NewsBody })),
   events: z.array(z.object({ ...meta, body: EventBody })),
   documents: z.array(
-    z.object({ ...meta, body: DocumentBody, file_url: z.string().default("") }),
+    z.object({
+      ...meta,
+      body: DocumentBody,
+      file_url: z.string().default(""),
+      file_type: z.string().default(""),
+    }),
   ),
   pages: z.array(z.object({ ...meta, body: PageBody })),
   meetings: z.array(
