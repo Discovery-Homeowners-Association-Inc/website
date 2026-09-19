@@ -198,10 +198,11 @@ export function itemRoutes(deps: AppDeps) {
   /** Submit, approve, reject, publish or unpublish. The rules live in @dhoa/shared. */
   app.post("/:id/action", async (c) => {
     const row = await itemOr404(c.env.DB, c.req.param("id"));
-    const { action, note } = z
+    const input = z
       .object({
         action: z.enum(["submit", "approve", "reject", "publish", "unpublish"]),
         note: z.string().trim().max(500).default(""),
+        seen_updated_at: z.string().optional(),
       })
       .parse(await c.req.json());
     const user = c.get("user");
@@ -212,16 +213,25 @@ export function itemRoutes(deps: AppDeps) {
       isAuthor: row.author_id === user.id || row.submitted_by === user.id,
       requiresApproval,
     });
-    if (!allowed.includes(action)) {
+    if (!allowed.includes(input.action)) {
       throw new HTTPException(409, {
-        message: explain(action, row.status, requiresApproval),
+        message: explain(input.action, row.status, requiresApproval),
       });
     }
-    if (action === "reject" && !note)
+    if (
+      input.action === "approve" &&
+      input.seen_updated_at !== undefined &&
+      input.seen_updated_at !== row.updated_at
+    )
+      throw new HTTPException(409, {
+        message:
+          "This was changed after you read it. Reload, read the new version, then approve it.",
+      });
+    if (input.action === "reject" && !input.note)
       throw new HTTPException(422, {
         message: "Say what needs to change so the author knows.",
       });
-    const next = ITEM_AFTER[action];
+    const next = ITEM_AFTER[input.action];
     const sets: Record<ItemAction, string> = {
       submit: "submitted_by = ?, submitted_at = ?, review_note = ''",
       approve: "approved_by = ?, approved_at = ?, review_note = ''",
@@ -234,9 +244,9 @@ export function itemRoutes(deps: AppDeps) {
     const binds: Record<ItemAction, unknown[]> = {
       submit: [user.id, nowIso()],
       approve: [user.id, nowIso()],
-      reject: [note, null],
+      reject: [input.note, null],
       publish: [user.id, nowIso()],
-      unpublish: [note, null],
+      unpublish: [input.note, null],
     };
     const still: Guard = {
       sql: "select 1 from items where id = ? and status = ?",
@@ -246,15 +256,15 @@ export function itemRoutes(deps: AppDeps) {
       auditStatement(
         c.env.DB,
         user.id,
-        action,
+        input.action,
         row.kind,
         row.id,
-        { from: row.status, to: next, note },
+        { from: row.status, to: next, note: input.note },
         still,
       ),
       c.env.DB.prepare(
-        `update items set status = ?, ${sets[action]}, updated_at = ? where id = ? and status = ?`,
-      ).bind(next, ...binds[action], nowIso(), row.id, row.status),
+        `update items set status = ?, ${sets[input.action]}, updated_at = ? where id = ? and status = ?`,
+      ).bind(next, ...binds[input.action], nowIso(), row.id, row.status),
     ]);
     if (moved[1]?.meta.changes !== 1)
       throw new HTTPException(409, {
@@ -262,7 +272,7 @@ export function itemRoutes(deps: AppDeps) {
           "This item changed while you were looking at it. Reload to see where it is now.",
       });
     if (next === "published" || row.status === "published")
-      await deps.siteChanged(c.env, `${row.kind} ${row.slug} ${action}`);
+      await deps.siteChanged(c.env, `${row.kind} ${row.slug} ${input.action}`);
     return c.json(expand(await itemOr404(c.env.DB, row.id)));
   });
 

@@ -173,6 +173,28 @@ describe("content items", () => {
       .all();
     expect(results).toHaveLength(1);
   });
+
+  it("refuses to approve a body the approver has not read", async () => {
+    const created = await call(editor, "POST", "/api/items", news("Read me"));
+    const id = created.json.id;
+    await call(editor, "POST", `/api/items/${id}/action`, { action: "submit" });
+    const seen = (await call(director, "GET", `/api/items/${id}`)).json;
+    // The editor changes the pending text after the director read it.
+    await call(editor, "PUT", `/api/items/${id}`, {
+      body: { ...news("Read me").body, body: "Something else entirely." },
+    });
+    const stale = await call(director, "POST", `/api/items/${id}/action`, {
+      action: "approve",
+      seen_updated_at: seen.updated_at,
+    });
+    expect(stale.status).toBe(409);
+    const fresh = (await call(director, "GET", `/api/items/${id}`)).json;
+    const ok = await call(director, "POST", `/api/items/${id}/action`, {
+      action: "approve",
+      seen_updated_at: fresh.updated_at,
+    });
+    expect(ok.json.status).toBe("published");
+  });
 });
 
 describe("publish dates and expiry", () => {
