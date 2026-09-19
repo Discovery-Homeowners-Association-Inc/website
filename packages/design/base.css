@@ -377,10 +377,11 @@ main {
 /* ── Header ──────────────────────────────────────────────────────────────── */
 /*
  * Every boundary below is measured, not chosen. Fonts use font-display:
- * optional, so a first visit can legitimately be drawn in the fallback font,
- * which is wider — so the fallback is what the layout has to survive. At these
- * sizes one row needs 1090px in the web font and 1120px in the fallback, hence
- * 71rem (1136px) with 16px of headroom. See docs/DESIGN.md.
+ * swap, so a first visit is drawn in the fallback until the web font arrives,
+ * and the fallback is wider — so the fallback is what the layout has to
+ * survive. At these sizes one row needs 1090px in the web font and 1120px in
+ * the fallback, hence 71rem (1136px) with 16px of headroom. See
+ * docs/DESIGN.md.
  *
  *   >= 71rem       brand · links · action   one row
  *   44rem–71rem    brand · action / links   links on one further row
