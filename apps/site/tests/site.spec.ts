@@ -125,6 +125,38 @@ test("every internal link resolves", async ({ page, request }) => {
   expect(broken).toEqual([]);
 });
 
+test("on a phone the glance band comes before the map; on a desktop the map sits beside the title", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const glance = (await page.locator(".glance").boundingBox())!;
+  const map = (await page.locator(".hero__map").boundingBox())!;
+  expect(glance.y, "the glance band is below the map on a phone").toBeLessThan(
+    map.y,
+  );
+  expect(glance.y, "the glance band is not on the first screen").toBeLessThan(
+    844,
+  );
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  const title = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+  const wideMap = (await page.locator(".hero__map").boundingBox())!;
+  expect(Math.abs(wideMap.y - title.y)).toBeLessThan(200);
+});
+
+test("the home page uses one word for the money residents owe", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const text = await page.locator("main, .site-header").allInnerTexts();
+  expect(text.join(" ")).not.toMatch(/assessment/i);
+  await expect(
+    page.getByRole("link", { name: "Pay dues" }).first(),
+  ).toBeVisible();
+});
+
 test("the header is the same height whether the web font or the fallback font draws the page", async ({
   browser,
 }) => {

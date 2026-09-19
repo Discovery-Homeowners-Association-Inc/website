@@ -259,9 +259,9 @@
     "slug": "dues",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Pay your assessment",
-      "summary": "What the assessment is, when it is due, and every way to pay it.",
-      "body": "The assessment pays for everything the association looks after on your behalf:\nthe pool, the Recreation Center, the RV lot, twenty parks, trash collection,\nlandscaping, and street lights.\n\nPayments are due on the first day of each quarter. Late payments are charged a\npenalty each month until they are paid.\n\nIf you are having trouble paying, call the office at {{phone:office}} before the\ndue date. It is a much easier conversation beforehand."
+      "title": "Pay your dues",
+      "summary": "What the dues pay for, when they are due, and every way to pay them.",
+      "body": "The dues — the association's governing documents call them the\nassessment — pay for everything the association looks after on your behalf:\nthe pool, the Recreation Center, the RV lot, twenty parks, trash collection,\nlandscaping, and street lights.\n\nPayments are due on the first day of each quarter. Late payments are charged a\npenalty each month until they are paid.\n\nIf you are having trouble paying, call the office at {{phone:office}} before the\ndue date. It is a much easier conversation beforehand."
     }
   },
   {

@@ -4,13 +4,27 @@
 .hero {
   display: grid;
   gap: var(--space-4);
-  align-items: center;
+  grid-template-areas: "text" "glance" "map";
   padding-block: var(--space-4) var(--space-5);
+}
+
+.hero__text {
+  grid-area: text;
+}
+
+.hero__glance {
+  grid-area: glance;
+}
+
+.hero__map {
+  grid-area: map;
 }
 
 @media (width >= 56rem) {
   .hero {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas: "text map" "glance glance";
+    align-items: center;
   }
 }
 
@@ -31,7 +45,8 @@
   font-family: var(--font-display);
   font-stretch: 85%;
   font-weight: 600;
-  color: var(--plan);
+  /* Not a link, so no link blue: that sends people tapping at text that does nothing. */
+  color: var(--ink-muted);
   font-size: var(--step-0);
   max-width: 44ch;
 }
