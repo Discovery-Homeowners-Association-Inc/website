@@ -1,5 +1,5 @@
 import { occurrences, todayInNewYork } from "@dhoa/shared";
-import { readSettings } from "./routes/settings.ts";
+import { readSetting } from "./routes/settings.ts";
 
 /** How far ahead meetings are kept as records. */
 export const HORIZON_MONTHS = 12;
@@ -22,8 +22,7 @@ export async function materializeMeetings(
   now = new Date(),
   months = HORIZON_MONTHS,
 ): Promise<{ created: number }> {
-  const settings = await readSettings(db);
-  const board = settings.organization.meetings.board;
+  const board = (await readSetting(db, "organization")).meetings.board;
   const wanted = occurrences(
     { ordinal: board.ordinal, weekday: board.weekday },
     todayInNewYork(now),

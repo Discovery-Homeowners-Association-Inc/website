@@ -4,7 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, isConstraintError, nowIso } from "../db.ts";
-import { readSettings } from "./settings.ts";
+import { readSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -137,8 +137,8 @@ export function meetingRoutes(deps: AppDeps) {
     requireRole("admin", "secretary", "board", "reviewer"),
     async (c) => {
       const m = await meetingOr404(c.env.DB, c.req.param("id"));
-      const settings = await readSettings(c.env.DB);
-      const template = settings["agenda-templates"][m.type] ?? [];
+      const template =
+        (await readSetting(c.env.DB, "agenda-templates"))[m.type] ?? [];
 
       const previous = await c.env.DB.prepare(
         `select v.body as body, mt.date as date

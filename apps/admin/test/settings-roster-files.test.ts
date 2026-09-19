@@ -33,6 +33,17 @@ describe("settings", () => {
       404,
     );
   });
+
+  it("answers for one group without every other group being valid", async () => {
+    // A corrupt row elsewhere must not take the one being asked for down with it.
+    await env.DB.prepare(
+      "update settings set value = '{\"nonsense\": true}' where key = 'links'",
+    ).run();
+    const one = await call(editor, "GET", "/api/settings/parks");
+    expect(one.status).toBe(200);
+    expect(typeof one.json.count).toBe("number");
+    await seedSettings();
+  });
 });
 
 describe("roster", () => {
