@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { appendFile } from "node:fs/promises";
 import { defineConfig } from "astro/config";
 import remarkOrg from "./src/lib/remark-org.ts";
 
@@ -16,18 +16,20 @@ const isTemporaryAddress = new URL(siteUrl).hostname.endsWith(".workers.dev");
 /**
  * The pages carry a noindex meta tag, but the PDFs under /documents/ cannot --
  * only a header reaches those. Cloudflare reads _headers from the assets
- * directory.
+ * directory. The static _headers in public/ carries the security headers, and
+ * its /* block is the last thing in the file, so appending an indented line
+ * adds the noindex header to that same block.
  */
 const noindexHeader = {
   name: "dhoa-noindex-temporary-address",
   hooks: {
     "astro:build:done": async ({ dir, logger }) => {
       if (!isTemporaryAddress) return;
-      await writeFile(
+      await appendFile(
         new URL("_headers", dir),
-        "/*\n  X-Robots-Tag: noindex, nofollow\n",
+        "  X-Robots-Tag: noindex, nofollow\n",
       );
-      logger.warn(`temporary address ${siteUrl}: wrote _headers with noindex`);
+      logger.warn(`temporary address ${siteUrl}: appended noindex to _headers`);
     },
   },
 };
