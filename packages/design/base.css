@@ -122,6 +122,8 @@
   --control-height: 2.75rem;
 
   --header-z: 20;
+  /* The taller of the two apps' one-row headers; see the bands below. */
+  --header-height: 78px;
 
   --measure: 68ch;
   --page: 76rem;
@@ -315,7 +317,7 @@ main {
 /* Anything an anchor can land on clears the sticky header. */
 :target,
 #main {
-  scroll-margin-top: 6rem;
+  scroll-margin-top: calc(var(--header-height) + var(--space-3));
 }
 
 .page-head {
@@ -353,7 +355,7 @@ main {
   }
   .with-aside > aside {
     position: sticky;
-    top: var(--space-4);
+    top: calc(var(--header-height) + var(--space-3));
   }
 }
 
@@ -499,6 +501,13 @@ main {
   display: none;
 }
 
+/* Middle: links wrap onto their own row, so the header takes two rows. */
+@media (min-width: 44rem) and (max-width: 70.99rem) {
+  :root {
+    --header-height: 124px;
+  }
+}
+
 /* Wide: everything on one row. */
 @media (min-width: 71rem) {
   .site-header .wrap {
@@ -512,6 +521,9 @@ main {
 
 /* Phone: one row, with the links and the action in a panel over the page. */
 @media (max-width: 43.99rem) {
+  :root {
+    --header-height: 60px;
+  }
   .site-header .wrap {
     position: relative;
     grid-template-columns: minmax(0, 1fr) auto;
