@@ -43,7 +43,12 @@ export default defineConfig({
   trailingSlash: "always",
   markdown: { remarkPlugins: [remarkOrg] },
   // The dev server is reached from other machines over the LAN and Tailscale.
-  // Vite blocks unknown Host headers to prevent DNS rebinding, so allow the
-  // development machine's name and any Tailscale MagicDNS name.
-  server: { allowedHosts: ["desktop", ".ts.net"] },
+  // Vite blocks unknown Host headers to prevent DNS rebinding, so set
+  // DEV_HOSTS=desktop,laptop to allow your machines' names.
+  server: {
+    allowedHosts: [
+      ".ts.net",
+      ...(process.env.DEV_HOSTS ?? "").split(",").filter(Boolean),
+    ],
+  },
 });

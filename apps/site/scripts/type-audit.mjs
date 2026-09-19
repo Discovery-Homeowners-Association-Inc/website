@@ -12,12 +12,18 @@
  *
  * It lives here because this package owns Playwright:
  *   pnpm --filter @dhoa/site exec node scripts/type-audit.mjs
+ *
+ * Set SIGN_IN_AS to an invited email before running it.
  */
 import { chromium } from "@playwright/test";
 
 const SITE = process.argv[2] ?? "http://127.0.0.1:4392";
 const ADMIN = process.argv[3] ?? "http://127.0.0.1:8787";
-const SIGN_IN_AS = "napalm255@gmail.com";
+const SIGN_IN_AS = process.env.SIGN_IN_AS;
+if (!SIGN_IN_AS)
+  throw new Error(
+    "Set SIGN_IN_AS to an invited email for the developer sign-in.",
+  );
 
 /** The roles worth comparing: what a reader sees, not how it is built. */
 const ROLES = {
