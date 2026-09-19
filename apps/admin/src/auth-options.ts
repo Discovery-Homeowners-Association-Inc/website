@@ -4,9 +4,8 @@ import type { BetterAuthOptions } from "better-auth";
  * Better Auth options shared by the Worker and the schema generator, so the
  * migration SQL always matches what the Worker expects.
  *
- * Sign-in is Google only. There is no password sign-in: hashing a password
- * safely costs 20 to 230 ms of CPU, and the Workers Free plan allows 10 ms per
- * request (docs/DECISIONS.md #7).
+ * Sign-in is Google only, so nobody stores a password and nobody manages
+ * one. Google handles two-factor authentication and account recovery.
  *
  * Nobody can sign up. An admin invites a person by email, which creates their
  * user row with emailVerified = true; their first Google sign-in with that

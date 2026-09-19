@@ -8,8 +8,9 @@ import {
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { hasRole, requireRole } from "../access.ts";
-import { auditStatement, isConstraintError, nowIso } from "../db.ts";
+import { hasRole, requireRole, rolesOf } from "../access.ts";
+import { auditStatement, batchOr409, nowIso, type Guard } from "../db.ts";
+import { Note, readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import { meetingOr404 } from "./meetings.ts";
 
@@ -31,15 +32,17 @@ type VersionRow = {
 
 const EDITABLE: MinutesState[] = ["draft", "in_review", "ready_for_vote"];
 
-async function load(db: D1Database, meetingId: string) {
+/** Who wrote a row, with former members still named. Three queries share it. */
+const AUTHOR = `u.name as author, f.user_id is not null as author_former`;
+const AUTHOR_JOIN = (col: string) =>
+  `left join "user" u on u.id = ${col} left join former_members f on f.user_id = ${col}`;
+
+async function loadMaybe(db: D1Database, meetingId: string) {
   const minutes = await db
     .prepare("select * from minutes where meeting_id = ?")
     .bind(meetingId)
     .first<MinutesRow>();
-  if (!minutes)
-    throw new HTTPException(404, {
-      message: "No minutes have been started for this meeting.",
-    });
+  if (!minutes) return null;
   const current = await db
     .prepare(
       "select * from minutes_versions where meeting_id = ? and version = ?",
@@ -53,6 +56,90 @@ async function load(db: D1Database, meetingId: string) {
   return { minutes, current };
 }
 
+async function load(db: D1Database, meetingId: string) {
+  const loaded = await loadMaybe(db, meetingId);
+  if (!loaded)
+    throw new HTTPException(404, {
+      message: "No minutes have been started for this meeting.",
+    });
+  return loaded;
+}
+
+export type VoteInput = {
+  meetingId: string;
+  version: number;
+  sha256: string;
+  voted_on: string;
+  motion_by: string;
+  seconded_by: string;
+  yes: number;
+  no: number;
+  abstain: number;
+  actorId: string;
+};
+
+/**
+ * Records the vote and approves the minutes, or does neither.
+ *
+ * Every statement is conditional on the same guard: the minutes are still
+ * ready for a vote at the version the board saw. The update is last, so the
+ * inserts before it test the state as it was. A guard that fails changes no
+ * rows anywhere -- the earlier version inserted the vote unconditionally and
+ * relied on a thrown error to roll it back, but a zero-row update is not an
+ * error, so the vote row stayed and every later vote hit its primary key.
+ */
+export async function recordVote(
+  db: D1Database,
+  input: VoteInput,
+): Promise<boolean> {
+  const ready: Guard = {
+    sql: "select 1 from minutes where meeting_id = ? and status = 'ready_for_vote' and current_version = ?",
+    binds: [input.meetingId, input.version],
+  };
+  const done = await db.batch([
+    db
+      .prepare(
+        `insert into votes (meeting_id, version, sha256, voted_on, motion_by, seconded_by, yes, no, abstain, recorded_by, recorded_at)
+         select ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? where exists (${ready.sql})`,
+      )
+      .bind(
+        input.meetingId,
+        input.version,
+        input.sha256,
+        input.voted_on,
+        input.motion_by,
+        input.seconded_by,
+        input.yes,
+        input.no,
+        input.abstain,
+        input.actorId,
+        nowIso(),
+        ...ready.binds,
+      ),
+    auditStatement(
+      db,
+      input.actorId,
+      "approve",
+      "minutes",
+      input.meetingId,
+      {
+        version: input.version,
+        sha256: input.sha256,
+        yes: input.yes,
+        no: input.no,
+        abstain: input.abstain,
+      },
+      ready,
+    ),
+    db
+      .prepare(
+        "update minutes set status = 'approved' where meeting_id = ? and status = 'ready_for_vote' and current_version = ?",
+      )
+      .bind(input.meetingId, input.version),
+  ]);
+  return done[2]?.meta.changes === 1;
+}
+
 export function minutesRoutes() {
   // Editors and scoped roles never see minutes; only these roles do.
   const app = new Hono<AppEnv>();
@@ -60,24 +147,20 @@ export function minutesRoutes() {
 
   app.get("/:id/minutes", async (c) => {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
-    const row = await c.env.DB.prepare(
-      "select * from minutes where meeting_id = ?",
-    )
-      .bind(m.id)
-      .first<MinutesRow>();
-    if (!row) return c.json({ meeting: m, minutes: null });
-    const { current } = await load(c.env.DB, m.id);
+    const loaded = await loadMaybe(c.env.DB, m.id);
+    if (!loaded) return c.json({ meeting: m, minutes: null });
+    const { minutes: row, current } = loaded;
     const [versions, comments, reviews, vote] = await Promise.all([
       c.env.DB.prepare(
-        `select v.version, v.sha256, v.change_note, v.created_at, u.name as author, f.user_id is not null as author_former
-           from minutes_versions v left join "user" u on u.id = v.author_id left join former_members f on f.user_id = v.author_id
+        `select v.version, v.sha256, v.change_note, v.created_at, ${AUTHOR}
+           from minutes_versions v ${AUTHOR_JOIN("v.author_id")}
           where v.meeting_id = ? order by v.version desc`,
       )
         .bind(m.id)
         .all(),
       c.env.DB.prepare(
-        `select c.*, u.name as author, f.user_id is not null as author_former
-           from review_comments c left join "user" u on u.id = c.author_id left join former_members f on f.user_id = c.author_id
+        `select c.*, ${AUTHOR}
+           from review_comments c ${AUTHOR_JOIN("c.author_id")}
           where c.meeting_id = ? order by c.created_at`,
       )
         .bind(m.id)
@@ -113,7 +196,7 @@ export function minutesRoutes() {
         body: MinutesBody,
         change_note: z.string().trim().max(500).optional(),
       })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const row = await c.env.DB.prepare(
       "select * from minutes where meeting_id = ?",
     )
@@ -143,8 +226,9 @@ export function minutesRoutes() {
     }
     const version = current + 1;
     const actor = c.get("user").id;
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "insert into minutes_versions (meeting_id, version, body, sha256, change_note, author_id, created_at) values (?, ?, ?, ?, ?, ?, ?)",
         ).bind(
@@ -163,15 +247,9 @@ export function minutesRoutes() {
           version,
           sha256: sha,
         }),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message:
-            "Someone else saved these minutes. Reload to see their changes.",
-        });
-      throw e;
-    }
+      ],
+      "Someone else saved these minutes. Reload to see their changes.",
+    );
     return c.json({ version, sha256: sha });
   });
 
@@ -180,16 +258,10 @@ export function minutesRoutes() {
     const m = await meetingOr404(c.env.DB, c.req.param("id"));
     const { to } = z
       .object({ to: z.enum(["draft", "in_review", "ready_for_vote"]) })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const { minutes } = await load(c.env.DB, m.id);
     const user = c.get("user");
-    if (
-      !canTransition(
-        minutes.status,
-        to,
-        user.grants.filter((g) => g.scope === "").map((g) => g.role),
-      )
-    ) {
+    if (!canTransition(minutes.status, to, rolesOf(user.grants))) {
       throw new HTTPException(409, {
         message: `Minutes that are ${minutes.status.replaceAll("_", " ")} cannot be moved to ${to.replaceAll("_", " ")}.`,
       });
@@ -199,18 +271,29 @@ export function minutesRoutes() {
      * is conditional on the status not having moved in between, so the way to
      * find out whether it did is to ask how many rows changed -- reporting the
      * transition without asking told the caller a move had happened when the
-     * database had refused it.
+     * database had refused it. The audit statement is guarded by the same
+     * condition and runs first, so a refused update leaves no log entry
+     * behind.
      */
+    const still: Guard = {
+      sql: "select 1 from minutes where meeting_id = ? and status = ?",
+      binds: [m.id, minutes.status],
+    };
     const moved = await c.env.DB.batch([
+      auditStatement(
+        c.env.DB,
+        user.id,
+        "transition",
+        "minutes",
+        m.id,
+        { from: minutes.status, to },
+        still,
+      ),
       c.env.DB.prepare(
         "update minutes set status = ? where meeting_id = ? and status = ?",
       ).bind(to, m.id, minutes.status),
-      auditStatement(c.env.DB, user.id, "transition", "minutes", m.id, {
-        from: minutes.status,
-        to,
-      }),
     ]);
-    if (moved[0]?.meta.changes !== 1)
+    if (moved[1]?.meta.changes !== 1)
       throw new HTTPException(409, {
         message:
           "Someone else moved these minutes while you were looking. Reload to see where they are now.",
@@ -225,7 +308,7 @@ export function minutesRoutes() {
         anchor: z.string().trim().max(80).default(""),
         body: z.string().trim().min(1).max(4000),
       })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const { minutes } = await load(c.env.DB, m.id);
     if (!EDITABLE.includes(minutes.status))
       throw new HTTPException(409, {
@@ -299,11 +382,23 @@ export function minutesRoutes() {
         });
       }
       const user = c.get("user");
-      await c.env.DB.prepare(
-        "insert into reviews (meeting_id, version, user_id, reviewed_at) values (?, ?, ?, ?) on conflict do nothing",
-      )
-        .bind(m.id, minutes.current_version, user.id, nowIso())
-        .run();
+      await c.env.DB.batch([
+        auditStatement(
+          c.env.DB,
+          user.id,
+          "review",
+          "minutes",
+          m.id,
+          { version: minutes.current_version },
+          {
+            sql: "select 1 where not exists (select 1 from reviews where meeting_id = ? and version = ? and user_id = ?)",
+            binds: [m.id, minutes.current_version, user.id],
+          },
+        ),
+        c.env.DB.prepare(
+          "insert into reviews (meeting_id, version, user_id, reviewed_at) values (?, ?, ?, ?) on conflict do nothing",
+        ).bind(m.id, minutes.current_version, user.id, nowIso()),
+      ]);
       return c.json({ version: minutes.current_version });
     },
   );
@@ -328,16 +423,10 @@ export function minutesRoutes() {
           no: z.number().int().min(0),
           abstain: z.number().int().min(0),
         })
-        .parse(await c.req.json());
+        .parse(await readJson(c));
       const { minutes, current } = await load(c.env.DB, m.id);
       const user = c.get("user");
-      if (
-        !canTransition(
-          minutes.status,
-          "approved",
-          user.grants.filter((g) => g.scope === "").map((g) => g.role),
-        )
-      ) {
+      if (!canTransition(minutes.status, "approved", rolesOf(user.grants))) {
         throw new HTTPException(409, {
           message:
             "Minutes must be ready for a vote before the vote is recorded.",
@@ -357,41 +446,14 @@ export function minutesRoutes() {
           message:
             "The motion to approve did not carry, so the minutes stay ready for a vote.",
         });
-      /*
-       * The vote row goes in unconditionally and the approval is conditional,
-       * so a status that moved in between would have left a recorded vote for
-       * minutes that were never approved -- and the caller told they were. D1
-       * runs a batch as one transaction, so throwing on a zero-row update
-       * rolls the vote back with it.
-       */
-      const approved = await c.env.DB.batch([
-        c.env.DB.prepare(
-          "insert into votes (meeting_id, version, sha256, voted_on, motion_by, seconded_by, yes, no, abstain, recorded_by, recorded_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        ).bind(
-          m.id,
-          current.version,
-          current.sha256,
-          input.voted_on,
-          input.motion_by,
-          input.seconded_by,
-          input.yes,
-          input.no,
-          input.abstain,
-          user.id,
-          nowIso(),
-        ),
-        c.env.DB.prepare(
-          "update minutes set status = 'approved' where meeting_id = ? and status = 'ready_for_vote' and current_version = ?",
-        ).bind(m.id, current.version),
-        auditStatement(c.env.DB, user.id, "approve", "minutes", m.id, {
-          version: current.version,
-          sha256: current.sha256,
-          yes: input.yes,
-          no: input.no,
-          abstain: input.abstain,
-        }),
-      ]);
-      if (approved[1]?.meta.changes !== 1)
+      const approved = await recordVote(c.env.DB, {
+        ...input,
+        meetingId: m.id,
+        version: current.version,
+        sha256: current.sha256,
+        actorId: user.id,
+      });
+      if (!approved)
         throw new HTTPException(409, {
           message:
             "Someone else moved these minutes while you were looking. Reload to see where they are now.",
@@ -437,33 +499,33 @@ export function minutesRoutes() {
     requireRole("secretary", "admin"),
     async (c) => {
       const m = await meetingOr404(c.env.DB, c.req.param("id"));
-      const { note } = z
-        .object({ note: z.string().trim().max(500).default("") })
-        .parse(await c.req.json());
+      const { note } = Note.parse(await readJson(c));
       const { minutes, current } = await load(c.env.DB, m.id);
       const user = c.get("user");
-      if (
-        !canTransition(
-          minutes.status,
-          "filed",
-          user.grants.filter((g) => g.scope === "").map((g) => g.role),
-        )
-      ) {
+      if (!canTransition(minutes.status, "filed", rolesOf(user.grants))) {
         throw new HTTPException(409, {
           message: "Only approved minutes can be marked as uploaded to PayHOA.",
         });
       }
+      const stillApproved: Guard = {
+        sql: "select 1 from minutes where meeting_id = ? and status = 'approved'",
+        binds: [m.id],
+      };
       const filed = await c.env.DB.batch([
+        auditStatement(
+          c.env.DB,
+          user.id,
+          "file",
+          "minutes",
+          m.id,
+          { version: current.version, sha256: current.sha256, note },
+          stillApproved,
+        ),
         c.env.DB.prepare(
           "update minutes set status = 'filed', filed_at = ?, filed_by = ?, filed_note = ? where meeting_id = ? and status = 'approved'",
         ).bind(nowIso(), user.id, note, m.id),
-        auditStatement(c.env.DB, user.id, "file", "minutes", m.id, {
-          version: current.version,
-          sha256: current.sha256,
-          note,
-        }),
       ]);
-      if (filed[0]?.meta.changes !== 1)
+      if (filed[1]?.meta.changes !== 1)
         throw new HTTPException(409, {
           message:
             "Someone else moved these minutes while you were looking. Reload to see where they are now.",

@@ -16,14 +16,13 @@ describe("nthWeekday", () => {
 
 describe("occurrences", () => {
   it("skips a meeting that already happened this month", () => {
-    expect(
-      occurrences(thirdTuesday, "2026-09-17", 2).map((o) => o.date),
-    ).toEqual(["2026-10-20"]);
+    expect(occurrences(thirdTuesday, "2026-09-17", 2)).toEqual(["2026-10-20"]);
   });
   it("rolls over the year", () => {
-    expect(
-      occurrences(thirdTuesday, "2026-12-01", 2).map((o) => o.date),
-    ).toEqual(["2026-12-15", "2027-01-19"]);
+    expect(occurrences(thirdTuesday, "2026-12-01", 2)).toEqual([
+      "2026-12-15",
+      "2027-01-19",
+    ]);
   });
 });
 

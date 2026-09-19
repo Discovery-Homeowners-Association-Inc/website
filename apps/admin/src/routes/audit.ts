@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 
 /** One page. Older entries are reached with `before`, not by raising this. */
@@ -56,7 +57,7 @@ export function auditRoutes() {
     // `detail` goes out as the JSON text it is stored as, rather than parsed
     // here. Parsing two thousand of them is work this Worker has 10 ms to do,
     // and the only caller is a browser that is about to parse the response
-    // anyway. See DECISIONS #7: CPU-heavy work belongs in the browser.
+    // anyway. See CLAUDE.md: CPU-heavy work belongs in the browser.
     return c.json(results);
   });
 
@@ -74,7 +75,7 @@ export function auditRoutes() {
    * comes from the request, and that is validated.
    */
   app.post("/export", async (c) => {
-    const body = ExportRecord.parse(await c.req.json());
+    const body = ExportRecord.parse(await readJson(c));
     const at = nowIso();
     await auditStatement(
       c.env.DB,

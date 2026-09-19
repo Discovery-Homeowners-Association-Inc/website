@@ -23,6 +23,7 @@ const post = (
 
 describe("bootstrap", () => {
   it("does not exist without a token configured", async () => {
+    expect((env as { BOOTSTRAP_TOKEN?: string }).BOOTSTRAP_TOKEN).toBe("");
     expect(
       (await post(TOKEN, { email: "a@example.com", name: "A" }, env)).status,
     ).toBe(404);

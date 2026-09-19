@@ -9,14 +9,6 @@ export type MonthlyRule = {
   weekday: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 };
 
-export type Occurrence = {
-  date: string;
-  time?: string;
-  location?: string;
-  note?: string;
-  originalDate: string;
-};
-
 const pad = (n: number) => String(n).padStart(2, "0");
 export const isoDate = (y: number, m: number, d: number) =>
   `${y}-${pad(m)}-${pad(d)}`;
@@ -43,17 +35,16 @@ export function occurrences(
   rule: MonthlyRule,
   from: string,
   months: number,
-): Occurrence[] {
+): string[] {
   const [y, m] = from.split("-").map(Number) as [number, number];
-  const out: Occurrence[] = [];
+  const out: string[] = [];
   for (let i = 0; i < months; i++) {
     const year = y + Math.floor((m - 1 + i) / 12);
     const month = ((m - 1 + i) % 12) + 1;
     const date = nthWeekday(year, month, rule);
-    const entry: Occurrence = { date, originalDate: date };
-    if (entry.date >= from) out.push(entry);
+    if (date >= from) out.push(date);
   }
-  return out.sort((a, b) => a.date.localeCompare(b.date));
+  return out.sort();
 }
 
 /** Today's date in America/New_York as YYYY-MM-DD. */

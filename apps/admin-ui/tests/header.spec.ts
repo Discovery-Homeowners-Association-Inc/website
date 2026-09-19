@@ -110,3 +110,11 @@ test("the header itself has no accessibility violations", async ({
     ).toEqual([]);
   }
 });
+
+test("the static pages carry the same security headers as the API", async ({
+  request,
+}) => {
+  const res = await request.get("/sign-in/");
+  expect(res.headers()["x-frame-options"]).toBe("DENY");
+  expect(res.headers()["x-content-type-options"]).toBe("nosniff");
+});

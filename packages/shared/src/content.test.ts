@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isServing, isVisible, itemActions, slugify } from "./content.ts";
+import {
+  ItemMeta,
+  isServing,
+  isVisible,
+  itemActions,
+  slugify,
+} from "./content.ts";
 
 const at = (s: string) => new Date(s);
 
@@ -110,6 +116,20 @@ describe("slugify", () => {
     );
     expect(slugify("Señor Café")).toBe("senor-cafe");
     expect(slugify("!!!")).toBe("item");
+  });
+});
+
+describe("ItemMeta", () => {
+  it("stores instants in UTC whatever offset they arrived with", () => {
+    const meta = ItemMeta.parse({
+      publish_at: "2026-09-19T23:00:00-05:00",
+      expires_at: "2026-09-19T23:00:00+02:00",
+    });
+    expect(meta.publish_at).toBe("2026-09-20T04:00:00.000Z");
+    expect(meta.expires_at).toBe("2026-09-19T21:00:00.000Z");
+    expect(
+      ItemMeta.parse({ publish_at: "2026-01-01T00:00:00Z" }).expires_at,
+    ).toBeNull();
   });
 });
 

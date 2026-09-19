@@ -3,19 +3,18 @@ import {
   ITEM_BODIES,
   ITEM_KINDS,
   ItemMeta,
-  ROLES,
   type ItemAction,
   type ItemKind,
   type ItemState,
-  type Role,
   itemActions,
   slugify,
 } from "@dhoa/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { hasRole, requireRole } from "../access.ts";
-import { auditStatement, isConstraintError, nowIso } from "../db.ts";
+import { hasRole, requireRole, rolesOf } from "../access.ts";
+import { auditStatement, batchOr409, nowIso, type Guard } from "../db.ts";
+import { Note, readJson } from "../inputs.ts";
 import { approvalsSetting } from "./settings.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
@@ -40,18 +39,6 @@ export type ItemRow = {
 };
 
 const Kind = z.enum(ITEM_KINDS);
-/*
- * The roles a person holds across the whole site, as opposed to one committee.
- * Read from the database, so checked rather than asserted: a row naming a role
- * this build does not have is dropped, not believed.
- */
-const rolesOf = (grants: { role: string; scope: string }[]): Role[] =>
-  grants
-    .filter((g) => g.scope === "")
-    .map((g) => g.role)
-    .filter((role): role is Role =>
-      (ROLES as readonly string[]).includes(role),
-    );
 const expand = (r: ItemRow) => ({ ...r, body: JSON.parse(r.body) });
 
 export async function itemOr404(db: D1Database, id: string) {
@@ -85,10 +72,13 @@ export function itemRoutes(deps: AppDeps) {
   );
 
   app.post("/", requireRole("admin", "secretary", "editor"), async (c) => {
-    const raw = await c.req.json();
+    const raw = (await readJson(c)) as Record<string, unknown>;
     const kind = Kind.parse(raw.kind);
     const body = ITEM_BODIES[kind].parse(raw.body);
-    const meta = ItemMeta.parse({ publish_at: nowIso(), ...raw.meta });
+    const meta = ItemMeta.parse({
+      publish_at: nowIso(),
+      ...(raw.meta as Record<string, unknown> | undefined),
+    });
     const actor = c.get("user").id;
     const id = crypto.randomUUID();
     const wanted = slugify(
@@ -110,23 +100,27 @@ export function itemRoutes(deps: AppDeps) {
     const taken = new Set(existing.map((r) => r.slug));
     let slug = wanted;
     for (let n = 2; taken.has(slug); n++) slug = `${wanted}-${n}`;
-    await c.env.DB.batch([
-      c.env.DB.prepare(
-        "insert into items (id, kind, slug, status, body, publish_at, expires_at, expiry_action, author_id, created_at, updated_at) values (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)",
-      ).bind(
-        id,
-        kind,
-        slug,
-        JSON.stringify(body),
-        meta.publish_at,
-        meta.expires_at,
-        meta.expiry_action,
-        actor,
-        nowIso(),
-        nowIso(),
-      ),
-      auditStatement(c.env.DB, actor, "create", kind, id, { slug }),
-    ]);
+    await batchOr409(
+      c.env.DB,
+      [
+        c.env.DB.prepare(
+          "insert into items (id, kind, slug, status, body, publish_at, expires_at, expiry_action, author_id, created_at, updated_at) values (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)",
+        ).bind(
+          id,
+          kind,
+          slug,
+          JSON.stringify(body),
+          meta.publish_at,
+          meta.expires_at,
+          meta.expiry_action,
+          actor,
+          nowIso(),
+          nowIso(),
+        ),
+        auditStatement(c.env.DB, actor, "create", kind, id, { slug }),
+      ],
+      "Another item of this kind was just created with the same web address. Try again.",
+    );
     return c.json(expand(await itemOr404(c.env.DB, id)), 201);
   });
 
@@ -141,20 +135,21 @@ export function itemRoutes(deps: AppDeps) {
           "You can change only your own items, and only before they are published.",
       });
     }
-    const raw = await c.req.json();
+    const raw = (await readJson(c)) as Record<string, unknown>;
     const body = ITEM_BODIES[row.kind].parse(raw.body ?? JSON.parse(row.body));
     const meta = ItemMeta.parse({
       publish_at: row.publish_at,
       expires_at: row.expires_at,
       expiry_action: row.expiry_action,
-      ...raw.meta,
+      ...(raw.meta as Record<string, unknown> | undefined),
     });
     const slug =
       typeof raw.slug === "string" && raw.slug && staff
         ? slugify(raw.slug)
         : row.slug;
-    try {
-      await c.env.DB.batch([
+    await batchOr409(
+      c.env.DB,
+      [
         c.env.DB.prepare(
           "update items set body = ?, publish_at = ?, expires_at = ?, expiry_action = ?, slug = ?, updated_at = ? where id = ?",
         ).bind(
@@ -167,15 +162,9 @@ export function itemRoutes(deps: AppDeps) {
           row.id,
         ),
         auditStatement(c.env.DB, user.id, "update", row.kind, row.id),
-      ]);
-    } catch (e) {
-      if (isConstraintError(e))
-        throw new HTTPException(409, {
-          message:
-            "Another item of this kind already uses that web address (slug).",
-        });
-      throw e;
-    }
+      ],
+      "Another item of this kind already uses that web address (slug).",
+    );
     if (row.status === "published")
       await deps.siteChanged(c.env, `${row.kind} ${slug} updated`);
     return c.json(expand(await itemOr404(c.env.DB, row.id)));
@@ -184,12 +173,10 @@ export function itemRoutes(deps: AppDeps) {
   /** Submit, approve, reject, publish or unpublish. The rules live in @dhoa/shared. */
   app.post("/:id/action", async (c) => {
     const row = await itemOr404(c.env.DB, c.req.param("id"));
-    const { action, note } = z
-      .object({
-        action: z.enum(["submit", "approve", "reject", "publish", "unpublish"]),
-        note: z.string().trim().max(500).default(""),
-      })
-      .parse(await c.req.json());
+    const input = Note.extend({
+      action: z.enum(["submit", "approve", "reject", "publish", "unpublish"]),
+      seen_updated_at: z.string().optional(),
+    }).parse(await readJson(c));
     const user = c.get("user");
     const requiresApproval = (await approvalsSetting(c.env.DB))[row.kind];
     const allowed = itemActions({
@@ -198,16 +185,25 @@ export function itemRoutes(deps: AppDeps) {
       isAuthor: row.author_id === user.id || row.submitted_by === user.id,
       requiresApproval,
     });
-    if (!allowed.includes(action)) {
+    if (!allowed.includes(input.action)) {
       throw new HTTPException(409, {
-        message: explain(action, row.status, requiresApproval),
+        message: explain(input.action, row.status, requiresApproval),
       });
     }
-    if (action === "reject" && !note)
+    if (
+      input.action === "approve" &&
+      input.seen_updated_at !== undefined &&
+      input.seen_updated_at !== row.updated_at
+    )
+      throw new HTTPException(409, {
+        message:
+          "This was changed after you read it. Reload, read the new version, then approve it.",
+      });
+    if (input.action === "reject" && !input.note)
       throw new HTTPException(422, {
         message: "Say what needs to change so the author knows.",
       });
-    const next = ITEM_AFTER[action];
+    const next = ITEM_AFTER[input.action];
     const sets: Record<ItemAction, string> = {
       submit: "submitted_by = ?, submitted_at = ?, review_note = ''",
       approve: "approved_by = ?, approved_at = ?, review_note = ''",
@@ -220,22 +216,35 @@ export function itemRoutes(deps: AppDeps) {
     const binds: Record<ItemAction, unknown[]> = {
       submit: [user.id, nowIso()],
       approve: [user.id, nowIso()],
-      reject: [note, null],
+      reject: [input.note, null],
       publish: [user.id, nowIso()],
-      unpublish: [note, null],
+      unpublish: [input.note, null],
     };
-    await c.env.DB.batch([
+    const still: Guard = {
+      sql: "select 1 from items where id = ? and status = ?",
+      binds: [row.id, row.status],
+    };
+    const moved = await c.env.DB.batch([
+      auditStatement(
+        c.env.DB,
+        user.id,
+        input.action,
+        row.kind,
+        row.id,
+        { from: row.status, to: next, note: input.note },
+        still,
+      ),
       c.env.DB.prepare(
-        `update items set status = ?, ${sets[action]}, updated_at = ? where id = ? and status = ?`,
-      ).bind(next, ...binds[action], nowIso(), row.id, row.status),
-      auditStatement(c.env.DB, user.id, action, row.kind, row.id, {
-        from: row.status,
-        to: next,
-        note,
-      }),
+        `update items set status = ?, ${sets[input.action]}, updated_at = ? where id = ? and status = ?`,
+      ).bind(next, ...binds[input.action], nowIso(), row.id, row.status),
     ]);
+    if (moved[1]?.meta.changes !== 1)
+      throw new HTTPException(409, {
+        message:
+          "This item changed while you were looking at it. Reload to see where it is now.",
+      });
     if (next === "published" || row.status === "published")
-      await deps.siteChanged(c.env, `${row.kind} ${row.slug} ${action}`);
+      await deps.siteChanged(c.env, `${row.kind} ${row.slug} ${input.action}`);
     return c.json(expand(await itemOr404(c.env.DB, row.id)));
   });
 

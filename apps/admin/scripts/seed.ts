@@ -65,7 +65,7 @@ for (const raw of read("items.json")) {
   const id = stableId("item", kind, slug);
   const json = q(JSON.stringify(body));
   lines.push(
-    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${json}, ${q(raw.publish_at)}, ${q(now)}, ${q(now)});`,
+    `insert or ignore into items (id, kind, slug, status, body, publish_at, created_at, updated_at) values (${q(id)}, ${q(kind)}, ${q(slug)}, 'published', ${json}, ${q(new Date(raw.publish_at).toISOString())}, ${q(now)}, ${q(now)});`,
   );
   /*
    * Page copy that nobody has edited follows the repository.
@@ -121,6 +121,11 @@ for (const [key, schema] of Object.entries(SETTINGS)) {
   );
 }
 lines.push(...settingsSql);
+// Every deploy applies this file, and the site build that follows must not
+// read a snapshot built before any of the writes in it -- so this has to be
+// the last statement in both seed.sql and settings.sql, after the page-copy
+// updates and every other insert.
+const bump = `update site_version set version = version + 1, changed_at = ${q(now)} where id = 1;`;
 
 const seenNames = new Set<string>();
 for (const raw of read("people.json")) {
@@ -142,11 +147,12 @@ for (const raw of read("committees.json")) {
     `insert or ignore into committees (slug, data, updated_at) values (${q(c.slug)}, ${q(JSON.stringify(c))}, ${q(now)});`,
   );
 }
+lines.push(bump);
 
 writeFileSync(join(dir, "seed.sql"), lines.join("\n") + "\n");
 writeFileSync(
   join(dir, "settings.sql"),
-  [...settingsSql, ...pagesSql].join("\n") + "\n",
+  [...settingsSql, ...pagesSql, bump].join("\n") + "\n",
 );
 writeFileSync(join(dir, "kv.sh"), kv.join("\n") + "\n", { mode: 0o755 });
 console.log(

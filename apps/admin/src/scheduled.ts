@@ -16,6 +16,8 @@ export async function runScheduled(
 ): Promise<{ deleted: number; meetingsCreated: number }> {
   const { created: meetingsCreated } = await materializeMeetings(env.DB, now);
 
+  // Text comparison is correct because every stored instant is UTC (see
+  // `ItemMeta` in @dhoa/shared and migration 0007).
   const { results } = await env.DB.prepare(
     "select id, kind, slug from items where expiry_action = 'delete' and expires_at is not null and expires_at <= ?",
   )

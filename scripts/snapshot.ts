@@ -21,11 +21,15 @@ if (!res.ok)
 const snapshot = SiteSnapshot.parse(await res.json());
 
 // Documents: download each file once, named by its slug so URLs stay stable.
+const EXT: Record<string, string> = {
+  "application/pdf": ".pdf",
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+};
 const keep = new Set<string>();
 for (const doc of snapshot.documents) {
   if (!doc.file_url) continue;
-  const ext =
-    doc.body.file_name.match(/\.[a-z0-9]+$/i)?.[0].toLowerCase() ?? ".pdf";
+  const ext = EXT[doc.file_type] ?? ".bin";
   const name = `${doc.slug}${ext}`;
   /*
    * Fetched from the origin the snapshot itself came from, not from the origin

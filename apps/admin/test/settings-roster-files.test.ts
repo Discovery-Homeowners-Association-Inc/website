@@ -33,6 +33,17 @@ describe("settings", () => {
       404,
     );
   });
+
+  it("answers for one group without every other group being valid", async () => {
+    // A corrupt row elsewhere must not take the one being asked for down with it.
+    await env.DB.prepare(
+      "update settings set value = '{\"nonsense\": true}' where key = 'links'",
+    ).run();
+    const one = await call(editor, "GET", "/api/settings/parks");
+    expect(one.status).toBe(200);
+    expect(typeof one.json.count).toBe("number");
+    await seedSettings();
+  });
 });
 
 describe("roster", () => {
@@ -62,6 +73,18 @@ describe("roster", () => {
       site.json.people.find((x: { name: string }) => x.name === "Jordan Jones")
         .term_end,
     ).toBe("2026-01-31");
+  });
+
+  it("records nothing in the log for a person who does not exist", async () => {
+    const r = await call(secretary, "PUT", "/api/roster/people/nobody", {
+      name: "Ghost",
+    });
+    expect(r.status).toBe(404);
+    expect(
+      await env.DB.prepare(
+        "select 1 from audit_log where entity = 'person' and entity_id = 'nobody'",
+      ).first(),
+    ).toBeNull();
   });
 });
 
@@ -151,6 +174,12 @@ describe("files", () => {
     expect(served.status).toBe(200);
     expect(await served.text()).toBe("%PDF-1.4 bylaws");
 
+    const site = await call(null, "GET", "/api/public/site.json");
+    const listed = site.json.documents.find(
+      (d: { slug: string }) => d.slug === "bylaws",
+    );
+    expect(listed.file_type).toBe("application/pdf");
+
     // Unpublishing takes the file back out of public reach with the document.
     expect(
       (
@@ -188,6 +217,32 @@ describe("files", () => {
     ).toBe(204);
     expect(await env.FILES.get(up.json.id)).toBeNull();
   });
+
+  it("keeps the signed-in preview private and away from editors' roles it does not need", async () => {
+    const up = await upload(
+      secretary,
+      "private.pdf",
+      "application/pdf",
+      new TextEncoder().encode("%PDF-1.4 private"),
+    );
+    const res = await app.request(
+      `/api/files/${up.json.id}/content`,
+      { headers: { "x-test-user": secretary } },
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("private, max-age=0");
+    const director = await makeUser(["board"]);
+    expect(
+      (
+        await app.request(
+          `/api/files/${up.json.id}/content`,
+          { headers: { "x-test-user": director } },
+          env,
+        )
+      ).status,
+    ).toBe(403);
+  });
 });
 
 describe("profile", () => {
@@ -224,6 +279,19 @@ describe("profile", () => {
         (s: { id: string }) => s.id,
       ),
     ).toEqual(["s-this"]);
+    expect(
+      await env.DB.prepare(
+        "select 1 from audit_log where action = 'sign_out_others' and actor_id = ?",
+      )
+        .bind(me)
+        .first(),
+    ).not.toBeNull();
+  });
+
+  it("tells the admin app where the public site is", async () => {
+    const me = await makeUser(["editor"]);
+    const res = await call(me, "GET", "/api/me");
+    expect(res.json.site_url).toMatch(/^https:\/\//);
   });
 });
 
@@ -239,8 +307,8 @@ describe("what the roster hands out", () => {
       committees: [],
       chairs: [],
       note: "",
-      started_on: "2026-01-01",
-      ended_on: "",
+      term_start: "2026-01-01",
+      term_end: null,
     };
     expect(
       (await call(secretary, "POST", "/api/roster/people", person)).status,
