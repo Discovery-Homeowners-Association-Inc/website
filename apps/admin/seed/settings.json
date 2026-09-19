@@ -123,10 +123,6 @@
         "label": "Pay your Walkersville water bill",
         "url": "https://www.walkersvillemd.gov/"
       }
-    },
-    "newsletter": {
-      "enabled": false,
-      "provider": "sender"
     }
   },
   "parks": {

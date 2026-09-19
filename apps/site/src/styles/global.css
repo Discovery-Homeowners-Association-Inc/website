@@ -163,50 +163,6 @@
   margin-top: var(--space-1);
 }
 
-/* ── Newsletter band ─────────────────────────────────────────────────────── */
-.signup {
-  border-top: 4px solid var(--marigold);
-  background: var(--surface);
-  padding-block: var(--space-5);
-}
-
-.signup .wrap {
-  display: grid;
-  gap: var(--space-4);
-  align-items: end;
-}
-
-@media (width >= 56rem) {
-  .signup .wrap {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-
-.signup h2 {
-  margin-top: 0;
-}
-
-.signup form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.signup label {
-  flex-basis: 100%;
-  font-weight: 700;
-}
-
-.signup input {
-  flex: 1 1 14rem;
-  font: inherit;
-  padding: 0.65rem 0.8rem;
-  border: 2px solid var(--control-border);
-  border-radius: var(--radius);
-  background: var(--paper);
-  color: var(--ink);
-}
-
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 .site-footer {
   background: var(--band);
@@ -263,7 +219,6 @@
   }
   .site-header nav,
   .nav-toggle,
-  .signup,
   .skip-link,
   .hero__map {
     display: none !important;

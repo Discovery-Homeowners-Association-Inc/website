@@ -97,12 +97,6 @@ export const Organization = z.object({
     county_recycling: z.object({ label: s, url }),
     water_bill: z.object({ label: s, url }),
   }),
-  newsletter: z
-    .object({
-      enabled: z.boolean().default(false),
-      provider: z.literal("sender").default("sender"),
-    })
-    .default({ enabled: false, provider: "sender" }),
 });
 
 /** What a marker on the parks map stands for. */

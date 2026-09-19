@@ -4,7 +4,7 @@ import { todayInNewYork } from "@dhoa/shared";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
-import { dues, newsletter, org, telHref, trash } from "../lib/data";
+import { dues, org, telHref, trash } from "../lib/data";
 import { settings } from "../lib/snapshot";
 import { meetings, upcoming } from "../lib/calendar";
 import {
@@ -228,37 +228,5 @@ const streets = [
       About the neighborhood
     </h2>
     <Prose id="home" />
-  </section>
-
-  <section class="signup" slot="after-main" aria-labelledby="signup-title">
-    <div class="wrap">
-      <div>
-        <h2 id="signup-title">Get board news by email</h2>
-        <p>
-          Meeting agendas and notices about the pool and projects. About one
-          email a month. Unsubscribe any time.
-        </p>
-      </div>
-      {newsletter.enabled ? (
-        <form method="post" action="/api/newsletter">
-          <label for="signup-email">Email address</label>
-          <input
-            id="signup-email"
-            name="email"
-            type="email"
-            autocomplete="email"
-            required
-          />
-          <button class="button" type="submit">
-            Subscribe
-          </button>
-        </form>
-      ) : (
-        <p>
-          Email sign-up is being set up. Until then, new agendas appear on the{" "}
-          <a href="/meetings/">meetings page</a>.
-        </p>
-      )}
-    </div>
   </section>
 </Base>

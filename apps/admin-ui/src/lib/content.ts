@@ -44,7 +44,7 @@ export const KINDS: Record<ItemKind, KindConfig> = {
         kind: "textarea",
         rows: 2,
         required: true,
-        help: "One or two sentences shown in lists and in the email newsletter.",
+        help: "One or two sentences shown in lists.",
       },
       {
         key: "body",
