@@ -1,7 +1,13 @@
 import type { AgendaBody, MinutesBody, MinutesState, Role } from "@dhoa/shared";
 
 export type Grant = { role: Role; scope: string };
-export type Me = { id: string; email: string; name: string; grants: Grant[] };
+export type Me = {
+  id: string;
+  email: string;
+  name: string;
+  grants: Grant[];
+  site_url: string;
+};
 
 export class ApiError extends Error {
   constructor(

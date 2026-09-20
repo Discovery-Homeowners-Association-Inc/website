@@ -13,7 +13,7 @@ import {
   runAndReport,
   when,
 } from "../lib/api.ts";
-import { KINDS, stateLabel } from "../lib/content.ts";
+import { emailOptions, KINDS, stateLabel } from "../lib/content.ts";
 import { blank, fromLocalInput, toLocalInput } from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
 import { Fields } from "./Form.tsx";
@@ -50,6 +50,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     expiry_action: "hide" as "hide" | "delete",
   });
   const [approvals, setApprovals] = useState<Approvals | null>(null);
+  const [emailKeys, setEmailKeys] = useState<string[]>([]);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -71,6 +72,13 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
   useEffect(() => {
     void load().catch((e: unknown) => setError(messageFrom(e)));
     api<Approvals>("GET", "/settings/approvals").then(setApprovals, () => {});
+    api<{ emails: Record<string, string> }>(
+      "GET",
+      "/settings/organization",
+    ).then(
+      (o) => setEmailKeys(Object.keys(o.emails)),
+      () => {},
+    );
   }, [id]);
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
@@ -161,7 +169,12 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     )
       return;
     void act(
-      () => api("POST", `/items/${item!.id}/action`, { action, note }),
+      () =>
+        api("POST", `/items/${item!.id}/action`, {
+          action,
+          note,
+          seen_updated_at: item!.updated_at,
+        }),
       {
         submit: "Submitted. An approver will be able to publish it.",
         approve: "Approved and published. The site will update shortly.",
@@ -227,9 +240,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 {cfg.publicUrl(item.slug) && (
                   <>
                     {" "}
-                    <a
-                      href={`https://discoveryhomeowners.com${cfg.publicUrl(item.slug)}`}
-                    >
+                    <a href={`${me.site_url}${cfg.publicUrl(item.slug)}`}>
                       View on the site
                     </a>
                   </>
@@ -426,7 +437,14 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 </div>
               )}
               <Fields
-                fields={cfg.fields}
+                fields={cfg.fields.map((f) =>
+                  f.key === "contact_email_key" && f.kind === "select"
+                    ? {
+                        ...f,
+                        options: [...f.options, ...emailOptions(emailKeys)],
+                      }
+                    : f,
+                )}
                 value={body}
                 onChange={(next) => (
                   setBody(next),

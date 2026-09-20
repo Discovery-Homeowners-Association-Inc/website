@@ -120,11 +120,46 @@ test("a director sees it on the home page, sends it back, then approves the fix"
   await expect(
     director.getByRole("heading", { name: "Status: Published" }),
   ).toBeVisible();
+  await expect(
+    director.getByRole("link", { name: "View on the site" }),
+  ).toHaveAttribute(
+    "href",
+    /^https:\/\/dhoa-site\.discoveryhomeownersassociation\.workers\.dev\/news\//,
+  );
   const site = await director.request.get("/api/public/site.json");
   const json = await site.json();
   expect(
     json.news.map((n: { body: { title: string } }) => n.body.title),
   ).toContain("Leaf collection starts Monday");
+});
+
+test("an approver who read an older version is told to read again", async () => {
+  await editor.goto("/content/news/edit/");
+  await editor.getByLabel("Title").fill("Pool closes early Friday");
+  await editor.getByLabel("Summary").fill("Thunderstorms expected.");
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  const url = editor.url().replace(/&saved=1$/, "");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+  await director.goto(url);
+  await expect(
+    director.getByRole("button", { name: "Approve and publish" }),
+  ).toBeVisible();
+  // The editor changes the pending text under the director's feet.
+  await editor
+    .getByLabel("Summary")
+    .fill("Thunderstorms expected; the pool closes at 4 pm.");
+  await editor.getByRole("button", { name: "Save changes" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved.");
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(director.getByRole("alert")).toContainText(
+    "changed after you read it",
+  );
+  await director.reload();
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Published" }),
+  ).toBeVisible();
 });
 
 test("a scheduled post stays off the site until its date; an expired one disappears", async () => {

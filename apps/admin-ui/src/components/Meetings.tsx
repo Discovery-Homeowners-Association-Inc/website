@@ -17,8 +17,8 @@ import { PageHead } from "./PageHead.tsx";
 const blank = {
   type: "board" as MeetingType,
   date: "",
-  time: "7:00 pm",
-  location: "Discovery Recreation Center",
+  time: "",
+  location: "",
 };
 
 export default function Meetings() {
@@ -32,6 +32,20 @@ export default function Meetings() {
       setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
+  useEffect(() => {
+    api<{ meetings: { board: { time: string; location: string } } }>(
+      "GET",
+      "/settings/organization",
+    ).then(
+      (o) =>
+        setForm((f) => ({
+          ...f,
+          time: o.meetings.board.time,
+          location: o.meetings.board.location,
+        })),
+      () => {},
+    );
+  }, []);
 
   async function create(event: Event) {
     event.preventDefault();

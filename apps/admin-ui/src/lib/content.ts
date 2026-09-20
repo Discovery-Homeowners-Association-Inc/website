@@ -108,12 +108,7 @@ export const KINDS: Record<ItemKind, KindConfig> = {
         key: "contact_email_key",
         label: "Questions go to",
         kind: "select",
-        options: [
-          { value: "", label: "Nobody in particular" },
-          { value: "general", label: "The office" },
-          { value: "pool_rec", label: "Pool & Recreation Committee" },
-          { value: "acc", label: "Architectural Control Committee" },
-        ],
+        options: [{ value: "", label: "Nobody in particular" }],
       },
       { key: "body", label: "More details", kind: "markdown", rows: 6 },
     ],
@@ -195,3 +190,13 @@ export const stateLabel: Record<ItemState, string> = {
   pending: "Waiting for approval",
   published: "Published",
 };
+
+/** Labels for the site's email role keys, kept here so screens agree on wording. */
+export const EMAIL_KEY_LABEL: Record<string, string> = {
+  general: "The office",
+  acc: "Architectural Control Committee",
+  pool_rec: "Pool & Recreation Committee",
+};
+
+export const emailOptions = (keys: string[]) =>
+  keys.map((k) => ({ value: k, label: EMAIL_KEY_LABEL[k] ?? k }));

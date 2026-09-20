@@ -4,7 +4,7 @@ import {
   type Committee,
   type Person,
 } from "@dhoa/shared";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { api, can, messageFrom } from "../lib/api.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
@@ -39,6 +39,16 @@ export default function Roster() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [showPast, setShowPast] = useState(false);
+  const [emailKeys, setEmailKeys] = useState<string[]>([]);
+  useEffect(() => {
+    api<{ emails: Record<string, string> }>(
+      "GET",
+      "/settings/organization",
+    ).then(
+      (o) => setEmailKeys(Object.keys(o.emails)),
+      () => {},
+    );
+  }, []);
 
   if (loadError) return <ErrorNotice message={loadError} />;
   if (meError) return <ErrorNotice message={meError} />;
@@ -460,7 +470,7 @@ export default function Roster() {
                 })
               }
             >
-              {["general", "acc", "pool_rec"].map((k) => (
+              {emailKeys.map((k) => (
                 <option value={k}>{k}</option>
               ))}
             </select>

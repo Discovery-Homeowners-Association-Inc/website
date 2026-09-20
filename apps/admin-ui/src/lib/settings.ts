@@ -646,7 +646,7 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
             key: "email_key",
             label: "Email role key",
             kind: "text",
-            help: "general, acc or pool_rec, or leave blank.",
+            help: "A key from Organization › Email addresses by role, or leave blank.",
           },
           { key: "note", label: "Note", kind: "textarea" },
           { key: "urgent", label: "Urgent", kind: "boolean" },
