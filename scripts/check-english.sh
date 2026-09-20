@@ -27,7 +27,7 @@ cd "$(dirname "$0")/.."
 #
 # The match is case-insensitive. It was not, which meant a British spelling at
 # the start of a sentence -- "Centres", "Colour" -- was never looked at.
-british='materialis|organis|recognis|optimis|normalis|rasteris|prioritis|summaris|apologis|customis|standardis|utilis|specialis|authoris|realis|minimis|maximis|criticis|behaviour|colour|favour|honour|artefact|neighbour|centre|metre|judgement|skilful|instalment|sceptic|manoeuvr|\benrol\b|\blearnt\b|\blabell(ed|ing)\b|\bmodell(ed|ing)\b|\btravell(ed|ing)\b|\bcancell(ed|ing)\b|\bgrey\b|\bplough|\bwhilst\b|\bamongst\b|\banalyse|\blicence\b|\bdefence\b|\bprogramme\b|\bpractise\b'
+british='serialis|materialis|organis|recognis|optimis|normalis|rasteris|prioritis|summaris|apologis|customis|standardis|utilis|specialis|authoris|realis|minimis|maximis|criticis|behaviour|colour|favour|honour|artefact|neighbour|centre|metre|judgement|skilful|instalment|sceptic|manoeuvr|\benrol\b|\blearnt\b|\blabell(ed|ing)\b|\bmodell(ed|ing)\b|\btravell(ed|ing)\b|\bcancell(ed|ing)\b|\bgrey\b|\bplough|\bwhilst\b|\bamongst\b|\banalyse|\blicence\b|\bdefence\b|\bprogramme\b|\bpractise\b'
 
 hits=$(
   git grep -nIiE "$british" -- \
