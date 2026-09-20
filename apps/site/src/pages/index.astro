@@ -4,7 +4,7 @@ import { todayInNewYork } from "@dhoa/shared";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
-import { dues, org, telHref, trash } from "../lib/data";
+import { dues, officeTel, org, trash } from "../lib/data";
 import { settings } from "../lib/snapshot";
 import { meetings, upcoming } from "../lib/calendar";
 import {
@@ -140,7 +140,7 @@ const streets = [
         <div>
           <dt>Office</dt>
           <dd>
-            <a href={telHref(org.office.phone_e164)}>{org.office.phone}</a>
+            <a href={officeTel()}>{org.office.phone}</a>
             <small>
               {org.office.hours
                 .map((h) => `${h.days}, ${h.open} to ${h.close}`)

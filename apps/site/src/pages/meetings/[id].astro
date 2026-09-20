@@ -69,6 +69,10 @@ const past = !canceled && m.date < todayInNewYork();
         board votes on them.
       </p>
     </div>
-    <AttendingPanel />
+    <AttendingPanel
+      when={m.time}
+      where={m.location}
+      rule={m.type === "board" ? org.meetings.board.rule : undefined}
+    />
   </div>
 </Base>

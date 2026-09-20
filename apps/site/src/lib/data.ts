@@ -68,3 +68,6 @@ export function email(key: string): string {
 }
 
 export const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
+
+/** The office number as a dialable link. Always the E.164 form: a cell keypad wants the +1. */
+export const officeTel = () => telHref(org.office.phone_e164);

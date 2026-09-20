@@ -53,8 +53,8 @@ export function dtstart(date: string, time: string): string[] {
   const day = date.replace(/-/g, "");
   if (!m) return [`DTSTART;VALUE=DATE:${day}`];
   let h = Number(m[1]) % 12;
-  if (m[2]!.toLowerCase() === "pm") h += 12;
-  const [, , minutes] = time.trim().match(/^(\d{1,2}):(\d{2})/)!;
+  if (m[3]!.toLowerCase() === "pm") h += 12;
+  const minutes = m[2]!;
   return [
     `DTSTART;TZID=America/New_York:${day}T${String(h).padStart(2, "0")}${minutes}00`,
     "DURATION:PT2H",

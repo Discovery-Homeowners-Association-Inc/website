@@ -1,11 +1,12 @@
 ---
-import { email, org, telHref } from "../lib/data";
+import { email, officeTel, org, telHref } from "../lib/data";
 
 interface Props {
   entry: (typeof import("../lib/data").problems)[number];
 }
 const { entry: e } = Astro.props;
 const phone = e.phone_key === "office" ? org.office.phone : e.phone;
+const href = e.phone_key === "office" ? officeTel() : telHref(e.phone);
 ---
 
 <li>
@@ -13,7 +14,7 @@ const phone = e.phone_key === "office" ? org.office.phone : e.phone;
   <span>{e.contact}</span>
   {phone && (
     <div>
-      <a href={telHref(phone)}>{phone}</a>
+      <a href={href}>{phone}</a>
     </div>
   )}
   {e.email_key && (

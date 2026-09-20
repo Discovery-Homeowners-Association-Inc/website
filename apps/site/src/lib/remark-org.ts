@@ -5,7 +5,7 @@
  *   {{setting:a.b.c}}    -> the value the board edits in Site settings
  * Unknown keys throw, so a typo fails the build.
  */
-import { email, org, telHref } from "./data.ts";
+import { email, officeTel, org } from "./data.ts";
 import { settings } from "./snapshot.ts";
 
 type Node = { type: string; value?: string; url?: string; children?: Node[] };
@@ -40,7 +40,7 @@ function replacement(kind: string, key: string): Node {
   const phone = org.office.phone;
   return {
     type: "link",
-    url: telHref(org.office.phone_e164),
+    url: officeTel(),
     children: [{ type: "text", value: phone }],
   };
 }

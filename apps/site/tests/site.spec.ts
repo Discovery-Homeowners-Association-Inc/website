@@ -1,6 +1,9 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+
+const site = JSON.parse(readFileSync("content/site.json", "utf8"));
+const officePhone: string = site.settings.organization.office.phone;
 
 const firstMeeting = readdirSync("dist/meetings").find((d) =>
   /^\d{4}-/.test(d),
@@ -116,6 +119,40 @@ test("a meeting is a link only once its agenda is posted", async ({ page }) => {
     const linked = (await item.locator("h3 a").count()) > 0;
     const posted = (await item.innerText()).includes("The agenda is posted.");
     expect(linked, `item ${i}: linked=${linked} posted=${posted}`).toBe(posted);
+  }
+});
+
+if (firstMeeting) {
+  test("a meeting page's Attending panel states that meeting's own time, not the board's", async ({
+    page,
+  }) => {
+    await page.goto(`/meetings/${firstMeeting}/`);
+    const summary = await page.locator(".page-head p").innerText();
+    const firstDd = await page.locator("aside.panel dl dd").first().innerText();
+    const time = summary.match(/\d{1,2}:\d{2}\s*(am|pm)/i)?.[0];
+    expect(time).toBeTruthy();
+    expect(firstDd).toContain(time);
+  });
+}
+
+test("the office phone is always a dialable +1 link", async ({ page }) => {
+  for (const path of [
+    "/",
+    "/404.html",
+    "/contact/",
+    "/rules/report-a-problem/",
+  ]) {
+    await page.goto(path);
+    const officeLinks = page.locator("a[href^='tel:']", {
+      hasText: officePhone,
+    });
+    const count = await officeLinks.count();
+    expect(count, `no office-number link found on ${path}`).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      const text = (await officeLinks.nth(i).innerText()).trim();
+      if (text !== officePhone) continue;
+      await expect(officeLinks.nth(i)).toHaveAttribute("href", /^tel:\+1/);
+    }
   }
 });
 

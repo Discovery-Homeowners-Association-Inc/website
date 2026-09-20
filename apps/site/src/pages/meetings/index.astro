@@ -73,6 +73,6 @@ const upcoming = await meetings(todayInNewYork(), 6);
 
       <Prose id="meetings" part="rest" />
     </div>
-    <AttendingPanel />
+    <AttendingPanel rule={org.meetings.board.rule} />
   </div>
 </Base>

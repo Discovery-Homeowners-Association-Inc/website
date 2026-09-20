@@ -1,17 +1,28 @@
 ---
 import { email, org } from "../lib/data";
+
+interface Props {
+  /** A specific meeting's time and place; omitted on the meetings index, which describes the series. */
+  when?: string;
+  where?: string;
+  /** The recurrence rule, shown only where it is true of the meeting on the page. */
+  rule?: string;
+}
+const {
+  when = org.meetings.board.time,
+  where = org.meetings.board.location,
+  rule,
+} = Astro.props;
 ---
 
 <aside class="panel">
   <h2>Attending</h2>
   <dl>
     <dt>When</dt>
-    <dd>
-      {org.meetings.board.rule}, {org.meetings.board.time}
-    </dd>
+    <dd>{rule ? `${rule}, ${when}` : when}</dd>
     <dt>Where</dt>
     <dd>
-      {org.meetings.board.location}, {org.office.street}
+      {where}, {org.office.street}
     </dd>
     <dt>Who</dt>
     <dd>{org.meetings.board.open_to}</dd>

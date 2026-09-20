@@ -1,5 +1,5 @@
 ---
-import { org, telHref } from "../lib/data";
+import { officeTel, org } from "../lib/data";
 ---
 
 <section class="panel" aria-labelledby="office-panel">
@@ -13,7 +13,7 @@ import { org, telHref } from "../lib/data";
     ))}
     <dt>Phone</dt>
     <dd>
-      <a href={telHref(org.office.phone)}>{org.office.phone}</a>
+      <a href={officeTel()}>{org.office.phone}</a>
     </dd>
     <dt>Email</dt>
     <dd>
