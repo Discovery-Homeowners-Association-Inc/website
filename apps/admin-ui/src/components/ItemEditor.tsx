@@ -239,7 +239,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
               </p>
             )}
             {item?.status === "draft" && item.review_note && (
-              <p class="notice notice--error">
+              <p class="callout callout--warning">
                 <strong>Sent back:</strong> {item.review_note}
               </p>
             )}
@@ -489,7 +489,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
             </form>
           ) : (
             <>
-              <p class="notice">
+              <p class="callout">
                 You can read this {cfg.one} but not change it.{" "}
                 {item?.status === "published"
                   ? "Published items are changed by the secretary or an administrator."

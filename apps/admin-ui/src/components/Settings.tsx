@@ -29,7 +29,7 @@ export default function Settings() {
   }, [dirty]);
 
   if (me && !can(me, "admin"))
-    return <p class="notice">Only administrators can change site settings.</p>;
+    return <p class="callout">Only administrators can change site settings.</p>;
 
   if (!group) {
     return (

@@ -90,7 +90,7 @@ export default function People() {
   const run = runAndReport(setError, setSaved, load);
 
   if (me && !can(me, "admin"))
-    return <p class="notice">Only administrators can manage people.</p>;
+    return <p class="callout">Only administrators can manage people.</p>;
   if (!people) return error ? <ErrorNotice message={error} /> : <Loading />;
 
   function renderPerson(p: Person) {

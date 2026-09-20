@@ -55,7 +55,7 @@ export default function SignIn() {
         with.
       </p>
       {failed && (
-        <p class="notice notice--error" role="alert">
+        <p class="callout callout--warning" role="alert">
           {failed === "signup_disabled"
             ? "That Google account has not been invited. Ask an administrator to invite the email address you signed in with."
             : "Sign-in did not complete. Try again."}

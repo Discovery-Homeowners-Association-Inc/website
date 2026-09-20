@@ -299,6 +299,7 @@ test("removing someone keeps them on record as a former member, and access can b
   await expect(
     admin.getByText("Dana Director (former member)").first(),
   ).toBeVisible();
+  await expectAccessible(admin);
 
   // Their session ended, and signing in again does not give them access.
   await director.goto("/");
