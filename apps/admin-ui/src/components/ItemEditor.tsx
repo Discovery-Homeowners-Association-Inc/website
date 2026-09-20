@@ -168,7 +168,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
         publish: "Published. The site will update shortly.",
         unpublish: "Taken off the site.",
       }[action],
-    ).then(() => setNote(""));
+    ).then((ok) => ok && setNote(""));
   };
 
   const firstSaved = new URLSearchParams(location.search).get("saved") === "1";

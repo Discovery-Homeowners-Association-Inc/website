@@ -189,8 +189,10 @@ export const runAndReport =
       await fn();
       await reload();
       setSaved(done);
+      return true;
     } catch (e) {
       setError(messageFrom(e));
+      return false;
     }
   };
 

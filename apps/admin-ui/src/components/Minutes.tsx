@@ -546,7 +546,7 @@ function Comments({
   canComment: boolean;
   meId: string | undefined;
   secretary: boolean;
-  act: (fn: () => Promise<unknown>, done: string) => Promise<void>;
+  act: (fn: () => Promise<unknown>, done: string) => Promise<boolean>;
 }) {
   const [anchor, setAnchor] = useState("");
   const [text, setText] = useState("");
@@ -612,7 +612,7 @@ function Comments({
                   body: text,
                 }),
               "Comment added.",
-            ).then(() => setText(""));
+            ).then((ok) => ok && setText(""));
           }}
         >
           <div class="field">

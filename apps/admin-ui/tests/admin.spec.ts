@@ -188,6 +188,22 @@ test("a director comments and marks the version reviewed", async ({
   await director
     .getByLabel("Comment", { exact: true })
     .fill("Please include the balance amount.");
+  // The first attempt fails at the server; what was typed must still be there.
+  await director.route(
+    "**/api/meetings/*/minutes/comments",
+    (route) =>
+      route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Try again." }),
+      }),
+    { times: 1 },
+  );
+  await director.getByRole("button", { name: "Add comment" }).click();
+  await expect(director.getByRole("alert")).toContainText("Try again.");
+  await expect(director.getByLabel("Comment", { exact: true })).toHaveValue(
+    "Please include the balance amount.",
+  );
   await director.getByRole("button", { name: "Add comment" }).click();
   await expect(director.getByRole("status")).toContainText("Comment added.");
   await director
