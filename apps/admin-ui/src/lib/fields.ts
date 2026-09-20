@@ -2,78 +2,15 @@
  * Describes a form: which fields, in what order, with what label and help.
  * The Form component renders any description; the server validates with the
  * matching zod schema in @dhoa/shared.
+ *
+ * `Field` and `Option` themselves, and the `fieldsFrom` walker that derives a
+ * schema's fields, live in @dhoa/shared (packages/shared/src/form-fields.ts)
+ * so the shared package's tests can exercise the walker against the same
+ * schemas the server validates with. Only the value helpers below -- which
+ * have nothing to do with the schema -- stay here.
  */
-export type Option = { value: string; label: string };
-
-export type Field =
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "text" | "email" | "url" | "phone" | "date" | "datetime" | "time";
-      required?: boolean;
-      placeholder?: string;
-    }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "textarea" | "markdown";
-      required?: boolean;
-      rows?: number;
-      placeholder?: string;
-    }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "number";
-      min?: number;
-      max?: number;
-      step?: number;
-    }
-  | { key: string; label: string; help?: string; kind: "boolean" }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "select";
-      options: Option[];
-      numeric?: boolean;
-    }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "strings";
-      itemLabel: string;
-      placeholder?: string;
-    }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "list";
-      itemLabel: string;
-      fields: Field[];
-      summary?: (row: Record<string, unknown>) => string;
-    }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "group";
-      fields: Field[];
-    }
-  | {
-      key: string;
-      label: string;
-      help?: string;
-      kind: "record";
-      keyLabel: string;
-      valueLabel: string;
-      valueKind: "text" | "email";
-    };
+export type { Field, Option } from "@dhoa/shared";
+import type { Field } from "@dhoa/shared";
 
 export const get = (obj: unknown, key: string): unknown =>
   obj && typeof obj === "object"

@@ -346,3 +346,24 @@ test("profile and help pages work, and every new screen fits a phone", async ({
     await expectAccessible(phone);
   }
 });
+
+test("every settings group renders its form", async () => {
+  await admin.goto("/settings/");
+  // The settings index is a client:only component; wait for it to hydrate
+  // before reading its links, since evaluateAll does not auto-wait.
+  await expect(admin.locator(".tasks a").first()).toBeVisible();
+  const links = await admin
+    .locator(".tasks a")
+    .evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+  expect(links.length).toBeGreaterThanOrEqual(11);
+  for (const href of links) {
+    await admin.goto(href);
+    await expect(
+      admin.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await expect(admin.getByRole("alert")).toHaveCount(0);
+    expect(
+      await admin.locator("input, select, textarea").count(),
+    ).toBeGreaterThan(0);
+  }
+});

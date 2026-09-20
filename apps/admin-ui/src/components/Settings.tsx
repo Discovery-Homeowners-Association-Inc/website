@@ -1,15 +1,27 @@
+import { fieldsFrom, SETTINGS, SETTINGS_KEYS } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import { api, can, messageFrom, param } from "../lib/api.ts";
-import { SETTINGS_GROUPS } from "../lib/settings.ts";
+import { SETTINGS_LABELS } from "../lib/settings.ts";
 import { useMe } from "../lib/use-me.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
+/**
+ * Built once at module load, so a settings key with no label -- or a label
+ * with no matching schema key -- throws at first render of the settings
+ * index, rather than only when a board member happens to open that group.
+ */
+const groups = SETTINGS_KEYS.map((key) => ({
+  key,
+  ...SETTINGS_LABELS[key],
+  fields: fieldsFrom(SETTINGS[key], SETTINGS_LABELS[key].fields, key),
+}));
+
 export default function Settings() {
   const { me } = useMe();
   const key = param("group");
-  const group = SETTINGS_GROUPS.find((g) => g.key === key);
+  const group = groups.find((g) => g.key === key);
   const [value, setValue] = useState<Record<string, unknown> | null>(null);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +51,7 @@ export default function Settings() {
           lede="Facts the site shows in many places, so they are changed in one. Text for each page is under Pages."
         />
         <ul class="tasks">
-          {SETTINGS_GROUPS.map((g) => (
+          {groups.map((g) => (
             <li key={g.key}>
               <a href={`/settings/?group=${g.key}`}>
                 <strong>{g.title}</strong>
