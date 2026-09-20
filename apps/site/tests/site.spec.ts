@@ -1,5 +1,10 @@
+import { readdirSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+
+const firstMeeting = readdirSync("dist/meetings").find((d) =>
+  /^\d{4}-/.test(d),
+);
 
 const pages = [
   "/",
@@ -24,6 +29,12 @@ const pages = [
   "/about/",
   "/about/history/",
   "/about/welcome-committee/",
+  "/privacy/",
+  "/terms/",
+  "/404.html",
+  "/news/water-main-phase-1/",
+  "/events/pool-opening/",
+  ...(firstMeeting ? [`/meetings/${firstMeeting}/`] : []),
 ];
 
 for (const path of pages) {
@@ -58,16 +69,16 @@ for (const path of pages) {
   });
 }
 
-test("dark mode passes accessibility checks on the home page", async ({
-  page,
-}) => {
-  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-  await page.goto("/");
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa"])
-    .analyze();
-  expect(violations.map((v) => v.id)).toEqual([]);
-});
+for (const path of ["/", "/amenities/parks/", "/rules/report-a-problem/"]) {
+  test(`dark mode passes accessibility checks on ${path}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+    await page.goto(path);
+    const { violations } = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+    expect(violations.map((v) => v.id)).toEqual([]);
+  });
+}
 
 test("the menu button opens the navigation on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

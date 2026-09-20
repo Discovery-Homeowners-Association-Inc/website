@@ -23,7 +23,12 @@ for (const font of ["web font", "fallback font"] as const) {
         await context.route("**/*.woff2", (route) => route.abort());
     });
 
-    for (const width of LADDER) {
+    // The fallback is the wider font, so the widths that matter there are the
+    // ones on either side of each fold, not the whole ladder.
+    const widths =
+      font === "fallback font" ? [320, 703, 704, 1135, 1136, 1920] : LADDER;
+
+    for (const width of widths) {
       test(`no link is cut off at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto("/");
