@@ -1,4 +1,5 @@
-import { type Browser, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { ADMIN, bootstrap, signIn } from "./helpers.ts";
 
 /**
  * The meetings list is ordered for the work, not by date alone.
@@ -11,40 +12,22 @@ import { type Browser, expect, test } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
-const ADMIN = "secretary@example.com";
-
-async function signIn(browser: Browser, email: string) {
-  const page = await (await browser.newContext()).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
-
 test.beforeAll(async ({ request }) => {
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
 });
 
 test("the next meeting is first, and what has happened comes after", async ({
   browser,
-}, testInfo) => {
+}) => {
   const page = await signIn(browser, ADMIN);
 
   /*
-   * Dates of this spec's own, per browser: the suite runs every project
-   * against one database, and a meeting is unique by date and type, so fixed
-   * dates mean the second project cannot create what it needs.
+   * Dates of this spec's own: a meeting is unique by date and type. Firefox
+   * never runs this spec (see the `firefox` project's testMatch in
+   * playwright.config.ts), so one set of dates is enough.
    */
-  const era = testInfo.project.name === "firefox" ? 1 : 0;
-  const future = [`${2031 + era * 10}-06-17`, `${2030 + era * 10}-02-19`];
-  const past = `${2019 - era * 10}-04-16`;
+  const future = ["2031-06-17", "2030-02-19"];
+  const past = "2019-04-16";
 
   // Two far-future meetings and one long past, created out of order.
   // Adding one takes you to its own page, so each round trips back to the list.

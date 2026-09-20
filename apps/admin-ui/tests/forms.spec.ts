@@ -1,4 +1,5 @@
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { ADMIN, bootstrap, signIn } from "./helpers.ts";
 
 /**
  * The admin screens are the same design system as the public site, so a select,
@@ -8,17 +9,6 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
  * under the 24px WCAG 2.2 target minimum.
  */
 test.describe.configure({ mode: "serial" });
-
-const ADMIN = "secretary@example.com";
-
-async function signIn(browser: Browser, email: string) {
-  const page = await (await browser.newContext()).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
 
 /** Heights of the controls that are meant to look alike, keyed by what they are. */
 async function controlHeights(page: Page) {
@@ -35,13 +25,7 @@ async function controlHeights(page: Page) {
 }
 
 test.beforeAll(async ({ request }) => {
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
 });
 
 test("text, date and select controls are all the same height", async ({

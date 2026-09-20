@@ -1,5 +1,5 @@
-import AxeBuilder from "@axe-core/playwright";
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { ADMIN, bootstrap, expectAccessible, signIn } from "./helpers.ts";
 
 /**
  * One board meeting, followed from creation to minutes filed in PayHOA, by the
@@ -9,44 +9,17 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
 test.describe.configure({ mode: "serial" });
 
 /*
- * Invited identities are this project's own. Every browser project runs
- * against the same database, and a person is unique by email, so a second
- * project inviting the same address is refused and the whole spec unravels.
- * The bootstrapped administrator stays shared, because bootstrap is a
- * one-time door and tolerates having already been opened.
- */
-/*
  * The invited identities are this project's own, set before the first test
  * runs. Every browser project works against the same database and a person is
  * unique by email, so a second project inviting the same address is refused
  * and the spec unravels from there. The bootstrapped administrator stays
  * shared: bootstrap is a one-time door and tolerates being already open.
  */
-const ADMIN = "secretary@example.com";
 let DIRECTOR = "";
 let EDITOR = "";
-/** A meeting date of this project's own: a meeting is unique by date and type. */
-let MEETING_DATE = "";
-
-async function signIn(browser: Browser, email: string) {
-  const page = await (await browser.newContext()).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
-
-async function expectAccessible(page: Page) {
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-    .analyze();
-  expect(
-    violations.map(
-      (v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
-    ),
-  ).toEqual([]);
-}
+// Firefox only ever runs header.spec.ts and forms.spec.ts (see the `firefox`
+// project's testMatch in playwright.config.ts), so this spec needs only one date.
+const MEETING_DATE = "2026-10-20";
 
 let admin: Page;
 let director: Page;
@@ -55,17 +28,7 @@ let minutesUrl = "";
 test.beforeAll(async ({ request }, testInfo) => {
   DIRECTOR = `director-${testInfo.project.name}@example.com`;
   EDITOR = `editor-${testInfo.project.name}@example.com`;
-  MEETING_DATE =
-    testInfo.project.name === "firefox" ? "2036-10-20" : "2026-10-20";
-
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  // 409 when another browser project has already run against this database.
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
 });
 
 test("anonymous visitors are sent to sign in", async ({ page }) => {
@@ -159,7 +122,7 @@ test("the secretary drafts minutes and sends them for review", async () => {
 
 test("an editor cannot see minutes or the People page", async ({ browser }) => {
   const editor = await signIn(browser, EDITOR);
-  await expect(editor.getByRole("link", { name: "People" })).toBeHidden();
+  await expect(editor.getByRole("link", { name: "Accounts" })).toBeHidden();
   await expect(editor.getByText("Minutes waiting on the board")).toBeHidden();
   await editor.goto(minutesUrl);
   await expect(editor.getByRole("alert")).toContainText(
@@ -171,7 +134,7 @@ test("a director comments and marks the version reviewed", async ({
   browser,
 }) => {
   director = await signIn(browser, DIRECTOR);
-  await expect(director.getByRole("link", { name: "People" })).toBeHidden();
+  await expect(director.getByRole("link", { name: "Accounts" })).toBeHidden();
   await director
     .getByRole("link", { name: /Board meeting, Tuesday, October 20, 2026/ })
     .first()
@@ -467,7 +430,7 @@ test("a remembered administrator's header never changes height while a page load
         .getByRole("navigation", { name: "Main" })
         .getByRole("link", { name: "Settings", exact: true }),
     ).toBeVisible();
-    await admin.waitForTimeout(500);
+    await admin.waitForLoadState("networkidle");
     const heights = await admin.evaluate(
       () => (window as unknown as { __heights: number[] }).__heights,
     );

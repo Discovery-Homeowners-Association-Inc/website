@@ -1,5 +1,11 @@
-import AxeBuilder from "@axe-core/playwright";
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import {
+  ADMIN,
+  bootstrap,
+  expectAccessible,
+  noSidewaysScroll,
+  signIn,
+} from "./helpers.ts";
 
 /**
  * Site content: an editor writes, a director approves, scheduling and expiry
@@ -9,63 +15,16 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
 test.describe.configure({ mode: "serial" });
 
 /*
- * Invited identities are this project's own. Every browser project runs
- * against the same database, and a person is unique by email, so a second
- * project inviting the same address is refused and the whole spec unravels.
- * The bootstrapped administrator stays shared, because bootstrap is a
- * one-time door and tolerates having already been opened.
- */
-/*
  * The invited identities are this project's own, set before the first test
  * runs. Every browser project works against the same database and a person is
  * unique by email, so a second project inviting the same address is refused
  * and the spec unravels from there. The bootstrapped administrator stays
  * shared: bootstrap is a one-time door and tolerates being already open.
  */
-const ADMIN = "secretary@example.com";
 let EDITOR = "";
 let DIRECTOR = "";
 /** A post title of this project's own, so the second run is not reading the first's. */
 let SCHEDULED = "";
-
-async function signIn(browser: Browser, email: string, phone = false) {
-  const page = await (
-    await browser.newContext(
-      phone
-        ? {
-            viewport: { width: 390, height: 844 },
-            hasTouch: true,
-            isMobile: true,
-          }
-        : {},
-    )
-  ).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
-
-async function expectAccessible(page: Page) {
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-    .analyze();
-  expect(
-    violations.map(
-      (v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
-    ),
-  ).toEqual([]);
-}
-
-const noSidewaysScroll = async (page: Page) =>
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
-    ),
-  ).toBeLessThanOrEqual(0);
 
 let admin: Page;
 let editor: Page;
@@ -77,13 +36,7 @@ test.beforeAll(async ({ request, browser }, testInfo) => {
   DIRECTOR = `approver-${testInfo.project.name}@example.com`;
   SCHEDULED = `Holiday lights walk (${testInfo.project.name})`;
 
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
   admin = await signIn(browser, ADMIN);
   await admin.goto("/people/");
   for (const [name, email, role] of [
@@ -287,11 +240,8 @@ test("an administrator changes a fact once in site settings", async () => {
   const json = await (await admin.request.get("/api/public/site.json")).json();
   expect(json.settings.organization.office.phone).toBe("301-845-2051");
   await expectAccessible(admin);
-  await expect(
-    editor
-      .goto("/settings/?group=parks")
-      .then(() => editor.getByText("Only administrators")),
-  ).resolves.toBeVisible();
+  await editor.goto("/settings/?group=parks");
+  await expect(editor.getByText("Only administrators")).toBeVisible();
 });
 
 test("the roster drives attendance in minutes, and ending a term keeps the record", async () => {
