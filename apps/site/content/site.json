@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T13:00:39.507Z",
+  "generated_at": "2026-09-20T01:06:50.980Z",
   "settings": {
     "organization": {
       "legal_name": "Discovery Homeowners Association, Inc.",
@@ -1106,19 +1106,19 @@
       "hours": [
         {
           "period": "Opening weekend — May 23, 24, 25",
-          "time": "Noon – 8:00 pm"
+          "time": "12:00 pm to 8:00 pm"
         },
         {
           "period": "June and July, non-school days",
-          "time": "12:00 pm – 8:00 pm"
+          "time": "12:00 pm to 8:00 pm"
         },
         {
-          "period": "August, Friday–Sunday until school starts Aug 18",
-          "time": "11:00 am – 7:00 pm"
+          "period": "August, Friday–Sunday until school starts August 18",
+          "time": "11:00 am to 7:00 pm"
         },
         {
           "period": "Labor Day weekend",
-          "time": "11:00 am – 7:00 pm"
+          "time": "11:00 am to 7:00 pm"
         }
       ],
       "fees_resident": [
@@ -1516,11 +1516,11 @@
       "id": "b674b4baf8b5833202e44e7eecf688f2",
       "slug": "pool-season-2026",
       "publish_at": "2026-03-01T14:00:00.000Z",
-      "updated_at": "2026-09-19T13:00:07.959Z",
+      "updated_at": "2026-09-20T01:04:26.543Z",
       "body": {
         "title": "Pool passes for 2026 are on sale",
-        "summary": "Early-bird pricing runs until 15 April. After that the resident rate goes up by $10 a head.",
-        "body": "Registration for the 2026 pool season is open. Early-bird pricing — **$35 per\nperson** — runs until **15 April**. After that it is $45.\n\nChildren five and under swim free. You need to be current on your assessment to\nbuy a pool membership.\n\nSeason dates, hours, and the fee tables are on the [pool page](/amenities/pool/).",
+        "summary": "Early-bird pricing runs until April 15. After that the resident rate goes up by $10 a head.",
+        "body": "Registration for the 2026 pool season is open. Early-bird pricing — **$35 per\nperson** — runs until **April 15**. After that it is $45.\n\nChildren five and under swim free. You need to be current on your assessment to\nbuy a pool membership.\n\nSeason dates, hours, and the fee tables are on the [pool page](/amenities/pool/).",
         "category": "pool",
         "pinned": true
       }
@@ -1542,10 +1542,10 @@
       "id": "c5dc9d9fae167c2ffb7a538611cd44ef",
       "slug": "rv-lot-fee",
       "publish_at": "2025-08-11T13:00:00.000Z",
-      "updated_at": "2026-09-19T13:00:07.959Z",
+      "updated_at": "2026-09-20T01:04:26.543Z",
       "body": {
         "title": "The RV lot is no longer free",
-        "summary": "From 1 October 2025 the lot costs $50 a month, or $150 a quarter paid with your dues.",
+        "summary": "From October 1, 2025 the lot costs $50 a month, or $150 a quarter paid with your dues.",
         "body": "The association now charges for the RV lot. The fee is **$50 per month per\nhousehold**, or **$150 per quarter** paid alongside your quarterly dues.\n\nPay by Zelle, with **RV Lot Payment** in the memo line.\n\nA few rules came in at the same time: one vehicle per household, current\nregistration on every vehicle, and keep both the vehicle and the space around it\ntidy.\n\nThe fee is what will pay for repairing the fence, repainting the lines and space\nnumbers, and improving security. Full details are on the\n[RV lot page](/amenities/rv-lot/).",
         "category": "general",
         "pinned": false
@@ -1661,10 +1661,10 @@
       "id": "a328f22ba5b99a3e80a92d9da9b23a6a",
       "slug": "rv-lot-policy-update-2025",
       "publish_at": "2025-08-11T13:00:00.000Z",
-      "updated_at": "2026-09-19T13:00:07.959Z",
+      "updated_at": "2026-09-20T01:04:26.543Z",
       "body": {
         "title": "RV Lot Policy Update (August 2025)",
-        "summary": "The notice announcing that the RV lot is no longer free from 1 October 2025, with the fee, the payment options, and the updated rules.",
+        "summary": "The notice announcing that the RV lot is no longer free from October 1, 2025, with the fee, the payment options, and the updated rules.",
         "category": "rv-lot",
         "language": "en",
         "featured": false,
@@ -1934,11 +1934,11 @@
       "id": "49cfcd5d1c166f476365ed90ca835e3f",
       "slug": "rv-lot",
       "publish_at": "2026-09-01T13:00:00.000Z",
-      "updated_at": "2026-09-19T13:00:07.959Z",
+      "updated_at": "2026-09-20T00:55:11.363Z",
       "body": {
         "title": "RV lot",
         "summary": "Storage for boats, trailers, and recreational vehicles. There is a monthly fee, and registration is enforced.",
-        "body": "The association keeps a lot where residents can store boats, trailers, and\nrecreational vehicles instead of leaving them on the street or in a driveway.\n\n## There is now a fee\n\nThe RV lot used to be free. It is not any more — the association began charging\nfor it on 1 October 2025, and the fee is what will eventually pay for repairing\nthe fence and marking out the spaces.\n\n## Registration is not optional\n\nIf you have anything in the RV lot, it has to be registered with the office.\n\n<aside class=\"callout callout--warning\">\n\nAnything in the lot that is not registered with the office is towed by Dorsey's\nTowing, at the owner's expense. There is no warning notice first.\n\n</aside>\n\nRegistration is straightforward — the form, a copy of the vehicle's\nregistration, and a photo. Ask the office for the current application, or call\n\n{{phone:office}}.\n\n<section lang=\"es\">\n\n**Solicitud de lote para vehículos recreativos**\n\nSi tiene un barco, un remolque o cualquier otro vehículo recreativo en el lote,\ndebe enviar el formulario junto con el certificado de registro y una foto. Por\nfavor, envíenos esta información antes de la fecha límite.\n\nDesde el 1 de octubre de 2025 el lote ya no es gratuito: la tarifa es de **{{setting:rv-lot.fees.monthly}} por mes** o **{{setting:rv-lot.fees.quarterly}} por trimestre**, pagadera junto con su cuota trimestral.\n\nTodos los vehículos en el lote que no estén registrados en la oficina serán\nremolcados por Dorsey's Towing a cargo del propietario.\n\n</section>"
+        "body": "The association keeps a lot where residents can store boats, trailers, and\nrecreational vehicles instead of leaving them on the street or in a driveway.\n\n## There is now a fee\n\nThe RV lot used to be free. It is not any more — the association began charging\nfor it on October 1, 2025, and the fee is what will eventually pay for repairing\nthe fence and marking out the spaces.\n\n## Registration is not optional\n\nIf you have anything in the RV lot, it has to be registered with the office.\n\n<aside class=\"callout callout--warning\">\n\nAnything in the lot that is not registered with the office is towed by Dorsey's\nTowing, at the owner's expense. There is no warning notice first.\n\n</aside>\n\nRegistration is straightforward — the form, a copy of the vehicle's\nregistration, and a photo. Ask the office for the current application, or call\n\n{{phone:office}}.\n\n<section lang=\"es\">\n\n**Solicitud de lote para vehículos recreativos**\n\nSi tiene un barco, un remolque o cualquier otro vehículo recreativo en el lote,\ndebe enviar el formulario junto con el certificado de registro y una foto. Por\nfavor, envíenos esta información antes de la fecha límite.\n\nDesde el 1 de octubre de 2025 el lote ya no es gratuito: la tarifa es de **{{setting:rv-lot.fees.monthly}} por mes** o **{{setting:rv-lot.fees.quarterly}} por trimestre**, pagadera junto con su cuota trimestral.\n\nTodos los vehículos en el lote que no estén registrados en la oficina serán\nremolcados por Dorsey's Towing a cargo del propietario.\n\n</section>"
       }
     },
     {
