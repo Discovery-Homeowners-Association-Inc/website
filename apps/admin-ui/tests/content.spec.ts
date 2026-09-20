@@ -261,6 +261,29 @@ test("an administrator changes a fact once in site settings", async () => {
   await phone.fill("301-845-2051");
   await admin.getByRole("button", { name: "Save changes" }).click();
   await expect(admin.getByRole("status")).toContainText("Saved");
+  // Two new email addresses at once. Rows were keyed by their (empty) key, so
+  // the second "Add" replaced the first and typing a key ate its neighbor.
+  await admin.getByRole("button", { name: "Add email address" }).click();
+  await admin.getByRole("button", { name: "Add email address" }).click();
+  const keys = admin.getByLabel("Role key");
+  const values = admin.getByLabel("Email address", { exact: true });
+  const n = await keys.count();
+  expect(n).toBeGreaterThanOrEqual(5);
+  await keys.nth(n - 2).fill("treasurer");
+  await values.nth(n - 2).fill("treasurer@example.com");
+  await keys.nth(n - 1).fill("events");
+  await values.nth(n - 1).fill("events@example.com");
+  await admin.getByRole("button", { name: "Save changes" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved");
+  await admin.reload();
+  await expect(
+    admin.getByLabel("Role key").filter({ hasText: "" }),
+  ).toHaveCount(n);
+  const saved = await (
+    await admin.request.get("/api/settings/organization")
+  ).json();
+  expect(saved.emails.treasurer).toBe("treasurer@example.com");
+  expect(saved.emails.events).toBe("events@example.com");
   const json = await (await admin.request.get("/api/public/site.json")).json();
   expect(json.settings.organization.office.phone).toBe("301-845-2051");
   await expectAccessible(admin);

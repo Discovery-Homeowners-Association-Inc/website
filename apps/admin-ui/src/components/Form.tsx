@@ -1,3 +1,5 @@
+import type { JSX } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import {
   type Field,
   blank,
@@ -22,6 +24,209 @@ const inputType: Record<string, string> = {
   date: "date",
   time: "text",
 };
+
+function RecordField({
+  f,
+  id,
+  value,
+  help,
+  onCommit,
+}: {
+  f: Extract<Field, { kind: "record" }>;
+  id: string;
+  value: unknown;
+  help: JSX.Element | null;
+  onCommit: (v: Record<string, string>) => void;
+}) {
+  const fromValue = (v: unknown): [string, string][] =>
+    Object.entries((v as Record<string, string>) ?? {});
+  const [rows, setRows] = useState<[string, string][]>(() => fromValue(value));
+  // A row with no key yet is being typed and is not saved. The saved value only
+  // replaces these rows when it says something they do not.
+  useEffect(() => {
+    if (
+      JSON.stringify(fromValue(value)) !==
+      JSON.stringify(rows.filter(([k]) => k))
+    )
+      setRows(fromValue(value));
+  }, [value]);
+  const change = (next: [string, string][]) => {
+    setRows(next);
+    onCommit(Object.fromEntries(next.filter(([k]) => k)));
+  };
+  return (
+    <fieldset class="list-field">
+      <legend>{f.label}</legend>
+      {help}
+      {rows.map(([k, val], i) => (
+        <div class="list-row list-row--pair" key={i}>
+          <div class="field">
+            <label for={`${id}-${i}-k`}>{f.keyLabel}</label>
+            <input
+              id={`${id}-${i}-k`}
+              type="text"
+              value={k}
+              onInput={(e) =>
+                change(
+                  rows.map((r, j) =>
+                    j === i ? [e.currentTarget.value, r[1]] : r,
+                  ),
+                )
+              }
+            />
+          </div>
+          <div class="field">
+            <label for={`${id}-${i}-v`}>{f.valueLabel}</label>
+            <input
+              id={`${id}-${i}-v`}
+              type={f.valueKind}
+              value={val}
+              onInput={(e) =>
+                change(
+                  rows.map((r, j) =>
+                    j === i ? [r[0], e.currentTarget.value] : r,
+                  ),
+                )
+              }
+            />
+          </div>
+          <button
+            class="button button--quiet button--small"
+            type="button"
+            aria-label={`Remove ${k || "entry"}`}
+            onClick={() => change(rows.filter((_, j) => j !== i))}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+      <button
+        class="button button--quiet button--small"
+        type="button"
+        onClick={() => change([...rows, ["", ""]])}
+      >
+        Add {f.valueLabel.toLowerCase()}
+      </button>
+    </fieldset>
+  );
+}
+
+function ListField({
+  f,
+  id,
+  value,
+  help,
+  onCommit,
+}: {
+  f: Extract<Field, { kind: "list" }>;
+  id: string;
+  value: unknown;
+  help: JSX.Element | null;
+  onCommit: (v: Record<string, unknown>[]) => void;
+}) {
+  const fromValue = (v: unknown): Record<string, unknown>[] =>
+    Array.isArray(v) ? (v as Record<string, unknown>[]) : [];
+  const [rows, setRows] = useState<Record<string, unknown>[]>(() =>
+    fromValue(value),
+  );
+  const [open, setOpen] = useState<Set<number>>(
+    () => new Set(rows.length <= 3 ? rows.map((_, i) => i) : []),
+  );
+  useEffect(() => {
+    if (JSON.stringify(fromValue(value)) !== JSON.stringify(rows))
+      setRows(fromValue(value));
+  }, [value]);
+  const change = (next: Record<string, unknown>[]) => {
+    setRows(next);
+    onCommit(next);
+  };
+  const move = (i: number, by: number) => {
+    const next = [...rows];
+    const [row] = next.splice(i, 1);
+    next.splice(i + by, 0, row!);
+    change(next);
+  };
+  return (
+    <fieldset class="list-field">
+      <legend>{f.label}</legend>
+      {help}
+      {rows.map((row, i) => (
+        <details
+          class="list-item"
+          key={i}
+          open={open.has(i)}
+          onToggle={(e) =>
+            setOpen((s) => {
+              const n = new Set(s);
+              e.currentTarget.open ? n.add(i) : n.delete(i);
+              return n;
+            })
+          }
+        >
+          <summary>
+            {f.itemLabel} {i + 1}
+            {f.summary && (f.summary(row) ? `: ${f.summary(row)}` : "")}
+          </summary>
+          <Fields
+            fields={f.fields}
+            value={row}
+            onChange={(next) =>
+              change(rows.map((x, j) => (j === i ? next : x)))
+            }
+            idPrefix={`${id}-${i}`}
+          />
+          <div class="actions">
+            <button
+              class="button button--quiet button--small"
+              type="button"
+              disabled={i === 0}
+              onClick={() => move(i, -1)}
+            >
+              Move up
+            </button>
+            <button
+              class="button button--quiet button--small"
+              type="button"
+              disabled={i === rows.length - 1}
+              onClick={() => move(i, 1)}
+            >
+              Move down
+            </button>
+            <button
+              class="button button--danger button--small"
+              type="button"
+              onClick={() =>
+                confirm(`Remove ${f.itemLabel.toLowerCase()} ${i + 1}?`) &&
+                change(rows.filter((_, j) => j !== i))
+              }
+            >
+              Remove
+            </button>
+          </div>
+        </details>
+      ))}
+      <button
+        class="button button--quiet button--small"
+        type="button"
+        onClick={() => {
+          const i = rows.length;
+          change([
+            ...rows,
+            blank({
+              kind: "group",
+              key: "",
+              label: "",
+              fields: f.fields,
+            }) as Record<string, unknown>,
+          ]);
+          setOpen((s) => new Set(s).add(i));
+        }}
+      >
+        Add {f.itemLabel.toLowerCase()}
+      </button>
+    </fieldset>
+  );
+}
 
 /** Renders a form from a field description. Every input has a label; help text sits under it. */
 export function Fields({ fields, value, onChange, idPrefix }: Props) {
@@ -235,93 +440,17 @@ export function Fields({ fields, value, onChange, idPrefix }: Props) {
               </fieldset>
             );
           }
-          case "list": {
-            const rows = Array.isArray(v)
-              ? (v as Record<string, unknown>[])
-              : [];
-            const move = (i: number, by: number) => {
-              const next = [...rows];
-              const [row] = next.splice(i, 1);
-              next.splice(i + by, 0, row!);
-              update(f.key, next);
-            };
+          case "list":
             return (
-              <fieldset key={f.key} class="list-field">
-                <legend>{f.label}</legend>
-                {help}
-                {rows.map((row, i) => (
-                  <details class="list-item" key={i} open={rows.length <= 3}>
-                    <summary>
-                      {f.itemLabel} {i + 1}
-                      {f.summary &&
-                        (f.summary(row) ? `: ${f.summary(row)}` : "")}
-                    </summary>
-                    <Fields
-                      fields={f.fields}
-                      value={row}
-                      onChange={(next) =>
-                        update(
-                          f.key,
-                          rows.map((x, j) => (j === i ? next : x)),
-                        )
-                      }
-                      idPrefix={`${id}-${i}`}
-                    />
-                    <div class="actions">
-                      <button
-                        class="button button--quiet button--small"
-                        type="button"
-                        disabled={i === 0}
-                        onClick={() => move(i, -1)}
-                      >
-                        Move up
-                      </button>
-                      <button
-                        class="button button--quiet button--small"
-                        type="button"
-                        disabled={i === rows.length - 1}
-                        onClick={() => move(i, 1)}
-                      >
-                        Move down
-                      </button>
-                      <button
-                        class="button button--danger button--small"
-                        type="button"
-                        onClick={() =>
-                          confirm(
-                            `Remove ${f.itemLabel.toLowerCase()} ${i + 1}?`,
-                          ) &&
-                          update(
-                            f.key,
-                            rows.filter((_, j) => j !== i),
-                          )
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </details>
-                ))}
-                <button
-                  class="button button--quiet button--small"
-                  type="button"
-                  onClick={() =>
-                    update(f.key, [
-                      ...rows,
-                      blank({
-                        kind: "group",
-                        key: "",
-                        label: "",
-                        fields: f.fields,
-                      }),
-                    ])
-                  }
-                >
-                  Add {f.itemLabel.toLowerCase()}
-                </button>
-              </fieldset>
+              <ListField
+                key={f.key}
+                f={f}
+                id={id}
+                value={v}
+                help={help}
+                onCommit={(next) => update(f.key, next)}
+              />
             );
-          }
           case "group":
             return (
               <fieldset key={f.key}>
@@ -335,66 +464,17 @@ export function Fields({ fields, value, onChange, idPrefix }: Props) {
                 />
               </fieldset>
             );
-          case "record": {
-            const entries = Object.entries((v as Record<string, string>) ?? {});
-            const commit = (next: [string, string][]) =>
-              update(f.key, Object.fromEntries(next));
+          case "record":
             return (
-              <fieldset key={f.key} class="list-field">
-                <legend>{f.label}</legend>
-                {help}
-                {entries.map(([k, val], i) => (
-                  <div class="list-row list-row--pair" key={i}>
-                    <div class="field">
-                      <label for={`${id}-${i}-k`}>{f.keyLabel}</label>
-                      <input
-                        id={`${id}-${i}-k`}
-                        type="text"
-                        value={k}
-                        onInput={(e) =>
-                          commit(
-                            entries.map((en, j) =>
-                              j === i ? [e.currentTarget.value, en[1]] : en,
-                            ),
-                          )
-                        }
-                      />
-                    </div>
-                    <div class="field">
-                      <label for={`${id}-${i}-v`}>{f.valueLabel}</label>
-                      <input
-                        id={`${id}-${i}-v`}
-                        type={f.valueKind}
-                        value={val}
-                        onInput={(e) =>
-                          commit(
-                            entries.map((en, j) =>
-                              j === i ? [en[0], e.currentTarget.value] : en,
-                            ),
-                          )
-                        }
-                      />
-                    </div>
-                    <button
-                      class="button button--quiet button--small"
-                      type="button"
-                      aria-label={`Remove ${k || "entry"}`}
-                      onClick={() => commit(entries.filter((_, j) => j !== i))}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button
-                  class="button button--quiet button--small"
-                  type="button"
-                  onClick={() => commit([...entries, ["", ""]])}
-                >
-                  Add {f.valueLabel.toLowerCase()}
-                </button>
-              </fieldset>
+              <RecordField
+                key={f.key}
+                f={f}
+                id={id}
+                value={v}
+                help={help}
+                onCommit={(next) => update(f.key, next)}
+              />
             );
-          }
         }
       })}
     </>
