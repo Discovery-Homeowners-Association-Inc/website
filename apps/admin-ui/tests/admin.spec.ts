@@ -97,13 +97,10 @@ test("the administrator also acts as secretary: add a meeting and publish its ag
   await expect(admin.getByLabel("Item title").first()).toHaveValue(
     "Call to order",
   );
-  if (
-    await admin
-      .getByRole("button", { name: "Publish this version" })
-      .isDisabled()
-  ) {
-    await admin.getByRole("button", { name: "Save agenda" }).click();
-  }
+  // The two moves above both call update(), which sets dirty, so "Publish
+  // this version" is always disabled here -- save again before publishing.
+  await admin.getByRole("button", { name: "Save agenda" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved as version");
   await admin.getByRole("button", { name: "Publish this version" }).click();
   await expect(admin.getByText(/Version \d+ is published\./)).toBeVisible();
   await expectAccessible(admin);

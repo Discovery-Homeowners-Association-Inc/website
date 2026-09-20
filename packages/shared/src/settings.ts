@@ -113,8 +113,8 @@ export const MAP_PLACE_KINDS = ["park", "amenity"] as const;
  * than numbers baked into the page.
  */
 export const MapPlace = z.object({
-  kind: z.enum(MAP_PLACE_KINDS).default("park"),
   label: s.min(1),
+  kind: z.enum(MAP_PLACE_KINDS).default("park"),
   /** Shown inside the marker. 0 for an amenity, which gets a dot instead. */
   number: z.number().int().min(0).default(0),
   lat: z.number().min(-90).max(90),
@@ -138,8 +138,8 @@ export const Problems = z.object({
     z.object({
       issue: s.min(1),
       contact: s,
-      phone: s.default(""),
       phone_key: z.enum(["", "office"]).default(""),
+      phone: s.default(""),
       email_key: s.default(""),
       note: s.default(""),
       urgent: z.boolean().default(false),
@@ -179,10 +179,10 @@ export const Links = z.object({
       links: z.array(
         z.object({
           name: s.min(1),
+          url,
           phone: s.default(""),
           address: s.default(""),
           hours: s.default(""),
-          url,
           note: s.default(""),
         }),
       ),

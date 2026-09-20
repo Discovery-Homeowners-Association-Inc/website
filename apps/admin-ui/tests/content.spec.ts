@@ -328,9 +328,7 @@ test("an administrator changes a fact once in site settings", async () => {
   await admin.getByRole("button", { name: "Save changes" }).click();
   await expect(admin.getByRole("status")).toContainText("Saved");
   await admin.reload();
-  await expect(
-    admin.getByLabel("Role key").filter({ hasText: "" }),
-  ).toHaveCount(n);
+  await expect(admin.getByLabel("Role key")).toHaveCount(n);
   const saved = await (
     await admin.request.get("/api/settings/organization")
   ).json();
