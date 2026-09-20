@@ -22,6 +22,7 @@ import {
 } from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
 import { useUnsavedWarning } from "../lib/use-unsaved.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
@@ -66,7 +67,8 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
     expiry_action: "hide" as "hide" | "delete",
   });
   const [approvals, setApprovals] = useState<Approvals | null>(null);
-  const [emailKeys, setEmailKeys] = useState<string[]>([]);
+  const { organization, error: orgError } = useOrganization();
+  const emailKeys = organization ? Object.keys(organization.emails) : [];
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -91,14 +93,12 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
   useEffect(() => {
     void load().catch((e: unknown) => setError(messageFrom(e)));
     api<Approvals>("GET", "/settings/approvals").then(setApprovals, () => {});
-    api<{ emails: Record<string, string> }>(
-      "GET",
-      "/settings/organization",
-    ).then(
-      (o) => setEmailKeys(Object.keys(o.emails)),
-      () => {},
-    );
   }, [id]);
+  useEffect(() => {
+    // An editor may legitimately be refused this read; the saved key still
+    // shows in the options below, so this is worth knowing but not alarming.
+    if (orgError) console.warn(orgError);
+  }, [orgError]);
   useUnsavedWarning(dirty);
   useEffect(() => {
     document.title = `${item ? item.body.title : `New ${cfg.one}`} | Board administration`;
@@ -206,6 +206,22 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
       }[action],
     ).then((ok) => ok && setNote(""));
   };
+
+  // The saved key stays an option even if it dropped out of Organization ›
+  // Email addresses by role, or the read failed, so this screen never claims
+  // a published item points nowhere when it does not.
+  const emailKeyOptions = () => {
+    const current = String(body.contact_email_key ?? "");
+    const keys = (
+      emailKeys.includes(current) ? emailKeys : [current, ...emailKeys]
+    ).filter(Boolean);
+    return emailOptions(keys);
+  };
+  const fields = cfg.fields.map((f) =>
+    f.key === "contact_email_key" && f.kind === "select"
+      ? { ...f, options: [...f.options, ...emailKeyOptions()] }
+      : f,
+  );
 
   return (
     <>
@@ -457,14 +473,7 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
                 </div>
               )}
               <Fields
-                fields={cfg.fields.map((f) =>
-                  f.key === "contact_email_key" && f.kind === "select"
-                    ? {
-                        ...f,
-                        options: [...f.options, ...emailOptions(emailKeys)],
-                      }
-                    : f,
-                )}
+                fields={fields}
                 value={body}
                 onChange={(next) => (
                   setBody(next),
@@ -500,7 +509,7 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
                 </p>
               </Why>
               <dl class="minutes-facts">
-                {cfg.fields.map((f) => (
+                {fields.map((f) => (
                   <>
                     <dt>{f.label}</dt>
                     <dd

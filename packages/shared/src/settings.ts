@@ -98,6 +98,7 @@ export const Organization = z.object({
     water_bill: z.object({ label: s, url }),
   }),
 });
+export type Organization = z.infer<typeof Organization>;
 
 /** What a marker on the parks map stands for. */
 export const MAP_PLACE_KINDS = ["park", "amenity"] as const;

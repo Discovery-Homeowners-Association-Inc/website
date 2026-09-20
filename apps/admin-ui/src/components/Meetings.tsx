@@ -11,6 +11,7 @@ import {
   typeLabel,
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
@@ -32,20 +33,17 @@ export function Meetings() {
       setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
+  const { organization, error: orgError } = useOrganization();
   useEffect(() => {
-    api<{ meetings: { board: { time: string; location: string } } }>(
-      "GET",
-      "/settings/organization",
-    ).then(
-      (o) =>
-        setForm((f) => ({
-          ...f,
-          time: o.meetings.board.time,
-          location: o.meetings.board.location,
-        })),
-      () => {},
-    );
-  }, []);
+    if (!organization) return;
+    // Only fill what is still blank: a secretary who already typed a time or
+    // location before this answered must not have it silently replaced.
+    setForm((f) => ({
+      ...f,
+      time: f.time || organization.meetings.board.time,
+      location: f.location || organization.meetings.board.location,
+    }));
+  }, [organization]);
 
   async function create(event: Event) {
     event.preventDefault();
@@ -64,7 +62,7 @@ export function Meetings() {
   return (
     <>
       <PageHead title="Meetings" />
-      <ErrorNotice message={error} />
+      <ErrorNotice message={error || orgError} />
       {can(me, "admin", "secretary") && (
         <form class="panel" onSubmit={create}>
           <h2>Add a meeting</h2>

@@ -276,6 +276,35 @@ test("a document is uploaded and described", async () => {
   expect(await file.text()).toBe("%PDF-1.4 rules");
 });
 
+test("an editor can only change their own drafts", async () => {
+  await editor.goto("/content/events/edit/");
+  await editor.getByLabel("Title").fill("Pool committee open house");
+  await editor.getByLabel("Summary").fill("Meet the volunteers.");
+  await editor.getByLabel("Starts").fill("2099-06-01T18:00");
+  await editor.getByLabel("Ends").fill("2099-06-01T20:00");
+  await editor
+    .getByLabel("Questions go to")
+    .selectOption({ label: "Pool & Recreation Committee" });
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  const eventUrl = editor.url().replace(/&saved=1$/, "");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+
+  await director.goto(eventUrl);
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Published" }),
+  ).toBeVisible();
+
+  // Published, so the author who wrote it can only read it now -- and the
+  // read-only view names the committee, not the raw key it is stored as.
+  await editor.goto(eventUrl);
+  await expect(
+    editor.getByText("You can read this event but not change it."),
+  ).toBeVisible();
+  await expect(editor.getByText("Pool & Recreation Committee")).toBeVisible();
+});
+
 test("an administrator changes a fact once in site settings", async () => {
   await admin.goto("/settings/");
   await admin.getByRole("link", { name: /^Organization/ }).click();
@@ -312,6 +341,22 @@ test("an administrator changes a fact once in site settings", async () => {
   await expectAccessible(admin);
   await editor.goto("/settings/?group=parks");
   await expect(editor.getByText("Only administrators")).toBeVisible();
+});
+
+test("editing a committee still shows its saved email key when settings cannot be read", async () => {
+  await admin.route("**/api/settings/organization", (route) => route.abort(), {
+    times: 1,
+  });
+  await admin.goto("/roster/");
+  // Scoped to the Committees list: a serving director's row can also mention
+  // "Pool & Recreation Committee" among their roles.
+  await admin
+    .locator("h2:has-text('Committees') + ul")
+    .getByRole("listitem")
+    .filter({ hasText: "Pool & Recreation" })
+    .getByRole("button", { name: "Edit" })
+    .click();
+  await expect(admin.getByLabel("Email role key")).toHaveValue("pool_rec");
 });
 
 test("the roster drives attendance in minutes, and ending a term keeps the record", async () => {

@@ -6,8 +6,10 @@ import {
 } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import { api, can, runAndReport } from "../lib/api.ts";
+import { emailOptions } from "../lib/content.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 import { Why } from "./Why.tsx";
@@ -39,16 +41,8 @@ export function Roster() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [showPast, setShowPast] = useState(false);
-  const [emailKeys, setEmailKeys] = useState<string[]>([]);
-  useEffect(() => {
-    api<{ emails: Record<string, string> }>(
-      "GET",
-      "/settings/organization",
-    ).then(
-      (o) => setEmailKeys(Object.keys(o.emails)),
-      () => {},
-    );
-  }, []);
+  const { organization, error: orgError } = useOrganization();
+  const emailKeys = organization ? Object.keys(organization.emails) : [];
   useEffect(() => {
     if (editing) document.getElementById("p-name")?.focus();
   }, [editing?.id]);
@@ -342,7 +336,7 @@ export function Roster() {
           need not be on the roster.
         </p>
       </Why>
-      <ErrorNotice message={error} />
+      <ErrorNotice message={error || orgError} />
       <Saved message={saved} />
       {editing
         ? editing.id === null && personForm(editing)
@@ -469,9 +463,14 @@ export function Roster() {
                 })
               }
             >
-              {emailKeys.map((k) => (
-                <option value={k} key={k}>
-                  {k}
+              {emailOptions(
+                emailKeys.includes(editingCommittee.email_key) ||
+                  !editingCommittee.email_key
+                  ? emailKeys
+                  : [editingCommittee.email_key, ...emailKeys],
+              ).map((o) => (
+                <option value={o.value} key={o.value}>
+                  {o.label}
                 </option>
               ))}
             </select>

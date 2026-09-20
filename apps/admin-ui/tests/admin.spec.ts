@@ -263,6 +263,16 @@ test("the secretary revises, and the board approves the exact version at the mee
   );
 });
 
+test("the printed minutes carry the association's legal name", async () => {
+  await admin.goto(minutesUrl.replace("/minutes/", "/minutes/print/"));
+  await expect(admin.locator(".print-org")).toHaveText(
+    "Discovery Homeowners Association, Inc.",
+  );
+  // The next test assumes the shared admin page is still on the minutes
+  // screen, as it was before this one navigated away to print it.
+  await admin.goto(minutesUrl);
+});
+
 test("approved minutes export for PayHOA and are marked filed", async () => {
   await admin.reload();
   await expect(

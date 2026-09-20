@@ -7,6 +7,7 @@ import {
   type ExportResponse,
   typeLabel,
 } from "../lib/api.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { MinutesView } from "./MinutesView.tsx";
 import { ErrorNotice, Loading } from "./Notice.tsx";
 
@@ -17,8 +18,8 @@ import { ErrorNotice, Loading } from "./Notice.tsx";
  */
 export function Print() {
   const [data, setData] = useState<ExportResponse | null>(null);
-  const [legalName, setLegalName] = useState("");
   const [error, setError] = useState("");
+  const { organization, error: orgError } = useOrganization();
   useEffect(() => {
     api<ExportResponse>("GET", `/meetings/${param("id")}/minutes/export`).then(
       (d) => {
@@ -27,13 +28,16 @@ export function Print() {
       },
       (e: unknown) => setError(messageFrom(e)),
     );
-    api<{ legal_name: string }>("GET", "/settings/organization").then(
-      (o) => setLegalName(o.legal_name),
-      () => {},
-    );
   }, []);
 
-  if (!data) return error ? <ErrorNotice message={error} /> : <Loading />;
+  // Never print a blank organization line: wait for the name, or say why
+  // there is none, on the one screen whose output is a document of record.
+  if (!data || !organization)
+    return error || orgError ? (
+      <ErrorNotice message={error || orgError} />
+    ) : (
+      <Loading />
+    );
   const { meeting: m, vote } = data;
   return (
     <article class="print-doc">
@@ -47,7 +51,7 @@ export function Print() {
         </span>
       </div>
       <header>
-        <p class="print-org">{legalName}</p>
+        <p class="print-org">{organization.legal_name}</p>
         <h1>Minutes of the {typeLabel[m.type].toLowerCase()}</h1>
         <p>
           {longDate(m.date)}, {m.time}, {m.location}
