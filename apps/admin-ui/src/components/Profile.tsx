@@ -38,7 +38,7 @@ const device = (ua: string | null) => {
   return `${browser} on ${os}`;
 };
 
-export default function ProfilePage() {
+export function ProfilePage() {
   const [p, setP] = useState<Profile | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState("");

@@ -24,7 +24,7 @@ import { PageHead } from "./PageHead.tsx";
 
 type Loaded = Extract<MinutesResponse, { minutes: object }>;
 
-export default function Minutes() {
+export function Minutes() {
   const id = param("id");
   const { me } = useMe();
   const roster = useRoster();

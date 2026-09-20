@@ -15,8 +15,9 @@ import { ErrorNotice, Loading } from "./Notice.tsx";
  * own print-to-PDF, so the Worker does no PDF work (Workers Free allows 10 ms
  * of CPU per request).
  */
-export default function Print() {
+export function Print() {
   const [data, setData] = useState<ExportResponse | null>(null);
+  const [legalName, setLegalName] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
     api<ExportResponse>("GET", `/meetings/${param("id")}/minutes/export`).then(
@@ -25,6 +26,10 @@ export default function Print() {
         document.title = `Minutes ${d.meeting.date} ${typeLabel[d.meeting.type]}`;
       },
       (e: unknown) => setError(messageFrom(e)),
+    );
+    api<{ legal_name: string }>("GET", "/settings/organization").then(
+      (o) => setLegalName(o.legal_name),
+      () => {},
     );
   }, []);
 
@@ -42,7 +47,7 @@ export default function Print() {
         </span>
       </div>
       <header>
-        <p class="print-org">Discovery Homeowners Association, Inc.</p>
+        <p class="print-org">{legalName}</p>
         <h1>Minutes of the {typeLabel[m.type].toLowerCase()}</h1>
         <p>
           {longDate(m.date)}, {m.time}, {m.location}

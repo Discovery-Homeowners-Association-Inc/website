@@ -26,7 +26,7 @@ const roleHelp: Record<Role, string> = {
   admin: "Invites people and sets roles",
   secretary:
     "Writes agendas and minutes, runs the vote, files minutes in PayHOA",
-  board: "Reviews and votes on minutes",
+  board: "Reviews and votes on minutes; approves site content",
   editor: "Edits public site content",
   reviewer: "Reads and comments on draft minutes, no vote",
 };
@@ -67,7 +67,7 @@ function RolePicker({
   );
 }
 
-export default function People() {
+export function People() {
   const { me } = useMe();
   const [people, setPeople] = useState<Person[] | null>(null);
   const [invite, setInvite] = useState({

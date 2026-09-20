@@ -26,7 +26,7 @@ const blankPerson = (): Person => ({
   order: 100,
 });
 
-export default function Roster() {
+export function Roster() {
   const { me, error: meError } = useMe();
   const { people, committees, serving, error: loadError, reload } = useRoster();
   const [editing, setEditing] = useState<{

@@ -15,7 +15,7 @@ const live = (i: Item, now: number) =>
   new Date(i.publish_at).getTime() <= now &&
   !(i.expires_at && new Date(i.expires_at).getTime() <= now);
 
-export default function ItemList({ kind }: { kind: ItemKind }) {
+export function ItemList({ kind }: { kind: ItemKind }) {
   const cfg = KINDS[kind];
   const { me, error: meError } = useMe();
   const [rows, setRows] = useState<Row[] | null>(null);

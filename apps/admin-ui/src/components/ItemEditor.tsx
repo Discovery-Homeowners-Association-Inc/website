@@ -51,7 +51,7 @@ const actionLabel: Record<ItemAction, string> = {
   unpublish: "Take off the site",
 };
 
-export default function ItemEditor({ kind }: { kind: ItemKind }) {
+export function ItemEditor({ kind }: { kind: ItemKind }) {
   const cfg = KINDS[kind];
   const id = param("id");
   const { me, error: meError } = useMe();

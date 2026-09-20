@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { param } from "../lib/api.ts";
 import { ErrorNotice } from "./Notice.tsx";
 
-export default function SignIn() {
+export function SignIn() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);

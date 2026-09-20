@@ -18,7 +18,7 @@ const groups = SETTINGS_KEYS.map((key) => ({
   fields: fieldsFrom(SETTINGS[key], SETTINGS_LABELS[key].fields, key),
 }));
 
-export default function Settings() {
+export function Settings() {
   const { me } = useMe();
   const key = param("group");
   const group = groups.find((g) => g.key === key);

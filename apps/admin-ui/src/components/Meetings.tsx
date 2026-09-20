@@ -21,7 +21,7 @@ const blank = {
   location: "",
 };
 
-export default function Meetings() {
+export function Meetings() {
   const { me } = useMe();
   const [meetings, setMeetings] = useState<MeetingListItem[] | null>(null);
   const [form, setForm] = useState(blank);

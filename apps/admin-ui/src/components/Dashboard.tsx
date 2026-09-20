@@ -15,7 +15,7 @@ import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
-export default function Dashboard() {
+export function Dashboard() {
   const { me, error: meError } = useMe();
   const [meetings, setMeetings] = useState<MeetingListItem[] | null>(null);
   const [pendingItems, setPendingItems] = useState<

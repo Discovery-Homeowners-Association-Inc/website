@@ -26,7 +26,7 @@ type Suggestions = {
   }[];
 };
 
-export default function Meeting() {
+export function Meeting() {
   const id = param("id");
   const { me } = useMe();
   const [data, setData] = useState<AgendaResponse | null>(null);
