@@ -7,8 +7,8 @@
   // assets never invoke Worker code, and Cloudflare bills none of them -- "requests
   // to static assets are free and unlimited" -- so however busy the site gets it
   // costs nothing and cannot eat into the 100,000 requests a day the admin Worker
-  // needs. That is docs/DECISIONS.md #2 held up by the platform rather than by
-  // discipline.
+  // needs. That is the README's list of choices held up by the platform rather
+  // than by discipline.
   "assets": {
     "directory": "./dist",
     // Astro writes 404.html; serve it with a real 404 instead of a 200.

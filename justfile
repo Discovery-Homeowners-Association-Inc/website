@@ -67,7 +67,7 @@ preview:
     pnpm --filter @dhoa/site run build
     pnpm --filter @dhoa/site exec astro preview --host 0.0.0.0 --port 4323
 
-# Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see docs/RUNBOOK-admin.md)
+# Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see apps/admin/README.md)
 # The UI is built into its own folder, so `just build` or `just ci` cannot pull it out from under the server.
 run-admin:
     pnpm --filter @dhoa/admin-ui exec astro build --outDir .dev-dist

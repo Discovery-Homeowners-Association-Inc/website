@@ -5,7 +5,7 @@
 # committees on slug -- so `insert or ignore` makes a second run a no-op. People
 # were the exception: they were inserted with a fresh uuid each run, so a second
 # run duplicated the whole board. `just seed-local` says it is idempotent and
-# docs/RUNBOOK-admin.md tells you to run the same seed against production.
+# apps/admin/README.md tells you to run the same seed against production.
 #
 # This generates the seed twice and checks that the ids it hands out do not
 # move. Timestamps do move, and are meant to, so they are not compared.

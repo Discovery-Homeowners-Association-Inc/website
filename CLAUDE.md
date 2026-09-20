@@ -1,7 +1,7 @@
 # Working in this repository
 
-Read `docs/DECISIONS.md` before changing architecture, and `SECURITY.md` before touching
-credentials or workflows.
+Read the README's _How it fits together_ before changing architecture, and `SECURITY.md`
+before touching credentials or workflows.
 
 ## Never commit a secret
 
@@ -25,9 +25,9 @@ text quoted verbatim from its author.
 
 Workers Free (10 ms CPU per request), D1, KV and GitHub Actions on a public repo. Keep
 CPU-heavy work (PDF rendering, hashing) in the browser. Any change that would need a paid plan
-must say so and justify it in `docs/DECISIONS.md`.
+must say so and justify it in the README's list of choices.
 
 ## Commands
 
 `just setup`, `just ci` (everything CI runs), `just run` (public site), `just run-admin`
-(admin app). See `docs/RUNBOOK-admin.md`.
+(admin app). See `apps/admin/README.md`.

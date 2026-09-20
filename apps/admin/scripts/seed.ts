@@ -28,7 +28,7 @@ const now = new Date().toISOString();
  * Ids are derived from whatever identifies the row, never generated, so that
  * applying the seed twice is the no-op `insert or ignore` promises. Items and
  * committees are keyed on a slug, and people on their name; a fresh uuid meant
- * a second run duplicated the whole board, which docs/RUNBOOK-admin.md tells
+ * a second run duplicated the whole board, which apps/admin/README.md tells
  * you to do against production. scripts/check-seed-stable.sh holds this.
  */
 const stableId = (...parts: string[]) =>

@@ -56,7 +56,7 @@ const PROPS = [
 
 /*
  * Interior pages only, and the home page last. The site's home page is a hero by
- * design -- docs/DESIGN.md gives it the one bold element on the site -- so
+ * design -- packages/design/README.md gives it the one bold element on the site -- so
  * comparing its 112px headline against an admin dashboard says nothing about
  * whether the two apps agree. What matters is whether a reader moving between an
  * ordinary page of one and an ordinary page of the other sees the same system.

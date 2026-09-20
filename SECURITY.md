@@ -29,7 +29,8 @@ This repository is public. Nothing in it is secret, and nothing secret may be ad
 ## How the application protects itself
 
 - Sign-in is Google only, invite-only, and the admin app never stores passwords.
-- Every API route checks the caller's role. Draft minutes are never sent to anyone without the
-  right role, and never leave the database except as an approved PDF.
+- Every API route requires a signed-in account with a role; routes that change data check the
+  specific role, and reading routes give each role what it needs (an editor never sees draft
+  minutes). Draft minutes never leave the database except as an approved PDF.
 - Every change to data writes an audit log entry in the same database transaction.
 - The public website is static files; visitors never reach the database.
