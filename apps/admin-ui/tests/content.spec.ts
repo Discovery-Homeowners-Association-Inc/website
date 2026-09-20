@@ -162,6 +162,41 @@ test("an approver who read an older version is told to read again", async () => 
   ).toBeVisible();
 });
 
+test("a published post can be taken down and then deleted", async () => {
+  await admin.goto(newsUrl);
+  admin.once("dialog", (d) => void d.accept());
+  await admin.getByRole("button", { name: "Take off the site" }).click();
+  await expect(
+    admin.getByRole("heading", { name: "Status: Draft" }),
+  ).toBeVisible();
+  let json = await (await admin.request.get("/api/public/site.json")).json();
+  expect(
+    json.news.map((n: { body: { title: string } }) => n.body.title),
+  ).not.toContain("Leaf collection starts Monday");
+  admin.once("dialog", (d) => void d.accept());
+  await admin.getByRole("button", { name: /^Delete this/ }).click();
+  await admin.waitForURL(/\/content\/news\/$/);
+  await expect(
+    admin.getByRole("link", { name: "Leaf collection starts Monday" }),
+  ).toHaveCount(0);
+});
+
+test("sending something back needs a note", async () => {
+  await editor.goto("/content/news/edit/");
+  await editor.getByLabel("Title").fill("Needs a note");
+  await editor.getByLabel("Summary").fill("Summary.");
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  const url = editor.url().replace(/&saved=1$/, "");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+  await director.goto(url);
+  await director.getByRole("button", { name: "Send back with a note" }).click();
+  await expect(director.getByRole("alert")).toContainText("Write a note");
+  await expect(
+    director.getByRole("heading", { name: "Status: Waiting for approval" }),
+  ).toBeVisible();
+});
+
 test("a scheduled post stays off the site until its date; an expired one disappears", async () => {
   await admin.goto("/content/events/edit/");
   await admin.getByLabel("Title").fill(SCHEDULED);
@@ -333,7 +368,7 @@ test("profile and help pages work, and every new screen fits a phone", async ({
   for (const path of [
     "/content/",
     "/content/news/",
-    newsUrl.replace(/^https?:\/\/[^/]+/, ""),
+    "/content/news/edit/",
     "/content/documents/edit/",
     "/roster/",
     "/settings/?group=organization",

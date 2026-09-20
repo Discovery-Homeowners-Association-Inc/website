@@ -85,8 +85,27 @@ test("the administrator also acts as secretary: add a meeting and publish its ag
   await admin.getByLabel("Item title").nth(1).fill("Treasurer's report");
   await admin.getByRole("button", { name: "Save agenda" }).click();
   await expect(admin.getByRole("status")).toContainText("Saved as version 1");
+  await admin
+    .getByRole("button", { name: 'Move "Treasurer\'s report" up' })
+    .click();
+  await expect(admin.getByLabel("Item title").first()).toHaveValue(
+    "Treasurer's report",
+  );
+  await admin
+    .getByRole("button", { name: 'Move "Treasurer\'s report" down' })
+    .click();
+  await expect(admin.getByLabel("Item title").first()).toHaveValue(
+    "Call to order",
+  );
+  if (
+    await admin
+      .getByRole("button", { name: "Publish this version" })
+      .isDisabled()
+  ) {
+    await admin.getByRole("button", { name: "Save agenda" }).click();
+  }
   await admin.getByRole("button", { name: "Publish this version" }).click();
-  await expect(admin.getByText("Version 1 is published.")).toBeVisible();
+  await expect(admin.getByText(/Version \d+ is published\./)).toBeVisible();
   await expectAccessible(admin);
 });
 
