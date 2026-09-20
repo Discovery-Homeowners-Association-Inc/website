@@ -100,6 +100,20 @@ describe("fieldsFrom", () => {
     const { note: _note, ...missing } = labels;
     expect(() => fieldsFrom(schema, missing)).toThrow(/note/);
   });
+  it("derives a phone kind for a plain string labeled phone", () => {
+    const phoneSchema = z.object({ number: z.string() });
+    const [field] = fieldsFrom(phoneSchema, {
+      number: { label: "Phone", kind: "phone" },
+    });
+    expect(field).toMatchObject({ kind: "phone" });
+  });
+  it("carries min and max through for a number", () => {
+    const numberSchema = z.object({ founded: z.number().int() });
+    const [field] = fieldsFrom(numberSchema, {
+      founded: { label: "Year founded", min: 1800, max: 2100 },
+    });
+    expect(field).toMatchObject({ min: 1800, max: 2100 });
+  });
   it("can describe every settings group the admin app shows", () => {
     // Labels live in the admin app; here only the shape is walked, with a
     // label generated for every key, to prove the walker handles every type

@@ -43,7 +43,7 @@ export const SETTINGS_LABELS: Record<SettingsKey, SettingsLabels> = {
       locality: { label: "Town" },
       county: { label: "County" },
       state: { label: "State" },
-      founded: { label: "Year founded", step: 1 },
+      founded: { label: "Year founded", step: 1, min: 1800, max: 2100 },
       office: {
         label: "The office",
         fields: {
@@ -54,13 +54,15 @@ export const SETTINGS_LABELS: Record<SettingsKey, SettingsLabels> = {
           mailing: { label: "Mailing address", help: "Where checks go." },
           phone: {
             label: "Phone",
+            kind: "phone",
             help: "As people should read it, like 301-845-2050.",
           },
           phone_e164: {
             label: "Phone for tap-to-call",
+            kind: "phone",
             help: "Digits only with the country code, like +13018452050.",
           },
-          fax: { label: "Fax" },
+          fax: { label: "Fax", kind: "phone" },
           email: { label: "Email" },
           hours: {
             label: "Office hours",
@@ -423,7 +425,7 @@ export const SETTINGS_LABELS: Record<SettingsKey, SettingsLabels> = {
             summary: "label",
             fields: {
               label: { label: "Label" },
-              number: { label: "Number" },
+              number: { label: "Number", kind: "phone" },
             },
           },
         },
@@ -442,7 +444,7 @@ export const SETTINGS_LABELS: Record<SettingsKey, SettingsLabels> = {
         fields: {
           issue: { label: "The problem" },
           contact: { label: "Who handles it" },
-          phone: { label: "Phone number" },
+          phone: { label: "Phone number", kind: "phone" },
           phone_key: {
             label: "Phone",
             options: { "": "A number typed below", office: "The office phone" },
@@ -475,7 +477,7 @@ export const SETTINGS_LABELS: Record<SettingsKey, SettingsLabels> = {
             summary: "name",
             fields: {
               name: { label: "Name" },
-              phone: { label: "Phone" },
+              phone: { label: "Phone", kind: "phone" },
               address: { label: "Address" },
               hours: { label: "Hours" },
               url: { label: "Website" },

@@ -11,8 +11,8 @@ const url = z.url().or(z.literal("")).default("");
 export const MEETING_TIME = /^(1[0-2]|0?[1-9]):([0-5]\d) (am|pm)$/i;
 const meetingTime = s.regex(MEETING_TIME, "Use a time like 7:00 pm");
 const Fee = z.object({
-  label: s,
-  amount: s,
+  label: s.min(1),
+  amount: s.min(1),
   unit: s.default(""),
   note: s.default(""),
 });

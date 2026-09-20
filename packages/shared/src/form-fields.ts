@@ -94,9 +94,14 @@ export type FieldLabel = {
   label: string;
   help?: string;
   placeholder?: string;
-  kind?: "textarea" | "markdown"; // a string that wants more than one line
+  // "textarea"/"markdown": a string that wants more than one line.
+  // "phone": a string a person reads back, rendered with type="tel" --
+  // not derivable from the schema, since it is plain text there too.
+  kind?: "textarea" | "markdown" | "phone";
   rows?: number;
   step?: number;
+  min?: number; // numbers: bounds the schema itself doesn't state
+  max?: number;
   itemLabel?: string; // arrays
   summary?: string; // arrays of objects: the row key to show in the summary
   keyLabel?: string;
@@ -289,6 +294,15 @@ function fieldFor(
 
   switch (def.type) {
     case KIND.string: {
+      if (label.kind === "phone")
+        return {
+          key,
+          label: text,
+          help,
+          kind: "phone",
+          required: isRequired(def, wrapped),
+          placeholder: label.placeholder,
+        };
       if (def.format === FORMAT.email)
         return {
           key,
@@ -343,6 +357,8 @@ function fieldFor(
         help,
         kind: "number",
         step: label.step ?? (isIntFormat(def) ? 1 : undefined),
+        min: label.min,
+        max: label.max,
       };
 
     case KIND.boolean:

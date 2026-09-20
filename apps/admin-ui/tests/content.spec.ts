@@ -365,5 +365,12 @@ test("every settings group renders its form", async () => {
     expect(
       await admin.locator("input, select, textarea").count(),
     ).toBeGreaterThan(0);
+    // A schema-derived field can still ask for a phone input: the office
+    // phone number is plain text in the schema, but its label says "phone".
+    if (href.includes("group=organization"))
+      await expect(admin.getByLabel("Phone", { exact: true })).toHaveAttribute(
+        "type",
+        "tel",
+      );
   }
 });
