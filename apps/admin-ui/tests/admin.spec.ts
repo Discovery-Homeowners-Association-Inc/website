@@ -136,6 +136,7 @@ test("the secretary drafts minutes and sends them for review", async () => {
   minutesUrl = admin.url();
 
   await admin.getByLabel("Called to order at").fill("7:02 pm");
+  await admin.getByLabel("Presiding").selectOption("Valentina Duk");
   const present = admin.getByRole("group", { name: "Directors present" });
   await present.getByLabel("Valentina Duk").check();
   await present.getByLabel("Doug Shoemaker").check();
@@ -203,6 +204,12 @@ test("the secretary revises, and the board approves the exact version at the mee
   await expect(
     admin.getByText("Please include the balance amount."),
   ).toBeVisible();
+  // The roster arrives after the minutes. A picker that decided "someone else"
+  // before it arrived showed every saved director as a stranger.
+  await expect(admin.getByLabel("Presiding", { exact: true })).toHaveValue(
+    "Valentina Duk",
+  );
+  await expect(admin.getByLabel("Presiding, name")).toHaveCount(0);
   await admin
     .getByLabel("Discussion")
     .nth(1)
