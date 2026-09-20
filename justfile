@@ -21,7 +21,7 @@ lint:
     pnpm exec prettier --check .
     pnpm -r --if-present run lint
     # Both apps must run the same Playwright, or one of them tests with browsers the other installed.
-    test "$(jq -r '.devDependencies["@playwright/test"]' apps/site/package.json)" = "$(jq -r '.devDependencies["@playwright/test"]' apps/admin-ui/package.json)"
+    pw="$(jq -r '.devDependencies["@playwright/test"]' apps/site/package.json)"; test "$pw" != "null" && test "$pw" = "$(jq -r '.devDependencies["@playwright/test"]' apps/admin-ui/package.json)"
 
 # American English everywhere; see the script for what it does not flag
 check-english:
