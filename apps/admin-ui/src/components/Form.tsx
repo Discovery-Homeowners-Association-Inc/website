@@ -111,6 +111,26 @@ function RecordField({
   );
 }
 
+/** The open rows below `i`, with everything above `i` shifted down to follow its row. */
+function withoutRow(open: Set<number>, i: number): Set<number> {
+  const next = new Set<number>();
+  for (const j of open) {
+    if (j < i) next.add(j);
+    else if (j > i) next.add(j - 1);
+  }
+  return next;
+}
+
+/** `i` and `j` trade their open/closed state, so it stays with the row that moved. */
+function swapRows(open: Set<number>, i: number, j: number): Set<number> {
+  const next = new Set(open);
+  const iWasOpen = open.has(i);
+  const jWasOpen = open.has(j);
+  jWasOpen ? next.add(i) : next.delete(i);
+  iWasOpen ? next.add(j) : next.delete(j);
+  return next;
+}
+
 function ListField({
   f,
   id,
@@ -143,8 +163,15 @@ function ListField({
   const move = (i: number, by: number) => {
     const next = [...rows];
     const [row] = next.splice(i, 1);
-    next.splice(i + by, 0, row!);
+    if (row === undefined) return;
+    next.splice(i + by, 0, row);
     change(next);
+    setOpen((s) => swapRows(s, i, i + by));
+  };
+  const removeRow = (i: number) => {
+    if (!confirm(`Remove ${f.itemLabel.toLowerCase()} ${i + 1}?`)) return;
+    change(rows.filter((_, j) => j !== i));
+    setOpen((s) => withoutRow(s, i));
   };
   return (
     <fieldset class="list-field">
@@ -195,10 +222,7 @@ function ListField({
             <button
               class="button button--danger button--small"
               type="button"
-              onClick={() =>
-                confirm(`Remove ${f.itemLabel.toLowerCase()} ${i + 1}?`) &&
-                change(rows.filter((_, j) => j !== i))
-              }
+              onClick={() => removeRow(i)}
             >
               Remove
             </button>
