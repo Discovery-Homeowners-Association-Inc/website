@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T01:06:50.980Z",
+  "generated_at": "2026-09-20T01:32:41.817Z",
   "settings": {
     "organization": {
       "legal_name": "Discovery Homeowners Association, Inc.",
@@ -73,7 +73,7 @@
         "payhoa": {
           "enabled": true,
           "portal_url": "https://app.payhoa.com/auth/login",
-          "help_text": "Pay your assessment, see your balance, get documents, and submit ACC applications.",
+          "help_text": "Pay your dues, see your balance, get documents, and submit ACC applications.",
           "features": [
             "Pay your assessment online",
             "Get association documents",
@@ -1832,11 +1832,11 @@
       "id": "42b7296d103e65a7b7560480f8a79dc5",
       "slug": "meetings",
       "publish_at": "2026-09-01T13:00:00.000Z",
-      "updated_at": "2026-09-19T13:00:07.959Z",
+      "updated_at": "2026-09-20T01:31:14.115Z",
       "body": {
         "title": "Meetings",
         "summary": "The board meets monthly and every homeowner and renter is welcome. No invitation needed.",
-        "body": "## What gets discussed\n\nThe recurring business is money and maintenance: the budget, contracts for\nlandscaping and trash, the pool season, park repairs, and whatever project is\ncurrently in flight. Architectural Control matters are handled by that committee\nand come to the board when they need a decision.\n\n## Bringing something up\n\nIf you have a question or a proposal, two things make it go better. Email the\noffice beforehand so it can go on the agenda — {{email:general}} — and\nbring the specifics: the address, the date, the photo. Boards can act on\nspecifics and can only nod sympathetically at generalities."
+        "body": "You do not need to be on an agenda, ask permission, or have a complaint. People come\nto listen, and that is a perfectly good reason to be there.\n\n## What gets discussed\n\nThe recurring business is money and maintenance: the budget, contracts for\nlandscaping and trash, the pool season, park repairs, and whatever project is\ncurrently in flight. Architectural Control matters are handled by that committee\nand come to the board when they need a decision.\n\n## Bringing something up\n\nIf you have a question or a proposal, two things make it go better. Email the\noffice beforehand so it can go on the agenda — {{email:general}} — and\nbring the specifics: the address, the date, the photo. Boards can act on\nspecifics and can only nod sympathetically at generalities."
       }
     },
     {
@@ -1920,11 +1920,11 @@
       "id": "454eecc73f99d1ec2ebf8c312f2b951c",
       "slug": "trash-recycling",
       "publish_at": "2026-09-01T13:00:00.000Z",
-      "updated_at": "2026-09-19T13:00:07.959Z",
+      "updated_at": "2026-09-20T01:31:14.115Z",
       "body": {
         "title": "Trash & recycling",
         "summary": "Collection days, what belongs in yard waste, and why recycling keeps your assessment down.",
-        "body": "Trash goes out Tuesday and Friday mornings. Recycling alternates depending on\nwhich side of Stauffer Road you live on, and yard waste runs twice a month from\nApril to December.\n\nThe full schedule is below. If you are new, the county's lookup tool will tell\nyou your exact recycling week by address.\n\n## Containers\n\nAnimals are the reason this rule exists. A bag left at the curb overnight is an\ninvitation, and whoever finds the mess in the morning is usually not the person\nwho put the bag out."
+        "body": "Trash goes out Tuesday and Friday mornings. Recycling alternates depending on\nwhich side of Stauffer Road you live on, and yard waste runs twice a month from\nApril to December.\n\nThe full schedule is below.\n\n## Containers\n\nAnimals are the reason this rule exists. A bag left at the curb overnight is an\ninvitation, and whoever finds the mess in the morning is usually not the person\nwho put the bag out."
       }
     },
     {

@@ -4,6 +4,8 @@ import { expect, test } from "@playwright/test";
 
 const site = JSON.parse(readFileSync("content/site.json", "utf8"));
 const officePhone: string = site.settings.organization.office.phone;
+const countyRecyclingUrl: string =
+  site.settings.organization.external.county_recycling.url;
 
 const firstMeeting = readdirSync("dist/meetings").find((d) =>
   /^\d{4}-/.test(d),
@@ -154,6 +156,26 @@ test("the office phone is always a dialable +1 link", async ({ page }) => {
       await expect(officeLinks.nth(i)).toHaveAttribute("href", /^tel:\+1/);
     }
   }
+});
+
+test("the meetings page opens with why to come, not a bare list of dates", async ({
+  page,
+}) => {
+  await page.goto("/meetings/");
+  const intro = page.locator(".prose").first();
+  const upcoming = page.locator("#upcoming-title");
+  await expect(intro).toContainText("perfectly good reason");
+  const introBox = (await intro.boundingBox())!;
+  const upcomingBox = (await upcoming.boundingBox())!;
+  expect(introBox.y).toBeLessThan(upcomingBox.y);
+});
+
+test("the trash page names the county recycling schedule once", async ({
+  page,
+}) => {
+  await page.goto("/rules/trash-recycling/");
+  const links = page.locator(`a[href="${countyRecyclingUrl}"]`);
+  await expect(links).toHaveCount(1);
 });
 
 test("the calendar feed is valid iCalendar", async ({ request }) => {
