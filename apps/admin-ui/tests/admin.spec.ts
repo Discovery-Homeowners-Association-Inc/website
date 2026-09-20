@@ -228,6 +228,8 @@ test("the secretary revises, and the board approves the exact version at the mee
   await expect(director.getByLabel("Date of the vote")).toHaveValue(
     "2026-12-15",
   );
+  // The fixed time was only for the vote date; give the page its clock back.
+  await director.clock.setSystemTime(new Date());
   await director
     .getByLabel("Motion to approve moved by")
     .selectOption("Valentina Duk");
