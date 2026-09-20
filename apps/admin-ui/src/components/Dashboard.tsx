@@ -1,4 +1,4 @@
-import { capitalize } from "@dhoa/shared";
+import { capitalize, todayInNewYork } from "@dhoa/shared";
 import type { Item } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
@@ -40,10 +40,10 @@ export default function Dashboard() {
   if (meError || error) return <ErrorNotice message={meError || error} />;
   if (!me || !meetings) return <Loading />;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInNewYork();
   const upcoming = meetings
     .filter((m) => m.date >= today && m.status !== "canceled")
-    .reverse();
+    .toSorted((a, b) => a.date.localeCompare(b.date));
   const inReview = meetings.filter(
     (m) =>
       m.minutes_status === "in_review" || m.minutes_status === "ready_for_vote",

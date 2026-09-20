@@ -1,4 +1,4 @@
-import { MINUTES_STATES, type MinutesBody } from "@dhoa/shared";
+import { MINUTES_STATES, todayInNewYork, type MinutesBody } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
   api,
@@ -438,7 +438,7 @@ function VoteForm({
   onVote: (v: object) => void;
 }) {
   const [v, setV] = useState({
-    voted_on: new Date().toISOString().slice(0, 10),
+    voted_on: todayInNewYork(),
     motion_by: "",
     seconded_by: "",
     yes: 0,

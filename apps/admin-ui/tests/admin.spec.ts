@@ -213,7 +213,14 @@ test("the secretary revises, and the board approves the exact version at the mee
   await admin.getByRole("button", { name: "Resolve" }).click();
   await admin.getByRole("button", { name: "Ready for a vote" }).click();
 
+  // 11:30 pm on a December evening in Maryland is already tomorrow in UTC. The
+  // vote date is what goes into the approved minutes, so it has to be today.
+  await director.clock.setFixedTime(new Date("2026-12-15T23:30:00-05:00"));
+
   await director.reload();
+  await expect(director.getByLabel("Date of the vote")).toHaveValue(
+    "2026-12-15",
+  );
   await director
     .getByLabel("Motion to approve moved by")
     .selectOption("Valentina Duk");

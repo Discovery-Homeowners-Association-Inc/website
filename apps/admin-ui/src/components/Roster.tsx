@@ -1,4 +1,9 @@
-import { BOARD_OFFICES, type Committee, type Person } from "@dhoa/shared";
+import {
+  BOARD_OFFICES,
+  todayInNewYork,
+  type Committee,
+  type Person,
+} from "@dhoa/shared";
 import { useState } from "preact/hooks";
 import { api, can, messageFrom } from "../lib/api.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
@@ -270,7 +275,7 @@ export default function Roster() {
       <div class="meta">
         {p.term_start && `Since ${p.term_start}. `}
         {p.term_end &&
-          `${p.term_end > new Date().toISOString().slice(0, 10) ? "Leaves" : "Left"} ${p.term_end}. `}
+          `${p.term_end > todayInNewYork() ? "Leaves" : "Left"} ${p.term_end}. `}
         {p.note}
       </div>
       {canEdit && (
@@ -289,7 +294,7 @@ export default function Roster() {
               class="button button--danger button--small"
               type="button"
               onClick={() => {
-                const today = new Date().toISOString().slice(0, 10);
+                const today = todayInNewYork();
                 if (
                   confirm(
                     `End ${p.name}'s term today? They stay in the records but no longer appear as serving.`,

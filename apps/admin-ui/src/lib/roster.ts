@@ -1,5 +1,5 @@
 import type { Committee, Person } from "@dhoa/shared";
-import { isServing } from "@dhoa/shared";
+import { isServing, todayInNewYork } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import { api, messageFrom } from "./api.ts";
 
@@ -18,7 +18,7 @@ export function useRoster() {
       (e: unknown) => setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInNewYork();
   const serving = (people ?? []).filter((p) => isServing(p, today));
   return {
     people,
