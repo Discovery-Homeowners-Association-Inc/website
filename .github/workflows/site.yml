@@ -58,11 +58,11 @@ jobs:
             if [ "${{ github.event_name }}" = "push" ]; then
               busy=$(gh run list --workflow=deploy-admin.yml --limit 20 \
                 --json status,headSha \
-                --jq '[.[] | select(.status != "completed" and .headSha == "${{ github.sha }}")] | length')
+                --jq '[.[] | select(.status != "completed" and .headSha == "${{ github.sha }}")] | length') || busy=1
             else
               busy=$(gh run list --workflow=deploy-admin.yml --limit 20 \
                 --json status \
-                --jq '[.[] | select(.status != "completed")] | length')
+                --jq '[.[] | select(.status != "completed")] | length') || busy=1
             fi
             if [ "$busy" = "0" ]; then echo "admin deploy is idle"; exit 0; fi
             echo "admin deploy is busy; waiting"
@@ -70,7 +70,6 @@ jobs:
           done
           echo "admin deploy still running after ten minutes" >&2
           exit 1
-      - run: pnpm install --frozen-lockfile
       - name: Fetch the latest published content
         if: vars.SITE_CONTENT_URL != ''
         env:
