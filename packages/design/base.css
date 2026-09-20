@@ -171,8 +171,8 @@
  * Both apps' print blocks set the body's own background and color, which is
  * not enough: everything else reads the tokens, so printing from dark mode put
  * a dark fill behind every panel and printed the signature rule on approved
- * minutes -- 2px of --ink -- as white on white. DESIGN.md says every page
- * prints cleanly; this is what makes that true.
+ * minutes -- 2px of --ink -- as white on white. packages/design/README.md says
+ * every page prints cleanly; this is what makes that true.
  */
 @media print {
   :root {
