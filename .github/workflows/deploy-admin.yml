@@ -39,6 +39,10 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm --filter @dhoa/admin-ui run build
+      # Migrations first, then the Worker. For the seconds in between the old
+      # code runs on the new schema, which is safe as long as migrations only
+      # add. The other order runs new code on the old schema, which is not.
+      # A migration that renames or drops needs a two-step deploy.
       - name: Apply database migrations
         working-directory: apps/admin
         run: pnpm exec wrangler d1 migrations apply dhoa --remote
