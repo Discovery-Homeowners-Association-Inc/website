@@ -16,10 +16,6 @@
   grid-area: glance;
 }
 
-.hero__map {
-  grid-area: map;
-}
-
 @media (width >= 56rem) {
   .hero {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
@@ -52,6 +48,7 @@
 }
 
 .hero__map {
+  grid-area: map;
   margin: 0;
   aspect-ratio: 4 / 5;
   max-width: 100%;
@@ -506,6 +503,8 @@ details.group.parkmap__all > ul {
   color: var(--ink-muted);
 }
 
+/* The other half of this breakpoint is ParkMap.astro's script, which folds
+   the full list closed above it and leaves it open below it. */
 @media (width < 52rem) {
   .parkmap {
     grid-template-columns: minmax(0, 1fr);

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -7,9 +7,10 @@ const officePhone: string = site.settings.organization.office.phone;
 const countyRecyclingUrl: string =
   site.settings.organization.external.county_recycling.url;
 
-const firstMeeting = readdirSync("dist/meetings").find((d) =>
-  /^\d{4}-/.test(d),
-);
+const meetingDirs = existsSync("dist/meetings")
+  ? readdirSync("dist/meetings")
+  : [];
+const firstMeeting = meetingDirs.find((d) => /^\d{4}-/.test(d));
 
 const pages = [
   "/",
@@ -110,6 +111,25 @@ test("every document link says what it is, and a Spanish one says so", async ({
   expect(await links.count()).toBeGreaterThan(0);
   for (const text of await links.allInnerTexts())
     expect(text).toMatch(/\((PDF|image)(, Spanish)?\)$/);
+});
+
+test("a document's language is announced on its title, not the whole link", async ({
+  page,
+}) => {
+  await page.goto("/documents/");
+  await expect(page.locator(".tasks a[lang]")).toHaveCount(0);
+});
+
+test("the documents page shows one heading per category the snapshot has", async ({
+  page,
+}) => {
+  await page.goto("/documents/");
+  const categories = new Set(
+    (site.documents as { body: { category: string } }[]).map(
+      (d) => d.body.category,
+    ),
+  );
+  await expect(page.locator("main h2")).toHaveCount(categories.size);
 });
 
 test("a meeting is a link only once its agenda is posted", async ({ page }) => {
@@ -214,12 +234,11 @@ test("on a phone the glance band comes before the map; on a desktop the map sits
   await page.goto("/");
   const glance = (await page.locator(".glance").boundingBox())!;
   const map = (await page.locator(".hero__map").boundingBox())!;
-  expect(glance.y, "the glance band is below the map on a phone").toBeLessThan(
-    map.y,
-  );
-  expect(glance.y, "the glance band is not on the first screen").toBeLessThan(
-    844,
-  );
+  expect(
+    glance.y,
+    "the glance band comes before the map on a phone",
+  ).toBeLessThan(map.y);
+  expect(glance.y, "the glance band is below the fold").toBeLessThan(844);
 
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");

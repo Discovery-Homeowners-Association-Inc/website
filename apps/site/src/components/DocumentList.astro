@@ -26,11 +26,10 @@ const kind = (file: string) =>
     <ul class="tasks">
       {docs.map((d) => (
         <li>
-          <a
-            href={d.data.file}
-            lang={d.data.language === "es" ? "es" : undefined}
-          >
-            <strong>{d.data.title}</strong>
+          <a href={d.data.file}>
+            <strong lang={d.data.language === "es" ? "es" : undefined}>
+              {d.data.title}
+            </strong>
             <span>
               {d.data.summary} ({kind(d.data.file)}
               {d.data.language === "es" && ", Spanish"})

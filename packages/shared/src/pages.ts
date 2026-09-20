@@ -1,5 +1,5 @@
 /** Where each page's text appears on the public site, by the page's slug. Both apps read it. */
-export const PAGE_PATHS: Record<string, string> = {
+export const PAGE_PATHS = {
   home: "/",
   about: "/about/",
   history: "/about/history/",
@@ -23,4 +23,5 @@ export const PAGE_PATHS: Record<string, string> = {
   dues: "/dues/",
   privacy: "/privacy/",
   terms: "/terms/",
-};
+} as const satisfies Record<string, string>;
+export type PageSlug = keyof typeof PAGE_PATHS;

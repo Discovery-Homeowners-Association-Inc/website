@@ -5,6 +5,7 @@ import {
   type ItemState,
   NEWS_CATEGORIES,
   PAGE_PATHS,
+  type PageSlug,
   capitalize,
 } from "@dhoa/shared";
 import type { Field } from "./fields.ts";
@@ -174,7 +175,7 @@ export const KINDS: Record<ItemKind, KindConfig> = {
     path: "/content/pages/",
     intro:
       "The written text of the site's pages. Facts like phone numbers and fees are under Site settings, so they stay consistent everywhere.",
-    publicUrl: (slug) => PAGE_PATHS[slug] ?? "/",
+    publicUrl: (slug) => PAGE_PATHS[slug as PageSlug] ?? "/",
     fields: [
       { key: "title", label: "Title", kind: "text", required: true },
       {

@@ -8,9 +8,7 @@ import DocumentList from "../../components/DocumentList.astro";
 import { page } from "../../lib/pages";
 
 const p = await page("documents");
-const names: Record<(typeof DOCUMENT_CATEGORIES)[number], string> =
-  DOCUMENT_CATEGORY_LABEL;
-const order = [
+const order: readonly (typeof DOCUMENT_CATEGORIES)[number][] = [
   "governing",
   "newsletters",
   "minutes",
@@ -22,6 +20,11 @@ const order = [
   "trash",
   "general",
 ] as const;
+const unordered = DOCUMENT_CATEGORIES.filter((c) => !order.includes(c));
+if (unordered.length)
+  throw new Error(
+    `documents: no position for ${unordered.join(", ")}. Add them to order in this file.`,
+  );
 const present = new Set<string>(
   (await getCollection("documents")).map((d) => d.data.category),
 );
@@ -33,6 +36,6 @@ const present = new Set<string>(
   {order
     .filter((k) => present.has(k))
     .map((k) => (
-      <DocumentList category={k} heading={names[k]} />
+      <DocumentList category={k} heading={DOCUMENT_CATEGORY_LABEL[k]} />
     ))}
 </Base>

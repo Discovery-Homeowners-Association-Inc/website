@@ -39,16 +39,16 @@ for (const scheme of ["light", "dark"] as const) {
 
       expect(
         brightness(seen.body),
-        "the page prints on a dark ground",
+        "the page prints on light paper",
       ).toBeGreaterThan(200);
       expect(
         brightness(seen.ink),
-        "the text prints light on light",
+        "the text prints dark on light",
       ).toBeLessThan(120);
       if (seen.panel && !seen.panel.includes("rgba(0, 0, 0, 0)"))
         expect(
           brightness(seen.panel),
-          "a panel prints as a dark block",
+          "a panel prints as a light block",
         ).toBeGreaterThan(200);
     });
   }

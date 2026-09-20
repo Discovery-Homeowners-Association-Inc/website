@@ -79,7 +79,7 @@ export const Organization = z.object({
       location: s,
       open_to: s.default(""),
     }),
-    pool_rec: z.object({ rule: s, time: meetingTime, location: s }),
+    pool_rec: z.object({ rule: s, time: s, location: s }),
   }),
   external: z.object({
     payhoa: z.object({

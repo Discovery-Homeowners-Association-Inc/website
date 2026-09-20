@@ -149,7 +149,7 @@ const cropped = mapSvg.replace(
         Something the neighborhood shares
       </li>
     </ul>
-    <details class="group parkmap__all">
+    <details class="group parkmap__all" open>
       <summary>Every park and amenity</summary>
       <ul>
         {marked.map((p) => (
@@ -180,10 +180,10 @@ const cropped = mapSvg.replace(
    * is still a link to the same park in the list below it.
    */
   for (const figure of document.querySelectorAll(".parkmap")) {
-    // A phone shows the list open: the map is thumb-sized there, and the list
-    // is where the information is. Wider screens fold it under the panel.
+    // The list starts open in the markup, so a phone with no JavaScript still
+    // gets it open. Wider screens fold it under the panel once scripts run.
     const all = figure.querySelector<HTMLDetailsElement>(".parkmap__all");
-    if (all && matchMedia("(width < 52rem)").matches) all.open = true;
+    if (all && !matchMedia("(width < 52rem)").matches) all.open = false;
 
     const detail = figure.querySelector("[data-detail]");
     const name = figure.querySelector("[data-detail-label]");

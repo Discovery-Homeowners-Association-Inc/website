@@ -1,4 +1,4 @@
-import { appendFile } from "node:fs/promises";
+import { appendFile, readFile } from "node:fs/promises";
 import { defineConfig } from "astro/config";
 import remarkOrg from "./src/lib/remark-org.ts";
 
@@ -25,10 +25,13 @@ const noindexHeader = {
   hooks: {
     "astro:build:done": async ({ dir, logger }) => {
       if (!isTemporaryAddress) return;
-      await appendFile(
-        new URL("_headers", dir),
-        "  X-Robots-Tag: noindex, nofollow\n",
-      );
+      const path = new URL("_headers", dir);
+      const existing = await readFile(path, "utf8");
+      if (!/(^|\n)\/\*\n(  [^\n]*\n)*$/.test(existing))
+        throw new Error(
+          "_headers no longer ends with the /* block; the noindex append is unsafe.",
+        );
+      await appendFile(path, "  X-Robots-Tag: noindex, nofollow\n");
       logger.warn(`temporary address ${siteUrl}: appended noindex to _headers`);
     },
   },

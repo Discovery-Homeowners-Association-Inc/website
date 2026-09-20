@@ -176,3 +176,17 @@ test("folds the full list away, and opens it on request", async ({ page }) => {
   await expect(list).toHaveAttribute("open", /.*/);
   await expect(page.locator(".parkmap__entry").first()).toBeVisible();
 });
+
+test("on a phone with no JavaScript, the full list starts open", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 390, height: 844 },
+  });
+  const page = await context.newPage();
+  await page.goto("/amenities/parks/");
+  await expect(page.locator(".parkmap__all")).toHaveAttribute("open", /.*/);
+  await expect(page.locator(".parkmap__entry").first()).toBeVisible();
+  await context.close();
+});
