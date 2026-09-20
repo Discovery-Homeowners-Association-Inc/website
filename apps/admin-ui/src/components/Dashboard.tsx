@@ -89,14 +89,14 @@ export default function Dashboard() {
           ) : (
             <ul class="tasks">
               {inReview.map((m) => (
-                <li>
+                <li key={m.id}>
                   <a href={`/minutes/?id=${m.id}`}>
                     <strong>
                       {typeLabel[m.type]}, {longDate(m.date)}
                     </strong>
                     <span>
-                      {statusLabel[m.minutes_status!]}. Read, comment, and mark
-                      as reviewed.
+                      {m.minutes_status ? statusLabel[m.minutes_status] : ""}.
+                      Read, comment, and mark as reviewed.
                     </span>
                   </a>
                 </li>
@@ -111,7 +111,7 @@ export default function Dashboard() {
           <h2>Approved, not yet uploaded to PayHOA</h2>
           <ul class="tasks">
             {toFile.map((m) => (
-              <li>
+              <li key={m.id}>
                 <a href={`/minutes/?id=${m.id}`}>
                   <strong>
                     {typeLabel[m.type]}, {longDate(m.date)}
@@ -136,7 +136,7 @@ export default function Dashboard() {
         ) : (
           <ul class="tasks">
             {upcoming.slice(0, 4).map((m) => (
-              <li>
+              <li key={m.id}>
                 <a href={`/meeting/?id=${m.id}`}>
                   <strong>
                     {typeLabel[m.type]}, {longDate(m.date)}

@@ -252,6 +252,10 @@ button[disabled] {
   margin: 0;
 }
 
+.prewrap {
+  white-space: pre-wrap;
+}
+
 /* Printable export */
 .print-doc {
   max-width: 44rem;

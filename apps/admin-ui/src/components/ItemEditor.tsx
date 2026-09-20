@@ -14,7 +14,12 @@ import {
   when,
 } from "../lib/api.ts";
 import { emailOptions, KINDS, stateLabel } from "../lib/content.ts";
-import { blank, fromLocalInput, toLocalInput } from "../lib/fields.ts";
+import {
+  blank,
+  fromLocalInput,
+  toLocalInput,
+  type Field,
+} from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
@@ -27,6 +32,16 @@ type Full = Item & {
   review_note: string;
 };
 type Approvals = Record<ItemKind, boolean>;
+
+const shown = (f: Field, v: unknown) =>
+  f.kind === "boolean"
+    ? v
+      ? "Yes"
+      : "No"
+    : f.kind === "select"
+      ? (f.options.find((o) => o.value === String(v ?? ""))?.label ??
+        String(v ?? ""))
+      : String(v ?? "");
 
 const actionLabel: Record<ItemAction, string> = {
   submit: "Submit for approval",
@@ -56,6 +71,9 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
   const [saved, setSaved] = useState("");
   const [note, setNote] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [firstSaved] = useState(
+    () => new URLSearchParams(location.search).get("saved") === "1",
+  );
 
   const load = async () => {
     if (!id) return;
@@ -85,6 +103,13 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     addEventListener("beforeunload", warn);
     return () => removeEventListener("beforeunload", warn);
   }, [dirty]);
+  useEffect(() => {
+    document.title = `${item ? item.body.title : `New ${cfg.one}`} | Board administration`;
+  }, [item, cfg.one]);
+  useEffect(() => {
+    if (firstSaved)
+      history.replaceState(null, "", `${location.pathname}?id=${id}`);
+  }, [firstSaved, id]);
 
   if (error && !item && id) return <ErrorNotice message={error} />;
   if (meError) return <ErrorNotice message={meError} />;
@@ -157,7 +182,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     }
   }
 
-  const doAction = (action: ItemAction) => {
+  const doAction = (action: ItemAction, item: Full) => {
     if (dirty) return setError("Save your changes first.");
     if (action === "reject" && !note.trim())
       return setError("Write a note saying what needs to change.");
@@ -170,10 +195,10 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
       return;
     void act(
       () =>
-        api("POST", `/items/${item!.id}/action`, {
+        api("POST", `/items/${item.id}/action`, {
           action,
           note,
-          seen_updated_at: item!.updated_at,
+          seen_updated_at: item.updated_at,
         }),
       {
         submit: "Submitted. An approver will be able to publish it.",
@@ -184,8 +209,6 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
       }[action],
     ).then((ok) => ok && setNote(""));
   };
-
-  const firstSaved = new URLSearchParams(location.search).get("saved") === "1";
 
   return (
     <>
@@ -247,7 +270,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 )}
               </p>
             )}
-            {actions.length > 0 && (
+            {item && actions.length > 0 && (
               <div class="actions actions--stack">
                 {actions
                   .filter((a) => a !== "reject")
@@ -259,7 +282,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                       }
                       type="button"
                       disabled={dirty}
-                      onClick={() => doAction(a)}
+                      onClick={() => doAction(a, item)}
                     >
                       {actionLabel[a]}
                     </button>
@@ -278,7 +301,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                       class="button button--quiet"
                       type="button"
                       disabled={dirty}
-                      onClick={() => doAction("reject")}
+                      onClick={() => doAction("reject", item)}
                     >
                       {actionLabel.reject}
                     </button>
@@ -483,7 +506,13 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 {cfg.fields.map((f) => (
                   <>
                     <dt>{f.label}</dt>
-                    <dd>{String(body[f.key] ?? "")}</dd>
+                    <dd
+                      class={
+                        f.kind === "markdown" ? "prose prewrap" : undefined
+                      }
+                    >
+                      {shown(f, body[f.key])}
+                    </dd>
                   </>
                 ))}
               </dl>

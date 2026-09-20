@@ -377,7 +377,6 @@ export function Fields({ fields, value, onChange, idPrefix }: Props) {
                   id={id}
                   type="checkbox"
                   checked={Boolean(v)}
-                  aria-describedby={describedBy}
                   onChange={(e) => update(f.key, e.currentTarget.checked)}
                 />
                 <label for={id}>
@@ -408,7 +407,9 @@ export function Fields({ fields, value, onChange, idPrefix }: Props) {
                   }
                 >
                   {f.options.map((o) => (
-                    <option value={o.value}>{o.label}</option>
+                    <option value={o.value} key={o.value}>
+                      {o.label}
+                    </option>
                   ))}
                 </select>
                 {help}

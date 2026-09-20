@@ -49,7 +49,9 @@ export function NamePicker({
       >
         <option value="">Choose…</option>
         {names.map((n) => (
-          <option value={n}>{n}</option>
+          <option value={n} key={n}>
+            {n}
+          </option>
         ))}
         <option value="__other">Someone else…</option>
       </select>

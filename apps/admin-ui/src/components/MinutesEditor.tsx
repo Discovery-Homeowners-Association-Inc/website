@@ -3,11 +3,6 @@ import { newId } from "../lib/api.ts";
 import { AttendancePicker, NamePicker } from "./NamePicker.tsx";
 
 type Motion = MinutesBody["items"][number]["motions"][number];
-const lines = (s: string) =>
-  s
-    .split("\n")
-    .map((x) => x.trim())
-    .filter(Boolean);
 
 export function MinutesEditor({
   body,
@@ -198,7 +193,7 @@ export function MinutesEditor({
             )}
           </div>
           {it.motions.map((mo, k) => (
-            <div class="motion">
+            <div class="motion" key={k}>
               <div class="field">
                 <label for={`mt-${it.id}-${k}`}>Motion</label>
                 <textarea
@@ -247,7 +242,7 @@ export function MinutesEditor({
               </div>
               <div class="row row--counts">
                 {(["yes", "no", "abstain"] as const).map((f) => (
-                  <div class="field">
+                  <div class="field" key={f}>
                     <label for={`m${f}-${it.id}-${k}`}>
                       {f === "yes"
                         ? "In favor"

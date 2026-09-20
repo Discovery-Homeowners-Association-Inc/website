@@ -282,6 +282,7 @@ test("an administrator changes a fact once in site settings", async () => {
 test("the roster drives attendance in minutes, and ending a term keeps the record", async () => {
   await admin.goto("/roster/");
   await admin.getByRole("button", { name: "Add a person" }).click();
+  await expect(admin.getByLabel("Name", { exact: true })).toBeFocused();
   await admin.getByLabel("Name", { exact: true }).fill("Nova Newcomer");
   await admin.getByLabel("Board office").selectOption("Director");
   await admin.getByRole("button", { name: "Add to the roster" }).click();

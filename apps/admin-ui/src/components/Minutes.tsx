@@ -59,15 +59,13 @@ export default function Minutes() {
   const m = data.meeting;
   const secretary = can(me, "admin", "secretary");
   const heading = (
-    <>
-      <PageHead
-        crumbs={[
-          { href: "/meetings/", label: "Meetings" },
-          { href: `/meeting/?id=${m.id}`, label: longDate(m.date) },
-        ]}
-        title={`Minutes: ${typeLabel[m.type]}, ${longDate(m.date)}`}
-      />
-    </>
+    <PageHead
+      crumbs={[
+        { href: "/meetings/", label: "Meetings" },
+        { href: `/meeting/?id=${m.id}`, label: longDate(m.date) },
+      ]}
+      title={`Minutes: ${typeLabel[m.type]}, ${longDate(m.date)}`}
+    />
   );
 
   if (!data.minutes) {
@@ -137,6 +135,7 @@ export default function Minutes() {
       <ol class="steps" aria-label="Progress">
         {MINUTES_STATES.map((s, i) => (
           <li
+            key={s}
             class={i < stepIndex ? "done" : undefined}
             aria-current={i === stepIndex ? "step" : undefined}
           >
@@ -268,7 +267,7 @@ export default function Minutes() {
               ) : (
                 <ul>
                   {d.reviewed_by.map((r) => (
-                    <li>{personName(r.name, r.former)}</li>
+                    <li key={r.user_id}>{personName(r.name, r.former)}</li>
                   ))}
                 </ul>
               )}
@@ -412,7 +411,7 @@ export default function Minutes() {
             <h2>Versions</h2>
             <ol reversed>
               {d.versions.map((v) => (
-                <li>
+                <li key={v.version}>
                   Version {v.version}, {when(v.created_at)}
                   {v.author && ` by ${personName(v.author, v.author_former)}`}
                   {v.change_note && <div class="meta">{v.change_note}</div>}
@@ -560,7 +559,10 @@ function Comments({
     <section class="panel">
       <h2>Comments ({d.comments.filter((c) => !c.resolved_at).length} open)</h2>
       {visible.map((c) => (
-        <div class={c.resolved_at ? "comment comment--resolved" : "comment"}>
+        <div
+          key={c.id}
+          class={c.resolved_at ? "comment comment--resolved" : "comment"}
+        >
           <p>{c.body}</p>
           <p class="meta">
             {personName(c.author, c.author_former)}, on version {c.version}
@@ -624,7 +626,7 @@ function Comments({
             >
               <option value="">The minutes in general</option>
               {d.current.body.items.map((it, i) => (
-                <option value={it.id}>
+                <option value={it.id} key={it.id}>
                   Item {i + 1}: {it.title}
                 </option>
               ))}

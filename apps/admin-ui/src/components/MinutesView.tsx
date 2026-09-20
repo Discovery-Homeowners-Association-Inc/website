@@ -44,18 +44,18 @@ export function MinutesView({ body }: { body: MinutesBody }) {
         </dd>
       </dl>
       {body.items.map((it, i) => (
-        <section id={`item-${it.id}`}>
+        <section id={`item-${it.id}`} key={it.id}>
           <h3>
             {i + 1}. {it.title}
           </h3>
           {it.discussion
             .split(/\n{2,}/)
             .filter(Boolean)
-            .map((p) => (
-              <p>{p}</p>
+            .map((p, j) => (
+              <p key={j}>{p}</p>
             ))}
-          {it.motions.map((mo) => (
-            <p class="motion">
+          {it.motions.map((mo, k) => (
+            <p class="motion" key={k}>
               <strong>Motion:</strong> {mo.text} Moved by {mo.moved_by}
               {mo.seconded_by && `, seconded by ${mo.seconded_by}`}.{" "}
               <strong>{capitalize(mo.result)}</strong>

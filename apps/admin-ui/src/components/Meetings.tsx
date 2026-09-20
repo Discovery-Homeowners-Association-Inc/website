@@ -82,7 +82,9 @@ export default function Meetings() {
                 }
               >
                 {Object.entries(typeLabel).map(([k, v]) => (
-                  <option value={k}>{v}</option>
+                  <option value={k} key={k}>
+                    {v}
+                  </option>
                 ))}
               </select>
             </div>

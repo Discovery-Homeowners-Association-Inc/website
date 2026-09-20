@@ -49,6 +49,9 @@ export default function Roster() {
       () => {},
     );
   }, []);
+  useEffect(() => {
+    if (editing) document.getElementById("p-name")?.focus();
+  }, [editing?.id]);
 
   if (loadError) return <ErrorNotice message={loadError} />;
   if (meError) return <ErrorNotice message={meError} />;
@@ -113,7 +116,9 @@ export default function Roster() {
             >
               <option value="">Not on the board</option>
               {BOARD_OFFICES.map((o) => (
-                <option value={o}>{o}</option>
+                <option value={o} key={o}>
+                  {o}
+                </option>
               ))}
             </select>
             <span class="hint">
@@ -270,64 +275,67 @@ export default function Roster() {
     );
   };
 
-  const row = (p: RosterPerson) => (
-    <li key={p.id}>
-      <strong>{p.name}</strong>
-      <span>
-        {[
-          p.office,
-          ...p.committees.map((c) =>
-            p.chairs.includes(c) ? `${cname(c)} (chair)` : cname(c),
-          ),
-        ]
-          .filter(Boolean)
-          .join(", ") || "No current role"}
-      </span>
-      <div class="meta">
-        {p.term_start && `Since ${p.term_start}. `}
-        {p.term_end &&
-          `${p.term_end > todayInNewYork() ? "Leaves" : "Left"} ${p.term_end}. `}
-        {p.note}
-      </div>
-      {canEdit && (
-        <div class="actions">
-          <button
-            class="button button--quiet button--small"
-            type="button"
-            onClick={() =>
-              setEditing({ id: p.id, data: { ...blankPerson(), ...p } })
-            }
-          >
-            Edit
-          </button>
-          {!p.term_end && (
-            <button
-              class="button button--danger button--small"
-              type="button"
-              onClick={() => {
-                const today = todayInNewYork();
-                if (
-                  confirm(
-                    `End ${p.name}'s term today? They stay in the records but no longer appear as serving.`,
-                  )
-                )
-                  void run(
-                    () =>
-                      api("PUT", `/roster/people/${p.id}`, {
-                        ...p,
-                        term_end: today,
-                      }),
-                    `${p.name}'s term is recorded as ended.`,
-                  );
-              }}
-            >
-              End term
-            </button>
-          )}
+  const row = (p: RosterPerson) =>
+    editing?.id === p.id ? (
+      <li key={p.id}>{personForm(editing)}</li>
+    ) : (
+      <li key={p.id}>
+        <strong>{p.name}</strong>
+        <span>
+          {[
+            p.office,
+            ...p.committees.map((c) =>
+              p.chairs.includes(c) ? `${cname(c)} (chair)` : cname(c),
+            ),
+          ]
+            .filter(Boolean)
+            .join(", ") || "No current role"}
+        </span>
+        <div class="meta">
+          {p.term_start && `Since ${p.term_start}. `}
+          {p.term_end &&
+            `${p.term_end > todayInNewYork() ? "Leaves" : "Left"} ${p.term_end}. `}
+          {p.note}
         </div>
-      )}
-    </li>
-  );
+        {canEdit && (
+          <div class="actions">
+            <button
+              class="button button--quiet button--small"
+              type="button"
+              onClick={() =>
+                setEditing({ id: p.id, data: { ...blankPerson(), ...p } })
+              }
+            >
+              Edit
+            </button>
+            {!p.term_end && (
+              <button
+                class="button button--danger button--small"
+                type="button"
+                onClick={() => {
+                  const today = todayInNewYork();
+                  if (
+                    confirm(
+                      `End ${p.name}'s term today? They stay in the records but no longer appear as serving.`,
+                    )
+                  )
+                    void run(
+                      () =>
+                        api("PUT", `/roster/people/${p.id}`, {
+                          ...p,
+                          term_end: today,
+                        }),
+                      `${p.name}'s term is recorded as ended.`,
+                    );
+                }}
+              >
+                End term
+              </button>
+            )}
+          </div>
+        )}
+      </li>
+    );
 
   return (
     <>
@@ -346,7 +354,7 @@ export default function Roster() {
       <ErrorNotice message={error} />
       <Saved message={saved} />
       {editing
-        ? personForm(editing)
+        ? editing.id === null && personForm(editing)
         : canEdit && (
             <p>
               <button
@@ -471,7 +479,9 @@ export default function Roster() {
               }
             >
               {emailKeys.map((k) => (
-                <option value={k}>{k}</option>
+                <option value={k} key={k}>
+                  {k}
+                </option>
               ))}
             </select>
           </div>

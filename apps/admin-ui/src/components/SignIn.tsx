@@ -6,7 +6,8 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
-  const next = param("next").startsWith("/") ? param("next") : "/";
+  const raw = param("next");
+  const next = /^\/(?![\/\\])/.test(raw) ? raw : "/";
   const local =
     typeof location !== "undefined" && location.protocol === "http:";
   const failed = param("error");
