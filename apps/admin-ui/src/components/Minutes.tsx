@@ -477,7 +477,7 @@ function VoteForm({
       />
       <div class="row row--counts">
         {(["yes", "no", "abstain"] as const).map((f) => (
-          <div class="field">
+          <div class="field" key={f}>
             <label for={`v-${f}`}>{TALLY_LABELS[f]}</label>
             <input
               id={`v-${f}`}

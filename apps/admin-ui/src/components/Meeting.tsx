@@ -78,7 +78,8 @@ export function Meeting() {
   const move = (i: number, by: number) => {
     const items = [...body.items];
     const [it] = items.splice(i, 1);
-    items.splice(i + by, 0, it!);
+    if (it === undefined) return;
+    items.splice(i + by, 0, it);
     update({ ...body, items });
   };
 
@@ -121,9 +122,9 @@ export function Meeting() {
    * What to put on the agenda, offered rather than applied. Each open item says
    * which meeting it came from, so it can be checked rather than trusted.
    */
-  function Suggested() {
-    const template = suggestions!.template.filter((t) => !onAgenda(t.title));
-    const open = suggestions!.open.filter((o) => !onAgenda(o.title));
+  function Suggested({ s }: { s: Suggestions }) {
+    const template = s.template.filter((t) => !onAgenda(t.title));
+    const open = s.open.filter((o) => !onAgenda(o.title));
     if (template.length === 0 && open.length === 0) return null;
     return (
       <details class="help-details" open={open.length > 0}>
@@ -203,7 +204,7 @@ export function Meeting() {
       )}
 
       <h2>Agenda</h2>
-      {editable && suggestions && <Suggested />}
+      {editable && suggestions && <Suggested s={suggestions} />}
       <p class="meta">
         {version === 0 ? "Not saved yet." : `Version ${version}.`}{" "}
         {published === null

@@ -32,16 +32,17 @@ export function MinutesEditor({
     set({
       items: body.items.map((it, j) => (j === i ? { ...it, ...patch } : it)),
     });
-  const setMotion = (i: number, k: number, patch: Partial<Motion>) =>
+  const setMotion = (i: number, k: number, patch: Partial<Motion>) => {
+    const item = body.items[i];
+    if (!item) return;
     setItem(
       i,
       afterMotionChange(
         i,
-        body.items[i]!.motions.map((mo, j) =>
-          j === k ? { ...mo, ...patch } : mo,
-        ),
+        item.motions.map((mo, j) => (j === k ? { ...mo, ...patch } : mo)),
       ),
     );
+  };
   return (
     <div class="minutes-editor">
       <fieldset>

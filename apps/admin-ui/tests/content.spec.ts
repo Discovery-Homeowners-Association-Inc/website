@@ -396,6 +396,16 @@ test("the roster drives attendance in minutes, and ending a term keeps the recor
   await expect(
     admin.getByRole("listitem").filter({ hasText: "Nova Newcomer" }),
   ).toBeVisible();
+
+  // Editing a past member, then hiding past members again, must not strand
+  // the open edit: it moves to the top instead of disappearing.
+  await admin
+    .getByRole("listitem")
+    .filter({ hasText: "Nova Newcomer" })
+    .getByRole("button", { name: "Edit" })
+    .click();
+  await admin.getByRole("button", { name: /Hide past members/ }).click();
+  await expect(admin.getByRole("button", { name: "Cancel" })).toBeVisible();
 });
 
 test("profile and help pages work, and every new screen fits a phone", async ({

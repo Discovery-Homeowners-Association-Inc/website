@@ -52,6 +52,12 @@ export function Roster() {
   if (!people || !committees || !me) return <Loading />;
   const canEdit = can(me, "admin", "secretary");
   const past = people.filter((p) => !serving.includes(p));
+  // Who has a row on screen right now, so an edit in progress on a row that
+  // is about to disappear (hiding past members mid-edit) can move to the top
+  // instead of vanishing with it.
+  const visible = new Set(
+    [...serving, ...(showPast ? past : [])].map((p) => p.id),
+  );
   const cname = (slug: string) =>
     committees.find((c) => c.slug === slug)?.name ?? slug;
 
@@ -339,7 +345,8 @@ export function Roster() {
       <ErrorNotice message={error || orgError} />
       <Saved message={saved} />
       {editing
-        ? editing.id === null && personForm(editing)
+        ? (editing.id === null || !visible.has(editing.id)) &&
+          personForm(editing)
         : canEdit && (
             <p>
               <button

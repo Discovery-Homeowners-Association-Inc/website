@@ -61,6 +61,10 @@ export function Settings() {
     );
   }
 
+  // `group` is a const, but TypeScript does not carry that narrowing into a
+  // hoisted async function body -- capture the key here instead.
+  const groupKey = group.key;
+
   async function save(e: Event) {
     e.preventDefault();
     setError("");
@@ -68,7 +72,7 @@ export function Settings() {
     try {
       const next = await api<Record<string, unknown>>(
         "PUT",
-        `/settings/${group!.key}`,
+        `/settings/${groupKey}`,
         value,
       );
       setValue(next);

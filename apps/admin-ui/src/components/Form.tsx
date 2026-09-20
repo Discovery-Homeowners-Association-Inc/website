@@ -111,7 +111,7 @@ function RecordField({
   );
 }
 
-/** The open rows below `i`, with everything above `i` shifted down to follow its row. */
+/** The open set with row `i` gone: rows after it keep their state at one index lower. */
 function withoutRow(open: Set<number>, i: number): Set<number> {
   const next = new Set<number>();
   for (const j of open) {

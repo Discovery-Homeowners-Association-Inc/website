@@ -4,6 +4,7 @@ import {
   type ItemKind,
   itemActions,
 } from "@dhoa/shared";
+import { Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import {
   api,
@@ -510,7 +511,7 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
               </Why>
               <dl class="minutes-facts">
                 {fields.map((f) => (
-                  <>
+                  <Fragment key={f.key}>
                     <dt>{f.label}</dt>
                     <dd
                       class={
@@ -519,7 +520,7 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
                     >
                       {shown(f, body[f.key])}
                     </dd>
-                  </>
+                  </Fragment>
                 ))}
               </dl>
             </>
