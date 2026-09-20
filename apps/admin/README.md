@@ -42,19 +42,26 @@ repeat step 3. (Wrangler keeps local data per database id, so changing the id in
 Developer sign-in exists only when `DEV_SIGN_IN=true` **and** the app runs over plain http. It
 cannot be turned on in production, which is served over https.
 
+The API's tests run inside the Workers runtime (`@cloudflare/vitest-pool-workers`) against a
+local D1 with the real migrations applied; only sign-in is replaced by a test header. That is
+why `apps/admin` stays on Vitest 4 — see the README's list of choices.
+
 ## Content: seed, snapshot, rebuild
 
 - `just seed-local` fills the local database with the site's starting content (idempotent).
 - `just snapshot` saves what the admin app currently publishes into `apps/site/content/` and
   `apps/site/public/documents/`. Commit the result; the site builds from it.
-- The Site workflow rebuilds every morning at 10:15 UTC and whenever the Worker sends a
-  `repository_dispatch` (only after a GitHub App is configured; see below). Set the repository
+- The Site workflow rebuilds on every push to `main`, every morning at 10:15 UTC, and whenever
+  the Worker sends a `repository_dispatch` (only after a GitHub App is configured; see below).
+  Set the repository
   variable `SITE_CONTENT_URL` to the Worker's address (for example
   `https://dhoa-admin.discoveryhomeownersassociation.workers.dev`) so the workflow fetches the
   latest content instead of using the committed snapshot.
 - Seeding (locally, or the "Create any settings the database does not have yet" deploy step)
-  only inserts settings and page copy the database does not already have (`insert or ignore`),
-  and its last statement bumps `site_version`. `/api/public/site.json` is cached under a key
+  adds what the database is missing and never overwrites the board's own work: a settings group
+  it does not have (`insert or ignore`), a field an existing group is missing (`json_patch`,
+  where the stored value wins), and the page copy of any page nobody has edited in the admin
+  app. Its last statement bumps `site_version`. `/api/public/site.json` is cached under a key
   that carries that number, so a bumped version is a fresh cache key and a build can never read
   a stale snapshot — there is no cache to clear by hand.
 
@@ -94,7 +101,8 @@ ignore` does what it promises. `just seed-check` runs in CI and fails if an id e
    - Run `pnpm exec wrangler secret put` for each of `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`,
      `GOOGLE_CLIENT_SECRET` and `BOOTSTRAP_TOKEN`.
    - **Never set `DEV_SIGN_IN` in production.**
-5. **Deploy:** the Deploy admin workflow does this on every push to `main`. It needs the
+5. **Deploy:** the Deploy admin workflow does this on every push to `main` that touches
+   `apps/admin`, `apps/admin-ui`, `packages/` or the lockfile. It needs the
    repository secret `CLOUDFLARE_API_TOKEN` and the variable `CLOUDFLARE_ACCOUNT_ID`. By hand:
    `pnpm --filter @dhoa/admin-ui build`, then `pnpm exec wrangler deploy` in `apps/admin`.
 6. **Create the first administrator.** Set the `BOOTSTRAP_TOKEN` secret, call `/api/bootstrap`
@@ -105,8 +113,9 @@ Worker. Update `BETTER_AUTH_URL` and add the new origin and redirect URI to the 
 
 ## CPU use
 
-Measured on 2026-09-17, over 172 requests, this does **not** hold as an earlier assumption had
-it. The median request costs 4 ms, but 19% exceed the 10 ms Workers Free limit. No request has
+Measured on 2026-09-17, over 172 requests, and before the 2026-09-18 Worker changes — re-measure
+before quoting these. The Worker does not stay inside the 10 ms Workers Free limit, as this
+project once assumed it would: the median request costs 4 ms, but 19% exceed the limit. No request has
 ever been terminated: the only invocation status this Worker has ever recorded is `success`, so
 enforcement is currently looser than the documented Error 1102 behavior. Two separate causes, and
 only one of them is ours:

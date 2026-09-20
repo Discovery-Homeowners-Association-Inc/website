@@ -24,8 +24,9 @@ text quoted verbatim from its author.
 ## Stay on free plans
 
 Workers Free (10 ms CPU per request), D1, KV and GitHub Actions on a public repo. Keep
-CPU-heavy work (PDF rendering, hashing) in the browser. Any change that would need a paid plan
-must say so and justify it in the README's list of choices.
+CPU-heavy work (PDF rendering, the data export) in the browser; upload hashing stays on the
+Worker on purpose, for the reason in `apps/admin/src/routes/files.ts`. Any change that would
+need a paid plan must say so and justify it in the README's list of choices.
 
 ## Commands
 

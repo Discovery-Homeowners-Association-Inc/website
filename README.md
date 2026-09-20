@@ -52,15 +52,18 @@ reads a stale snapshot.
 These were decisions; they are recorded so they are changed on purpose.
 
 - **Free plans only.** Workers Free (10 ms CPU per request), D1, KV, GitHub Actions on a public
-  repository. CPU-heavy work (PDF rendering, the data export) happens in the browser. A change
-  that needs a paid plan says so in its PR.
+  repository. The ceilings are 100,000 Worker requests and 5 million D1 row reads a day; a
+  private repository would spend about 120 Actions minutes a month on the daily rebuild, which
+  is why this one is public. CPU-heavy work (PDF rendering, the data export) happens in the
+  browser. A change that needs a paid plan says so in its PR.
 - **The public site is an assets-only Worker.** `apps/site/wrangler.jsonc` has no `main`, so
   no Worker code runs for a page view and static requests are free and unlimited.
 - **One language.** Astro and TypeScript for the site, the API and the admin screens, so
   validation and business rules are written once in `packages/shared`.
 - **D1 for data, KV for uploaded files.** R2 needs a payment card on the account. KV holds
   values up to 25 MiB; a scanned form exceeds D1's 2 MB row limit. Uploaded files are copied
-  into the site at snapshot time and served as ordinary files.
+  into the site at snapshot time and served as ordinary files. R2 replaces KV, with the same
+  `files` table, whenever a card goes on the account.
 - **Google sign-in only, invitation only.** Nobody stores or manages a password. An
   administrator invites an email address; the first Google sign-in with it links the account.
 - **Approved minutes live in PayHOA, not on the website.** The admin app runs the whole
@@ -73,16 +76,20 @@ These were decisions; they are recorded so they are changed on purpose.
 - **Latest versions, pinned exactly, with a 24-hour quarantine.** `mise.toml` and the
   lockfile pin everything; pnpm refuses packages published in the last day. Two exceptions
   hold: the Astro apps stay on TypeScript 6 (`astro check` refuses 7) and the Worker on
-  Vitest 4 (`@cloudflare/vitest-pool-workers` supports only 4).
+  Vitest 4 (`@cloudflare/vitest-pool-workers` supports only 4). Node stays on the active LTS
+  line, and the Worker's `compatibility_date` is the newest date
+  `@cloudflare/vitest-pool-workers` supports.
 - **No Queues, no newsletter.** Every job is small and synchronous; the daily cron is enough.
   The newsletter section was removed on 2026-09-18 because nothing existed for it to post to.
 
 ## Deploying
 
-Two workflows deploy on every push to `main`: **Deploy admin** (migrations, missing settings,
-then the Worker) and **Site** (waits for the admin deploy of the same commit, fetches the
-snapshot from `SITE_CONTENT_URL`, builds, deploys). Both need the repository secret
-`CLOUDFLARE_API_TOKEN` and the variable `CLOUDFLARE_ACCOUNT_ID`; the site also reads the
+**Site** deploys on every push to `main`; **Deploy admin** deploys when a push to `main` touches
+`apps/admin`, `apps/admin-ui`, `packages/` or the lockfile. Deploy admin applies migrations,
+then the settings the database is missing, then the Worker. Site waits for the admin deploy of
+the same commit, fetches the snapshot from `SITE_CONTENT_URL`, builds and deploys. Both need the
+repository secret `CLOUDFLARE_API_TOKEN` and the variable `CLOUDFLARE_ACCOUNT_ID`; the site also
+reads the
 variables `SITE_URL` (the address it is served at; delete it at the domain cutover) and
 `SITE_CONTENT_URL` (the admin Worker's address).
 
