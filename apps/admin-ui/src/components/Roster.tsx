@@ -27,7 +27,7 @@ const blankPerson = (): Person => ({
 });
 
 export default function Roster() {
-  const { me } = useMe();
+  const { me, error: meError } = useMe();
   const { people, committees, serving, error: loadError, reload } = useRoster();
   const [editing, setEditing] = useState<{
     id: string | null;
@@ -41,6 +41,7 @@ export default function Roster() {
   const [showPast, setShowPast] = useState(false);
 
   if (loadError) return <ErrorNotice message={loadError} />;
+  if (meError) return <ErrorNotice message={meError} />;
   if (!people || !committees || !me) return <Loading />;
   const canEdit = can(me, "admin", "secretary");
   const past = people.filter((p) => !serving.includes(p));

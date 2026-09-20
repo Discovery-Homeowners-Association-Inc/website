@@ -17,7 +17,7 @@ const live = (i: Item, now: number) =>
 
 export default function ItemList({ kind }: { kind: ItemKind }) {
   const cfg = KINDS[kind];
-  const { me } = useMe();
+  const { me, error: meError } = useMe();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
@@ -28,6 +28,7 @@ export default function ItemList({ kind }: { kind: ItemKind }) {
     );
   }, [kind]);
   if (error) return <ErrorNotice message={error} />;
+  if (meError) return <ErrorNotice message={meError} />;
   if (!rows || !me) return <Loading />;
   const now = Date.now();
   const needle = q.trim().toLowerCase();

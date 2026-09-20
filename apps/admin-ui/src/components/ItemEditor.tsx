@@ -39,7 +39,7 @@ const actionLabel: Record<ItemAction, string> = {
 export default function ItemEditor({ kind }: { kind: ItemKind }) {
   const cfg = KINDS[kind];
   const id = param("id");
-  const { me } = useMe();
+  const { me, error: meError } = useMe();
   const [item, setItem] = useState<Full | null>(null);
   const [body, setBody] = useState<Record<string, unknown>>(() =>
     Object.fromEntries(cfg.fields.map((f) => [f.key, blank(f)])),
@@ -79,6 +79,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
   }, [dirty]);
 
   if (error && !item && id) return <ErrorNotice message={error} />;
+  if (meError) return <ErrorNotice message={meError} />;
   if (!me || (id && !item)) return <Loading />;
 
   const staff = can(me, "admin", "secretary");
