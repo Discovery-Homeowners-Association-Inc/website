@@ -21,6 +21,7 @@ import {
   type Field,
 } from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
@@ -98,11 +99,7 @@ export function ItemEditor({ kind }: { kind: ItemKind }) {
       () => {},
     );
   }, [id]);
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedWarning(dirty);
   useEffect(() => {
     document.title = `${item ? item.body.title : `New ${cfg.one}`} | Board administration`;
   }, [item, cfg.one]);

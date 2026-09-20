@@ -14,8 +14,10 @@ import {
   type AgendaResponse,
   type MinutesResponse,
 } from "../lib/api.ts";
+import { blankItem, tally, TALLY_LABELS } from "../lib/minutes-ui.ts";
 import { useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
 import { NamePicker } from "./NamePicker.tsx";
 import { MinutesEditor } from "./MinutesEditor.tsx";
 import { MinutesView } from "./MinutesView.tsx";
@@ -47,11 +49,7 @@ export function Minutes() {
     () => void load().catch((e: unknown) => setError(messageFrom(e))),
     [],
   );
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedWarning(dirty);
 
   const act = runAndReport(setError, setSaved, load);
 
@@ -73,15 +71,9 @@ export function Minutes() {
       const agenda = await api<AgendaResponse>("GET", `/meetings/${id}/agenda`);
       // The id comes from the agenda item, so a follow-up can be traced back
       // to where it was first raised.
-      const items = (agenda.current?.body.items ?? []).map((it) => ({
-        id: it.id,
-        title: it.title,
-        discussion: "",
-        motions: [],
-        outcome: "closed" as const,
-        follow_up_owner: "",
-        follow_up_note: "",
-      }));
+      const items = (agenda.current?.body.items ?? []).map((it) =>
+        blankItem(it.id, it.title),
+      );
       const body: MinutesBody = {
         called_to_order: "",
         presiding: "",
@@ -444,7 +436,6 @@ function VoteForm({
     no: 0,
     abstain: 0,
   });
-  const num = (s: string) => Math.max(0, Number.parseInt(s, 10) || 0);
   return (
     <form
       class="panel"
@@ -487,16 +478,14 @@ function VoteForm({
       <div class="row row--counts">
         {(["yes", "no", "abstain"] as const).map((f) => (
           <div class="field">
-            <label for={`v-${f}`}>
-              {f === "yes" ? "In favor" : f === "no" ? "Against" : "Abstaining"}
-            </label>
+            <label for={`v-${f}`}>{TALLY_LABELS[f]}</label>
             <input
               id={`v-${f}`}
               type="number"
               min={0}
               required
               value={v[f]}
-              onInput={(e) => setV({ ...v, [f]: num(e.currentTarget.value) })}
+              onInput={(e) => setV({ ...v, [f]: tally(e.currentTarget.value) })}
             />
           </div>
         ))}

@@ -5,7 +5,7 @@ import {
   type Person,
 } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
-import { api, can, messageFrom } from "../lib/api.ts";
+import { api, can, runAndReport } from "../lib/api.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
@@ -61,19 +61,7 @@ export function Roster() {
   const cname = (slug: string) =>
     committees.find((c) => c.slug === slug)?.name ?? slug;
 
-  const run = async (fn: () => Promise<unknown>, done: string) => {
-    setError("");
-    setSaved("");
-    try {
-      await fn();
-      await reload();
-      setSaved(done);
-      setEditing(null);
-      setEditingCommittee(null);
-    } catch (e) {
-      setError(messageFrom(e));
-    }
-  };
+  const run = runAndReport(setError, setSaved, reload);
 
   const personForm = (p: { id: string | null; data: Person }) => {
     const d = p.data;
@@ -90,7 +78,7 @@ export function Roster() {
                 ? api("PUT", `/roster/people/${p.id}`, d)
                 : api("POST", "/roster/people", d),
             p.id ? `Saved ${d.name}.` : `Added ${d.name} to the roster.`,
-          );
+          ).then((ok) => ok && (setEditing(null), setEditingCommittee(null)));
         }}
       >
         <h2>{p.id ? d.name || "Edit person" : "Add a person"}</h2>
@@ -326,6 +314,9 @@ export function Roster() {
                           term_end: today,
                         }),
                       `${p.name}'s term is recorded as ended.`,
+                    ).then(
+                      (ok) =>
+                        ok && (setEditing(null), setEditingCommittee(null)),
                     );
                 }}
               >
@@ -426,7 +417,7 @@ export function Roster() {
                   editingCommittee,
                 ),
               `Saved ${editingCommittee.name}.`,
-            );
+            ).then((ok) => ok && (setEditing(null), setEditingCommittee(null)));
           }}
         >
           <h2>{editingCommittee.name}</h2>

@@ -11,6 +11,7 @@ import {
   typeLabel,
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
@@ -56,12 +57,7 @@ export function Meeting() {
     [],
   );
 
-  // Warn before leaving with unsaved changes.
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedWarning(dirty);
 
   if (!data) return error ? <ErrorNotice message={error} /> : <Loading />;
   const editable = can(me, "admin", "secretary");

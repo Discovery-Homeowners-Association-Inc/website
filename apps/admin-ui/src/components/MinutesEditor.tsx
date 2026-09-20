@@ -1,5 +1,6 @@
 import type { MinutesBody } from "@dhoa/shared";
 import { newId } from "../lib/api.ts";
+import { blankItem, tally, TALLY_LABELS } from "../lib/minutes-ui.ts";
 import { AttendancePicker, NamePicker } from "./NamePicker.tsx";
 
 type Motion = MinutesBody["items"][number]["motions"][number];
@@ -41,8 +42,6 @@ export function MinutesEditor({
         ),
       ),
     );
-  const num = (v: string) => Math.max(0, Number.parseInt(v, 10) || 0);
-
   return (
     <div class="minutes-editor">
       <fieldset>
@@ -243,20 +242,14 @@ export function MinutesEditor({
               <div class="row row--counts">
                 {(["yes", "no", "abstain"] as const).map((f) => (
                   <div class="field" key={f}>
-                    <label for={`m${f}-${it.id}-${k}`}>
-                      {f === "yes"
-                        ? "In favor"
-                        : f === "no"
-                          ? "Against"
-                          : "Abstaining"}
-                    </label>
+                    <label for={`m${f}-${it.id}-${k}`}>{TALLY_LABELS[f]}</label>
                     <input
                       id={`m${f}-${it.id}-${k}`}
                       type="number"
                       min={0}
                       value={mo[f]}
                       onInput={(e) =>
-                        setMotion(i, k, { [f]: num(e.currentTarget.value) })
+                        setMotion(i, k, { [f]: tally(e.currentTarget.value) })
                       }
                     />
                   </div>
@@ -312,22 +305,7 @@ export function MinutesEditor({
         <button
           class="button button--quiet"
           type="button"
-          onClick={() =>
-            set({
-              items: [
-                ...body.items,
-                {
-                  id: newId(),
-                  title: "",
-                  discussion: "",
-                  motions: [],
-                  outcome: "closed" as const,
-                  follow_up_owner: "",
-                  follow_up_note: "",
-                },
-              ],
-            })
-          }
+          onClick={() => set({ items: [...body.items, blankItem(newId())] })}
         >
           Add an item
         </button>

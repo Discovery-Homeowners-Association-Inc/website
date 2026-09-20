@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { api, can, messageFrom, param } from "../lib/api.ts";
 import { SETTINGS_LABELS } from "../lib/settings.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
@@ -34,11 +35,7 @@ export function Settings() {
       (e: unknown) => setError(messageFrom(e)),
     );
   }, [key]);
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedWarning(dirty);
 
   if (me && !can(me, "admin"))
     return <p class="callout">Only administrators can change site settings.</p>;
