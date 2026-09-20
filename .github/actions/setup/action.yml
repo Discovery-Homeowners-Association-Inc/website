@@ -1,0 +1,30 @@
+name: Set up the toolchain
+description: mise, the pnpm store cache, and dependencies. Every workflow starts here.
+inputs:
+  browsers:
+    description: Install Playwright browsers and their system libraries
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+    - name: Cache the pnpm store
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.local/share/pnpm/store
+        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+    - name: Cache Playwright browsers
+      if: inputs.browsers == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        # Keyed on the Playwright version, not the lockfile: the browsers change
+        # when it does and far less often than the lockfile.
+        key: playwright-${{ runner.os }}-${{ hashFiles('apps/*/package.json') }}
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - if: inputs.browsers == 'true'
+      run: |
+        pnpm --filter @dhoa/site exec playwright install chromium firefox
+        pnpm --filter @dhoa/site exec playwright install-deps chromium firefox
+      shell: bash
