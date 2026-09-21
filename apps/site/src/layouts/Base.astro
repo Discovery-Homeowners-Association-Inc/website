@@ -3,7 +3,7 @@ import "../styles/global.css";
 import SiteHeader from "@dhoa/design/SiteHeader.astro";
 import fontDisplay from "@dhoa/design/fonts/bricolage-grotesque.woff2?url";
 import fontBody from "@dhoa/design/fonts/atkinson-hyperlegible-next.woff2?url";
-import { org, telHref } from "../lib/data";
+import { officeTel, org } from "../lib/data";
 
 interface Props {
   title: string;
@@ -83,8 +83,6 @@ const nav = [
       <slot />
     </main>
 
-    <slot name="after-main" />
-
     <footer class="site-footer">
       <div class="wrap">
         <div>
@@ -95,8 +93,8 @@ const nav = [
             <br />
             Mail: {org.office.mailing}
             <br />
-            Phone: <a href={telHref(org.office.phone)}>{org.office.phone}</a>.
-            Fax: {org.office.fax}
+            Phone: <a href={officeTel()}>{org.office.phone}</a>. Fax:{" "}
+            {org.office.fax}
             <br />
             Email: <a href={`mailto:${org.office.email}`}>{org.office.email}</a>
           </address>

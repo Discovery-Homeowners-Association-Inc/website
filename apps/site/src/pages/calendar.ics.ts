@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import { todayInNewYork } from "@dhoa/shared";
-import { boardMeetings } from "../lib/calendar";
-import { escapeText as esc, foldLine as fold } from "../lib/ics";
+import { meetings } from "../lib/calendar";
+import { dtstart, escapeText as esc, foldLine as fold } from "../lib/ics";
 import { org } from "../lib/data";
 
 /*
@@ -36,15 +36,6 @@ const utc = (d: Date) =>
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}/, "");
 
-/** "7:00 pm" on a YYYY-MM-DD in New York, as a floating local time with TZID. */
-function local(date: string, time: string): string {
-  const m = time.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
-  if (!m) throw new Error(`Cannot parse meeting time "${time}"`);
-  let h = Number(m[1]) % 12;
-  if (m[3]!.toLowerCase() === "pm") h += 12;
-  return `${date.replace(/-/g, "")}T${String(h).padStart(2, "0")}${m[2]}00`;
-}
-
 export const GET: APIRoute = async ({ site }) => {
   const stamp = utc(new Date());
   const today = todayInNewYork();
@@ -63,17 +54,24 @@ export const GET: APIRoute = async ({ site }) => {
    * the entry; leaving it out of the feed leaves it in their calendar, and they
    * turn up to a meeting that is not happening.
    */
-  for (const m of await boardMeetings(start, 24, { includeCanceled: true })) {
-    const s = local(m.date, m.time);
+  for (const m of await meetings(start, Infinity, { includeCanceled: true })) {
+    const dt = dtstart(m.date, m.time);
+    if (dt.length === 1)
+      console.warn(
+        `Meeting ${m.id} has a time the feed cannot parse: "${m.time}"`,
+      );
     lines.push(
       "BEGIN:VEVENT",
       // The record's id, not its date: a meeting that moves has to update the
       // entry a subscriber already has, rather than becoming a second one that
       // never goes away.
+      //
+      // The prefix stays "board-", even for every other kind of meeting now
+      // included here, so an existing subscriber's calendar entries keep the
+      // same UID and are updated in place rather than duplicated.
       `UID:board-${m.id}@discoveryhomeowners.com`,
       `DTSTAMP:${stamp}`,
-      `DTSTART;TZID=America/New_York:${s}`,
-      "DURATION:PT2H",
+      ...dt,
       `SUMMARY:${esc(m.status === "canceled" ? `Canceled: ${m.title}` : m.title)}`,
       `LOCATION:${esc(m.location)}`,
       `URL:${new URL(m.href, site)}`,

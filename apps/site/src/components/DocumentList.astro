@@ -11,7 +11,13 @@ const docs = (
     "documents",
     (d) => !category || d.data.category === category,
   )
-).toSorted((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+).toSorted(
+  (a, b) =>
+    Number(b.data.featured) - Number(a.data.featured) ||
+    b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const kind = (file: string) =>
+  file.toLowerCase().endsWith(".pdf") ? "PDF" : "image";
 ---
 
 {docs.length > 0 && (
@@ -21,8 +27,13 @@ const docs = (
       {docs.map((d) => (
         <li>
           <a href={d.data.file}>
-            <strong>{d.data.title}</strong>
-            <span>{d.data.summary} (PDF)</span>
+            <strong lang={d.data.language === "es" ? "es" : undefined}>
+              {d.data.title}
+            </strong>
+            <span>
+              {d.data.summary} ({kind(d.data.file)}
+              {d.data.language === "es" && ", Spanish"})
+            </span>
           </a>
         </li>
       ))}

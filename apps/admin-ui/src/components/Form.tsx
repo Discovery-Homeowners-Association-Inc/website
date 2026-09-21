@@ -107,7 +107,9 @@ export function Fields({ fields, value, onChange, idPrefix }: Props) {
                       <li>
                         Write {"{{email:general}}"} for the office email, or{" "}
                         {"{{phone:office}}"} for the office phone, so they are
-                        never out of date.
+                        never out of date. Use{" "}
+                        {"{{setting:rv-lot.fees.monthly}}"} for a fact from Site
+                        settings.
                       </li>
                     </ul>
                   </details>

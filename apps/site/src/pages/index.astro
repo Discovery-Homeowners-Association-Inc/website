@@ -4,18 +4,20 @@ import { todayInNewYork } from "@dhoa/shared";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import mapSvg from "../assets/discovery-map.svg?raw";
-import { dues, newsletter, org, telHref, trash } from "../lib/data";
-import { boardMeetings, upcoming } from "../lib/calendar";
+import { dues, officeTel, org, trash } from "../lib/data";
+import { settings } from "../lib/snapshot";
+import { meetings, upcoming } from "../lib/calendar";
 import {
   dateOf,
   dayInYear,
   dayOfMonth,
   longDate,
   monthShort,
+  yearOf,
 } from "../lib/dates";
 
 const today = todayInNewYork();
-const [nextMeeting] = await boardMeetings(today, 2);
+const [nextMeeting] = await meetings(today, 1, { type: "board" });
 const coming = await upcoming(4, today);
 const news = (await getCollection("news"))
   .toSorted(
@@ -51,7 +53,7 @@ const trashPickup =
 const tasks = [
   {
     href: "/dues/",
-    label: "Pay your assessment",
+    label: "Pay your dues",
     note: `$${org.dues.quarterly} a quarter, or $${org.dues.annual} for the year`,
   },
   {
@@ -67,7 +69,7 @@ const tasks = [
   {
     href: "/amenities/recreation-center/",
     label: "Rent the Recreation Center",
-    note: "Parties and meetings, up to 49 people",
+    note: `Parties and meetings, up to ${settings["recreation-center"].capacity} people`,
   },
   {
     href: "/rules/trash-recycling/",
@@ -99,13 +101,54 @@ const streets = [
 
 <Base title="Home">
   <section class="hero" aria-labelledby="hero-title">
-    <div>
+    <div class="hero__text">
       <h1 id="hero-title">Discovery</h1>
       <p class="hero__lede">
         A neighborhood in {org.locality}, planned in 1972 as {org.county}'s
         first planned community, and still run by the people who live here.
       </p>
       <p class="hero__streets">{streets.join(", ")}.</p>
+    </div>
+    <div class="hero__glance">
+      <h2 class="visually-hidden">At a glance</h2>
+      <dl class="glance">
+        <div>
+          <dt>Next board meeting</dt>
+          <dd>
+            {nextMeeting ? longDate(nextMeeting.date) : "To be announced"}
+            <small>
+              {nextMeeting
+                ? `${nextMeeting.time}, ${nextMeeting.location}. Everyone is welcome.`
+                : ""}
+            </small>
+          </dd>
+        </div>
+        <div>
+          <dt>Trash pickup</dt>
+          <dd>
+            {trashPickup?.schedule}
+            <small>Bins out: {trash.setout_rule}</small>
+          </dd>
+        </div>
+        <div>
+          <dt>Next dues payment</dt>
+          <dd>
+            {longDate(nextDue)}
+            <small>${org.dues.quarterly} a quarter</small>
+          </dd>
+        </div>
+        <div>
+          <dt>Office</dt>
+          <dd>
+            <a href={officeTel()}>{org.office.phone}</a>
+            <small>
+              {org.office.hours
+                .map((h) => `${h.days}, ${h.open} to ${h.close}`)
+                .join("; ")}
+            </small>
+          </dd>
+        </div>
+      </dl>
     </div>
     <figure
       class="hero__map"
@@ -119,46 +162,6 @@ const streets = [
       />
     </figure>
   </section>
-
-  <h2 class="visually-hidden">At a glance</h2>
-  <dl class="glance">
-    <div>
-      <dt>Next board meeting</dt>
-      <dd>
-        {nextMeeting ? longDate(nextMeeting.date) : "To be announced"}
-        <small>
-          {nextMeeting
-            ? `${nextMeeting.time}, ${nextMeeting.location}. Everyone is welcome.`
-            : ""}
-        </small>
-      </dd>
-    </div>
-    <div>
-      <dt>Trash pickup</dt>
-      <dd>
-        {trashPickup?.schedule}
-        <small>Bins out: {trash.setout_rule}</small>
-      </dd>
-    </div>
-    <div>
-      <dt>Next assessment due</dt>
-      <dd>
-        {longDate(nextDue)}
-        <small>${org.dues.quarterly} per quarter</small>
-      </dd>
-    </div>
-    <div>
-      <dt>Office</dt>
-      <dd>
-        <a href={telHref(org.office.phone_e164)}>{org.office.phone}</a>
-        <small>
-          {org.office.hours
-            .map((h) => `${h.days}, ${h.open} to ${h.close}`)
-            .join("; ")}
-        </small>
-      </dd>
-    </div>
-  </dl>
 
   <section aria-labelledby="tasks-title">
     <h2 id="tasks-title">Get something done</h2>
@@ -186,7 +189,11 @@ const streets = [
             </time>
             <div>
               <h3>
-                <a href={c.href}>{c.title}</a>
+                {c.kind === "meeting" && !c.agendaPublished ? (
+                  c.title
+                ) : (
+                  <a href={c.href}>{c.title}</a>
+                )}
               </h3>
               <p>{[c.time, c.location].filter(Boolean).join(", ")}</p>
             </div>
@@ -201,20 +208,24 @@ const streets = [
     <section aria-labelledby="news-title">
       <h2 id="news-title">News from the board</h2>
       <ul class="dated">
-        {news.map((n) => (
-          <li>
-            <time datetime={dateOf(n.data.date)}>
-              {monthShort(dateOf(n.data.date))}
-              <span>{dayOfMonth(dateOf(n.data.date))}</span>
-            </time>
-            <div>
-              <h3>
-                <a href={`/news/${n.id}/`}>{n.data.title}</a>
-              </h3>
-              <p>{n.data.summary}</p>
-            </div>
-          </li>
-        ))}
+        {news.map((n) => {
+          const d = dateOf(n.data.date);
+          return (
+            <li>
+              <time datetime={d}>
+                {monthShort(d)}
+                <span>{dayOfMonth(d)}</span>
+                {yearOf(d) !== today.slice(0, 4) && <small>{yearOf(d)}</small>}
+              </time>
+              <div>
+                <h3>
+                  <a href={`/news/${n.id}/`}>{n.data.title}</a>
+                </h3>
+                <p>{n.data.summary}</p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <p>
         <a href="/news/">All news</a>
@@ -227,37 +238,5 @@ const streets = [
       About the neighborhood
     </h2>
     <Prose id="home" />
-  </section>
-
-  <section class="signup" slot="after-main" aria-labelledby="signup-title">
-    <div class="wrap">
-      <div>
-        <h2 id="signup-title">Get board news by email</h2>
-        <p>
-          Meeting agendas and notices about the pool and projects. About one
-          email a month. Unsubscribe any time.
-        </p>
-      </div>
-      {newsletter.enabled ? (
-        <form method="post" action="/api/newsletter">
-          <label for="signup-email">Email address</label>
-          <input
-            id="signup-email"
-            name="email"
-            type="email"
-            autocomplete="email"
-            required
-          />
-          <button class="button" type="submit">
-            Subscribe
-          </button>
-        </form>
-      ) : (
-        <p>
-          Email sign-up is being set up. Until then, new agendas appear on the{" "}
-          <a href="/meetings/">meetings page</a>.
-        </p>
-      )}
-    </div>
   </section>
 </Base>

@@ -4,13 +4,23 @@
 .hero {
   display: grid;
   gap: var(--space-4);
-  align-items: center;
+  grid-template-areas: "text" "glance" "map";
   padding-block: var(--space-4) var(--space-5);
 }
 
-@media (min-width: 56rem) {
+.hero__text {
+  grid-area: text;
+}
+
+.hero__glance {
+  grid-area: glance;
+}
+
+@media (width >= 56rem) {
   .hero {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas: "text map" "glance glance";
+    align-items: center;
   }
 }
 
@@ -31,12 +41,14 @@
   font-family: var(--font-display);
   font-stretch: 85%;
   font-weight: 600;
-  color: var(--plan);
+  /* Not a link, so no link blue: that sends people tapping at text that does nothing. */
+  color: var(--ink-muted);
   font-size: var(--step-0);
   max-width: 44ch;
 }
 
 .hero__map {
+  grid-area: map;
   margin: 0;
   aspect-ratio: 4 / 5;
   max-width: 100%;
@@ -123,13 +135,13 @@
   margin: 0;
 }
 
-@media (min-width: 44rem) {
+@media (width >= 44rem) {
   .glance {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 70rem) {
+@media (width >= 70rem) {
   .glance {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -163,50 +175,6 @@
   margin-top: var(--space-1);
 }
 
-/* ── Newsletter band ─────────────────────────────────────────────────────── */
-.signup {
-  border-top: 4px solid var(--marigold);
-  background: var(--surface);
-  padding-block: var(--space-5);
-}
-
-.signup .wrap {
-  display: grid;
-  gap: var(--space-4);
-  align-items: end;
-}
-
-@media (min-width: 56rem) {
-  .signup .wrap {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-
-.signup h2 {
-  margin-top: 0;
-}
-
-.signup form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.signup label {
-  flex-basis: 100%;
-  font-weight: 700;
-}
-
-.signup input {
-  flex: 1 1 14rem;
-  font: inherit;
-  padding: 0.65rem 0.8rem;
-  border: 2px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--paper);
-  color: var(--ink);
-}
-
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 .site-footer {
   background: var(--band);
@@ -217,7 +185,7 @@
    */
   border-top: 1px solid var(--rule);
   padding-block: var(--space-5);
-  font-size: var(--step--1);
+  font-size: 1rem;
 }
 
 .site-footer a {
@@ -229,7 +197,7 @@
   gap: var(--space-4);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .site-footer .wrap {
     grid-template-columns: 2fr 1fr 1fr;
   }
@@ -250,6 +218,12 @@
   font-style: normal;
 }
 
+/* WCAG 2.2 target size, and readers the body size was chosen for. */
+.site-footer address a {
+  display: inline-block;
+  padding-block: 0.2rem;
+}
+
 /* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
   .site-header {
@@ -257,7 +231,6 @@
   }
   .site-header nav,
   .nav-toggle,
-  .signup,
   .skip-link,
   .hero__map {
     display: none !important;
@@ -356,8 +329,8 @@ figcaption {
    * was wider than the gap the easing leaves once the picture is narrow, so on
    * a phone neighbors touched. The cap keeps it from growing on a wide screen.
    */
-  width: min(1.75rem, 7cqw);
-  height: min(1.75rem, 7cqw);
+  width: max(1.5rem, min(1.75rem, 7cqw));
+  height: max(1.5rem, min(1.75rem, 7cqw));
   border-radius: 50%;
   background: var(--plan);
   color: var(--surface);
@@ -371,11 +344,18 @@ figcaption {
 }
 
 .parkmap__mark--amenity {
-  width: min(1.5rem, 6cqw);
-  height: min(1.5rem, 6cqw);
+  /* Fixed at the 24px WCAG minimum: it never grows or shrinks with the picture. */
+  width: 1.5rem;
+  height: 1.5rem;
   background: var(--ink);
   /* Reads as a dot, but stays a 24px target. */
   box-shadow: inset 0 0 0 0.3rem var(--surface);
+}
+
+/* The parks map is read, not watched: labels are there from the first frame. */
+.parkmap .map__labels {
+  opacity: 1;
+  animation: none;
 }
 
 .parkmap__mark:hover,
@@ -523,8 +503,25 @@ details.group.parkmap__all > ul {
   color: var(--ink-muted);
 }
 
+/* The other half of this breakpoint is ParkMap.astro's script, which folds
+   the full list closed above it and leaves it open below it. */
 @media (width < 52rem) {
   .parkmap {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* The panel above the picture, where a thumb on a marker can still see it. */
+  .parkmap__key {
+    order: -1;
+  }
+}
+
+/* ── Report a problem: urgent entries in a callout ──────────────────────── */
+.callout .people {
+  margin-bottom: 0;
+}
+
+.callout h2.first {
+  font-size: var(--step-1);
+  margin-bottom: var(--space-2);
 }

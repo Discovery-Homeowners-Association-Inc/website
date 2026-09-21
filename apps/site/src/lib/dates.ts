@@ -3,6 +3,7 @@
  * admin app, which formats the same dates for the same readers.
  */
 export { dayOfMonth, longDate, monthShort } from "@dhoa/shared";
+import { longDate } from "@dhoa/shared";
 
 const TZ = "America/New_York";
 
@@ -14,6 +15,9 @@ export const dateOf = (d: Date) =>
     day: "2-digit",
   }).format(d);
 
+/** The four-digit year of an ISO date, to decide whether a dated item needs it spelled out. */
+export const yearOf = (iso: string) => iso.slice(0, 4);
+
 export const timeOf = (d: Date) =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: TZ,
@@ -22,6 +26,14 @@ export const timeOf = (d: Date) =>
   })
     .format(d)
     .toLowerCase();
+
+/** When an event happens, in words: one date when it ends the same day, both when it does not. */
+export function eventWhen(start: Date, end: Date): string {
+  const from = `${longDate(dateOf(start))}, ${timeOf(start)}`;
+  return dateOf(start) === dateOf(end)
+    ? `${from} to ${timeOf(end)}`
+    : `${from} to ${longDate(dateOf(end))}, ${timeOf(end)}`;
+}
 
 export const newsDate = (d: Date) =>
   new Intl.DateTimeFormat("en-US", {

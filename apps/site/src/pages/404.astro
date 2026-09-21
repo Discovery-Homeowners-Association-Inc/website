@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import PageHead from "../components/PageHead.astro";
+import { officeTel, org } from "../lib/data";
 ---
 
 <Base title="Page not found">
@@ -10,6 +11,7 @@ import PageHead from "../components/PageHead.astro";
   />
   <p>
     Try the <a href="/">home page</a>, the{" "}
-    <a href="/documents/">documents library</a>, or call the office.
+    <a href="/documents/">documents library</a>, or call the office at{" "}
+    <a href={officeTel()}>{org.office.phone}</a>.
   </p>
 </Base>

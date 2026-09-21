@@ -3,7 +3,13 @@ import { getCollection } from "astro:content";
 import { todayInNewYork } from "@dhoa/shared";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
-import { dateOf, dayOfMonth, monthShort, newsDate } from "../../lib/dates";
+import {
+  dateOf,
+  dayOfMonth,
+  monthShort,
+  newsDate,
+  yearOf,
+} from "../../lib/dates";
 import { upcoming } from "../../lib/calendar";
 
 const news = (await getCollection("news")).toSorted(
@@ -18,11 +24,11 @@ const past = (await getCollection("events"))
 ---
 
 <Base
-  title="News and events"
+  title="News & events"
   description="Announcements from the board and what is happening in the neighborhood."
 >
   <PageHead
-    title="News and events"
+    title="News & events"
     summary="Announcements from the board, and what is happening in the neighborhood."
   />
   <div class="two-up">
@@ -38,6 +44,7 @@ const past = (await getCollection("events"))
               <time datetime={d}>
                 {monthShort(d)}
                 <span>{dayOfMonth(d)}</span>
+                {yearOf(d) !== today.slice(0, 4) && <small>{yearOf(d)}</small>}
               </time>
               <div>
                 <h3>
@@ -71,7 +78,11 @@ const past = (await getCollection("events"))
             </time>
             <div>
               <h3>
-                <a href={c.href}>{c.title}</a>
+                {c.kind === "meeting" && !c.agendaPublished ? (
+                  c.title
+                ) : (
+                  <a href={c.href}>{c.title}</a>
+                )}
               </h3>
               <p>{[c.time, c.location].filter(Boolean).join(", ")}</p>
             </div>

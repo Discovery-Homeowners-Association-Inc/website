@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeText, foldLine } from "./ics.ts";
+import { dtstart, escapeText, foldLine } from "./ics.ts";
 
 describe("escapeText", () => {
   it("escapes a semicolon, which is what a room number looks like", () => {
@@ -22,6 +22,25 @@ describe("escapeText", () => {
 
   it("leaves ordinary text alone", () => {
     expect(escapeText("Board meeting")).toBe("Board meeting");
+  });
+});
+
+describe("dtstart", () => {
+  it("places a local time in New York", () => {
+    expect(dtstart("2026-10-20", "7:00 pm")).toEqual([
+      "DTSTART;TZID=America/New_York:20261020T190000",
+      "DURATION:PT2H",
+    ]);
+    expect(dtstart("2026-10-20", "12:30 AM")[0]).toBe(
+      "DTSTART;TZID=America/New_York:20261020T003000",
+    );
+  });
+  it("falls back to an all-day entry rather than failing the whole feed", () => {
+    // The admin app validates the time now, but a value already in the database
+    // is whatever it is, and one bad meeting must not take the calendar down.
+    expect(dtstart("2026-10-20", "7pm")).toEqual([
+      "DTSTART;VALUE=DATE:20261020",
+    ]);
   });
 });
 

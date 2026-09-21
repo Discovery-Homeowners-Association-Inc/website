@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { appendFile, readFile } from "node:fs/promises";
 import { defineConfig } from "astro/config";
 import remarkOrg from "./src/lib/remark-org.ts";
 
@@ -16,18 +16,23 @@ const isTemporaryAddress = new URL(siteUrl).hostname.endsWith(".workers.dev");
 /**
  * The pages carry a noindex meta tag, but the PDFs under /documents/ cannot --
  * only a header reaches those. Cloudflare reads _headers from the assets
- * directory.
+ * directory. The static _headers in public/ carries the security headers, and
+ * its /* block is the last thing in the file, so appending an indented line
+ * adds the noindex header to that same block.
  */
 const noindexHeader = {
   name: "dhoa-noindex-temporary-address",
   hooks: {
     "astro:build:done": async ({ dir, logger }) => {
       if (!isTemporaryAddress) return;
-      await writeFile(
-        new URL("_headers", dir),
-        "/*\n  X-Robots-Tag: noindex, nofollow\n",
-      );
-      logger.warn(`temporary address ${siteUrl}: wrote _headers with noindex`);
+      const path = new URL("_headers", dir);
+      const existing = await readFile(path, "utf8");
+      if (!/(^|\n)\/\*\n(  [^\n]*\n)*$/.test(existing))
+        throw new Error(
+          "_headers no longer ends with the /* block; the noindex append is unsafe.",
+        );
+      await appendFile(path, "  X-Robots-Tag: noindex, nofollow\n");
+      logger.warn(`temporary address ${siteUrl}: appended noindex to _headers`);
     },
   },
 };
@@ -43,7 +48,12 @@ export default defineConfig({
   trailingSlash: "always",
   markdown: { remarkPlugins: [remarkOrg] },
   // The dev server is reached from other machines over the LAN and Tailscale.
-  // Vite blocks unknown Host headers to prevent DNS rebinding, so allow the
-  // development machine's name and any Tailscale MagicDNS name.
-  server: { allowedHosts: ["desktop", ".ts.net"] },
+  // Vite blocks unknown Host headers to prevent DNS rebinding, so set
+  // DEV_HOSTS=desktop,laptop to allow your machines' names.
+  server: {
+    allowedHosts: [
+      ".ts.net",
+      ...(process.env.DEV_HOSTS ?? "").split(",").filter(Boolean),
+    ],
+  },
 });

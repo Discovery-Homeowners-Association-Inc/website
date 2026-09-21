@@ -3,22 +3,24 @@ import { todayInNewYork } from "@dhoa/shared";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Prose from "../../components/Prose.astro";
-import { email, org } from "../../lib/data";
-import { boardMeetings } from "../../lib/calendar";
+import AttendingPanel from "../../components/AttendingPanel.astro";
+import { org } from "../../lib/data";
+import { meetings } from "../../lib/calendar";
 import { dayOfMonth, longDate, monthShort } from "../../lib/dates";
 import { page } from "../../lib/pages";
 
 const p = await page("meetings");
-const upcoming = await boardMeetings(todayInNewYork(), 6);
+const upcoming = await meetings(todayInNewYork(), 6);
 ---
 
 <Base title={p.title} description={p.summary}>
   <PageHead title={p.title} summary={p.summary} />
   <div class="with-aside">
     <div>
+      <Prose id="meetings" part="intro" />
       <section aria-labelledby="upcoming-title">
         <h2 id="upcoming-title" class="first">
-          Upcoming board meetings
+          Upcoming meetings
         </h2>
         <ul class="dated">
           {upcoming.map((m) => (
@@ -29,7 +31,17 @@ const upcoming = await boardMeetings(todayInNewYork(), 6);
               </time>
               <div>
                 <h3>
-                  <a href={m.href}>{longDate(m.date)}</a>
+                  {m.kind === "meeting" && !m.agendaPublished ? (
+                    <>
+                      {m.title !== "Board meeting" && `${m.title}, `}
+                      {longDate(m.date)}
+                    </>
+                  ) : (
+                    <a href={m.href}>
+                      {m.title !== "Board meeting" && `${m.title}, `}
+                      {longDate(m.date)}
+                    </a>
+                  )}
                 </h3>
                 <p>
                   {m.time}, {m.location}
@@ -59,29 +71,8 @@ const upcoming = await boardMeetings(todayInNewYork(), 6);
         </p>
       </section>
 
-      <Prose id="meetings" />
+      <Prose id="meetings" part="rest" />
     </div>
-    <aside class="panel">
-      <h2>Attending</h2>
-      <dl>
-        <dt>When</dt>
-        <dd>
-          {org.meetings.board.rule}, {org.meetings.board.time}
-        </dd>
-        <dt>Where</dt>
-        <dd>
-          {org.meetings.board.location}, {org.office.street}
-        </dd>
-        <dt>Who</dt>
-        <dd>{org.meetings.board.open_to}</dd>
-        <dt>Add an item to the agenda</dt>
-        <dd>
-          <a href={`mailto:${email("general")}`}>{email("general")}</a>
-        </dd>
-      </dl>
-      <p>
-        <a href="/calendar.ics">Add meetings to your calendar</a>
-      </p>
-    </aside>
+    <AttendingPanel rule={org.meetings.board.rule} />
   </div>
 </Base>

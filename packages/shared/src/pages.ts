@@ -1,0 +1,27 @@
+/** Where each page's text appears on the public site, by the page's slug. Both apps read it. */
+export const PAGE_PATHS = {
+  home: "/",
+  about: "/about/",
+  history: "/about/history/",
+  "welcome-committee": "/about/welcome-committee/",
+  amenities: "/amenities/",
+  pool: "/amenities/pool/",
+  "recreation-center": "/amenities/recreation-center/",
+  "rv-lot": "/amenities/rv-lot/",
+  parks: "/amenities/parks/",
+  board: "/board/",
+  meetings: "/meetings/",
+  projects: "/board/projects/",
+  rules: "/rules/",
+  "architectural-control": "/rules/architectural-control/",
+  "trash-recycling": "/rules/trash-recycling/",
+  "report-a-problem": "/rules/report-a-problem/",
+  committees: "/contact/committees/",
+  "community-links": "/contact/community-links/",
+  contact: "/contact/",
+  documents: "/documents/",
+  dues: "/dues/",
+  privacy: "/privacy/",
+  terms: "/terms/",
+} as const satisfies Record<string, string>;
+export type PageSlug = keyof typeof PAGE_PATHS;

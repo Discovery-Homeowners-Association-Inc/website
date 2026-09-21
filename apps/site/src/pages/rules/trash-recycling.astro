@@ -15,7 +15,7 @@ const p = await page("trash-recycling");
     summary={p.summary}
     crumbs={[{ href: "/rules/", label: "Rules & requests" }]}
   />
-  <Prose id="trash-recycling" />
+  <Prose id="trash-recycling" part="intro" />
   <h2>Collection schedule</h2>
   <div class="table-scroll">
     <table>
@@ -37,7 +37,7 @@ const p = await page("trash-recycling");
       </tbody>
     </table>
   </div>
-  <p>
+  <p class="prose">
     Bins out: {trash.setout_rule} {trash.bring_in_rule} Look up your recycling
     week with the{" "}
     <a href={org.external.county_recycling.url}>
@@ -45,6 +45,7 @@ const p = await page("trash-recycling");
     </a>
     .
   </p>
+  <Prose id="trash-recycling" part="rest" />
   <p class="prose">{trash.container_rule}</p>
 
   <h2>Yard waste, {trash.yard_waste.season}</h2>

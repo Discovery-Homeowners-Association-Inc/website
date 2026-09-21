@@ -3,6 +3,7 @@ import { MEETING_LABEL, todayInNewYork } from "@dhoa/shared";
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
+import AttendingPanel from "../../components/AttendingPanel.astro";
 import { org } from "../../lib/data";
 import { longDate } from "../../lib/dates";
 
@@ -35,36 +36,43 @@ const past = !canceled && m.date < todayInNewYork();
     summary={`${m.time}, ${m.location}`}
     crumbs={[{ href: "/meetings/", label: "Meetings" }]}
   />
-  <div class="prose">
-    {canceled && (
-      <p class="callout callout--warning">
-        This meeting was canceled. See{" "}
-        <a href="/meetings/">the meetings page</a> for the next one.
+  <div class="with-aside">
+    <div class="prose">
+      {canceled && (
+        <p class="callout callout--warning">
+          This meeting was canceled. See{" "}
+          <a href="/meetings/">the meetings page</a> for the next one.
+        </p>
+      )}
+      {m.agenda.length > 0 ? (
+        <section aria-labelledby="agenda-title">
+          <h2 id="agenda-title" class="first">
+            Agenda
+          </h2>
+          <ol>
+            {m.agenda.map((item) => (
+              <li>
+                <strong>{item.title}</strong>
+                {item.detail && <p class="muted">{item.detail}</p>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : canceled ? null : past ? (
+        <p>No agenda was posted for this meeting.</p>
+      ) : (
+        <p>The agenda is posted about a week before the meeting.</p>
+      )}
+      <p class="callout">
+        Approved minutes are posted in the{" "}
+        <a href={org.external.payhoa.portal_url}>resident portal</a> after the
+        board votes on them.
       </p>
-    )}
-    {m.agenda.length > 0 ? (
-      <section aria-labelledby="agenda-title">
-        <h2 id="agenda-title" class="first">
-          Agenda
-        </h2>
-        <ol>
-          {m.agenda.map((item) => (
-            <li>
-              <strong>{item.title}</strong>
-              {item.detail && <p class="muted">{item.detail}</p>}
-            </li>
-          ))}
-        </ol>
-      </section>
-    ) : canceled ? null : past ? (
-      <p>No agenda was posted for this meeting.</p>
-    ) : (
-      <p>The agenda is posted about a week before the meeting.</p>
-    )}
-    <p class="callout">
-      Approved minutes are posted in the{" "}
-      <a href={org.external.payhoa.portal_url}>resident portal</a> after the
-      board votes on them.
-    </p>
+    </div>
+    <AttendingPanel
+      when={m.time}
+      where={m.location}
+      rule={m.type === "board" ? org.meetings.board.rule : undefined}
+    />
   </div>
 </Base>

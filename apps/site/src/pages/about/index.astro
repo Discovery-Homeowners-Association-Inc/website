@@ -1,10 +1,7 @@
 ---
-import Base from "../../layouts/Base.astro";
-import PageHead from "../../components/PageHead.astro";
-import Prose from "../../components/Prose.astro";
-import { page } from "../../lib/pages";
+import SectionIndex from "../../components/SectionIndex.astro";
+import { board } from "../../lib/data";
 
-const p = await page("about");
 const sub = [
   {
     href: "/about/history/",
@@ -19,7 +16,7 @@ const sub = [
   {
     href: "/board/",
     label: "The board",
-    note: "Seven neighbors, elected by the membership",
+    note: `${board.members.length} neighbors, elected by the membership`,
   },
   {
     href: "/board/projects/",
@@ -29,17 +26,4 @@ const sub = [
 ];
 ---
 
-<Base title={p.title} description={p.summary}>
-  <PageHead title={p.title} summary={p.summary} />
-  <Prose id="about" />
-  <ul class="tasks">
-    {sub.map((s) => (
-      <li>
-        <a href={s.href}>
-          <strong>{s.label}</strong>
-          <span>{s.note}</span>
-        </a>
-      </li>
-    ))}
-  </ul>
-</Base>
+<SectionIndex id="about" items={sub} />

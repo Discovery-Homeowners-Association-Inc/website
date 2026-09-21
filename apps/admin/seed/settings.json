@@ -77,7 +77,7 @@
         "portal_url": "https://app.payhoa.com/auth/login",
         "pay_url": "https://app.payhoa.com/auth/login",
         "signup_url": "https://app.payhoa.com/auth/login",
-        "help_text": "Pay your assessment, see your balance, get documents, and submit ACC applications.",
+        "help_text": "Pay your dues, see your balance, get documents, and submit ACC applications.",
         "features": [
           "Pay your assessment online",
           "Get association documents",
@@ -123,10 +123,6 @@
         "label": "Pay your Walkersville water bill",
         "url": "https://www.walkersvillemd.gov/"
       }
-    },
-    "newsletter": {
-      "enabled": false,
-      "provider": "sender"
     }
   },
   "parks": {
@@ -906,19 +902,19 @@
     "hours": [
       {
         "period": "Opening weekend — May 23, 24, 25",
-        "time": "Noon – 8:00 pm"
+        "time": "12:00 pm to 8:00 pm"
       },
       {
         "period": "June and July, non-school days",
-        "time": "12:00 pm – 8:00 pm"
+        "time": "12:00 pm to 8:00 pm"
       },
       {
-        "period": "August, Friday–Sunday until school starts Aug 18",
-        "time": "11:00 am – 7:00 pm"
+        "period": "August, Friday–Sunday until school starts August 18",
+        "time": "11:00 am to 7:00 pm"
       },
       {
         "period": "Labor Day weekend",
-        "time": "11:00 am – 7:00 pm"
+        "time": "11:00 am to 7:00 pm"
       }
     ],
     "fees_resident": [

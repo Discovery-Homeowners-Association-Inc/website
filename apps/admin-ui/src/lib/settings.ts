@@ -320,19 +320,6 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
           },
         ],
       },
-      {
-        key: "newsletter",
-        label: "Email newsletter",
-        kind: "group",
-        fields: [
-          {
-            key: "enabled",
-            label: "Show the sign-up form",
-            kind: "boolean",
-            help: "Turn on once the newsletter service is connected.",
-          },
-        ],
-      },
     ],
   },
   {

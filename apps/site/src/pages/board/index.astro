@@ -21,6 +21,11 @@ const members = board.members;
         {m.committees && m.committees.length > 0 && (
           <div class="muted">{m.committees.join(", ")}</div>
         )}
+        {m.email && (
+          <div>
+            <a href={`mailto:${m.email}`}>{m.email}</a>
+          </div>
+        )}
       </li>
     ))}
   </ul>

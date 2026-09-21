@@ -7,6 +7,9 @@ import { z } from "zod";
 
 const s = z.string().trim();
 const url = z.url().or(z.literal("")).default("");
+/** "7:00 pm": the one form the calendar feed can turn into an instant. */
+export const MEETING_TIME = /^(1[0-2]|0?[1-9]):([0-5]\d) (am|pm)$/i;
+const meetingTime = s.regex(MEETING_TIME, "Use a time like 7:00 pm");
 const Fee = z.object({
   label: s,
   amount: s,
@@ -72,7 +75,7 @@ export const Organization = z.object({
       rule: s,
       ordinal: Ordinal,
       weekday: Weekday,
-      time: s,
+      time: meetingTime,
       location: s,
       open_to: s.default(""),
     }),
@@ -94,12 +97,6 @@ export const Organization = z.object({
     county_recycling: z.object({ label: s, url }),
     water_bill: z.object({ label: s, url }),
   }),
-  newsletter: z
-    .object({
-      enabled: z.boolean().default(false),
-      provider: z.literal("sender").default("sender"),
-    })
-    .default({ enabled: false, provider: "sender" }),
 });
 
 /** What a marker on the parks map stands for. */

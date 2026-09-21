@@ -95,6 +95,8 @@
   --rule: #c9d2d8;
   --warn: #8a3b12;
   --warn-soft: #fbe6d4;
+  /* --rule is a divider at 1.5:1; a control boundary needs 3:1 (WCAG 1.4.11). */
+  --control-border: #6f7e8a;
 
   --font-display:
     "Bricolage Grotesque Variable", "Display fallback Arial",
@@ -103,7 +105,7 @@
     "Atkinson Hyperlegible Next Variable", "Body fallback Arial",
     "Body fallback Noto", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --step--1: 0.889rem;
+  --step--1: 0.9rem;
   --step-0: 1.125rem;
   --step-1: 1.406rem;
   --step-2: 1.758rem;
@@ -122,6 +124,8 @@
   --control-height: 2.75rem;
 
   --header-z: 20;
+  /* The taller of the two apps' one-row headers; see the bands below. */
+  --header-height: 78px;
 
   --measure: 68ch;
   --page: 76rem;
@@ -157,6 +161,7 @@
     --rule: #2a3a46;
     --warn: #f7b58a;
     --warn-soft: #3a2418;
+    --control-border: #7f8f9c;
   }
 }
 
@@ -315,7 +320,7 @@ main {
 /* Anything an anchor can land on clears the sticky header. */
 :target,
 #main {
-  scroll-margin-top: 6rem;
+  scroll-margin-top: calc(var(--header-height) + var(--space-3));
 }
 
 .page-head {
@@ -346,14 +351,14 @@ main {
   gap: var(--space-5);
 }
 
-@media (min-width: 60rem) {
+@media (width >= 60rem) {
   .with-aside {
     grid-template-columns: minmax(0, 1fr) 20rem;
     align-items: start;
   }
   .with-aside > aside {
     position: sticky;
-    top: var(--space-4);
+    top: calc(var(--header-height) + var(--space-3));
   }
 }
 
@@ -372,10 +377,11 @@ main {
 /* ── Header ──────────────────────────────────────────────────────────────── */
 /*
  * Every boundary below is measured, not chosen. Fonts use font-display:
- * optional, so a first visit can legitimately be drawn in the fallback font,
- * which is wider — so the fallback is what the layout has to survive. At these
- * sizes one row needs 1090px in the web font and 1120px in the fallback, hence
- * 71rem (1136px) with 16px of headroom. See docs/DESIGN.md.
+ * swap, so a first visit is drawn in the fallback until the web font arrives,
+ * and the fallback is wider — so the fallback is what the layout has to
+ * survive. At these sizes one row needs 1090px in the web font and 1120px in
+ * the fallback, hence 71rem (1136px) with 16px of headroom. See
+ * docs/DESIGN.md.
  *
  *   >= 71rem       brand · links · action   one row
  *   44rem–71rem    brand · action / links   links on one further row
@@ -499,8 +505,15 @@ main {
   display: none;
 }
 
+/* Middle: links wrap onto their own row, so the header takes two rows. */
+@media (width >= 44rem) and (width < 71rem) {
+  :root {
+    --header-height: 124px;
+  }
+}
+
 /* Wide: everything on one row. */
-@media (min-width: 71rem) {
+@media (width >= 71rem) {
   .site-header .wrap {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "brand nav action";
@@ -511,7 +524,10 @@ main {
 }
 
 /* Phone: one row, with the links and the action in a panel over the page. */
-@media (max-width: 43.99rem) {
+@media (width < 44rem) {
+  :root {
+    --header-height: 60px;
+  }
   .site-header .wrap {
     position: relative;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -566,7 +582,7 @@ main {
 
 /* Narrowest phones: the locality line is decoration, and dropping it keeps the
  * brand to one row beside the Menu button instead of three. */
-@media (max-width: 23rem) {
+@media (width < 23rem) {
   .brand small {
     display: none;
   }
@@ -601,7 +617,7 @@ textarea {
   line-height: 1.2;
   color: var(--ink);
   background: var(--surface);
-  border: 2px solid var(--rule);
+  border: 2px solid var(--control-border);
   border-radius: var(--radius);
   padding: 0.55rem 0.8rem;
   /*
@@ -718,7 +734,7 @@ textarea:focus-visible {
   column-gap: var(--space-5);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .tasks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -779,6 +795,13 @@ textarea:focus-visible {
   font-size: var(--step-2);
 }
 
+.dated time small {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
 .dated h3 {
   margin: 0 0 var(--space-1);
   font-size: var(--step-1);
@@ -794,7 +817,7 @@ textarea:focus-visible {
   gap: var(--space-5);
 }
 
-@media (min-width: 56rem) {
+@media (width >= 56rem) {
   .two-up {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -920,7 +943,7 @@ td.amount {
   gap: 0 var(--space-5);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .people {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -960,7 +983,7 @@ details.group > ul {
   gap: var(--space-3) var(--space-5);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   details.group > ul {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

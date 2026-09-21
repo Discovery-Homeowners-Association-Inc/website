@@ -30,12 +30,43 @@ function fromSnapshot<T extends { slug?: string; id: string }>(
   };
 }
 
+/**
+ * Each page is stored whole and in two parts, split at its first "## "
+ * heading, so a template can put its own sections between a page's opening
+ * paragraphs and its later ones. The meetings page used to render the whole
+ * body after a "Minutes" section, which put "the board meets on the third
+ * Tuesday" under a heading about minutes.
+ */
+const splitAtFirstHeading = (body: string): [string, string] => {
+  const at = body.search(/^## /m);
+  return at === -1 ? [body, ""] : [body.slice(0, at), body.slice(at)];
+};
+
 const pages = defineCollection({
-  loader: fromSnapshot("pages", snapshot.pages, (p) => ({
-    id: p.slug,
-    data: { title: p.body.title, summary: p.body.summary },
-    body: p.body.body,
-  })),
+  loader: {
+    name: "snapshot:pages",
+    async load({ store, renderMarkdown, parseData }) {
+      store.clear();
+      for (const p of snapshot.pages) {
+        const data = await parseData({
+          id: p.slug,
+          data: { title: p.body.title, summary: p.body.summary },
+        });
+        const [intro, rest] = splitAtFirstHeading(p.body.body);
+        for (const [suffix, body] of [
+          ["", p.body.body],
+          ["--intro", intro],
+          ["--rest", rest],
+        ] as const)
+          store.set({
+            id: `${p.slug}${suffix}`,
+            data,
+            body,
+            rendered: body ? await renderMarkdown(body) : undefined,
+          });
+      }
+    },
+  },
   schema: z.object({ title: z.string(), summary: z.string() }),
 });
 

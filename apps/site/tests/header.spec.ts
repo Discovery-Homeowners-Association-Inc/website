@@ -23,7 +23,12 @@ for (const font of ["web font", "fallback font"] as const) {
         await context.route("**/*.woff2", (route) => route.abort());
     });
 
-    for (const width of LADDER) {
+    // The fallback is the wider font, so the widths that matter there are the
+    // ones on either side of each fold, not the whole ladder.
+    const widths =
+      font === "fallback font" ? [320, 703, 704, 1135, 1136, 1920] : LADDER;
+
+    for (const width of widths) {
       test(`no link is cut off at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto("/");
@@ -139,15 +144,30 @@ test("the header stays in view while the page scrolls", async ({ page }) => {
   expect(Math.round(box.y), "header top after scrolling").toBe(0);
 });
 
-test("an anchored heading is not hidden under the header", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 800 });
-  await page.goto("/documents/#main");
-  const headerBottom = (await page.locator(".site-header").boundingBox())!;
-  const main = (await page.locator("#main").boundingBox())!;
-  expect(
-    main.y,
-    "the anchor target sits under the sticky header",
-  ).toBeGreaterThanOrEqual(headerBottom.y + headerBottom.height - 0.5);
+for (const width of [390, 768, 1024, 1440]) {
+  test(`an anchored heading is not hidden under the header at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/news/#events");
+    const header = (await page.locator(".site-header").boundingBox())!;
+    const target = (await page.locator("#events").boundingBox())!;
+    expect(
+      target.y,
+      "the anchor target sits under the sticky header",
+    ).toBeGreaterThanOrEqual(header.y + header.height - 0.5);
+  });
+}
+
+test("a sticky side panel starts below the header, not behind it", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 700 });
+  await page.goto("/dues/");
+  await page.evaluate(() => window.scrollTo(0, 600));
+  const header = (await page.locator(".site-header").boundingBox())!;
+  const aside = (await page.locator(".with-aside > aside").boundingBox())!;
+  expect(aside.y).toBeGreaterThanOrEqual(header.y + header.height - 0.5);
 });
 
 /**

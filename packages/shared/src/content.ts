@@ -44,6 +44,22 @@ export const DOCUMENT_CATEGORIES = [
   "minutes",
 ] as const;
 
+export const DOCUMENT_CATEGORY_LABEL: Record<
+  (typeof DOCUMENT_CATEGORIES)[number],
+  string
+> = {
+  general: "General",
+  governing: "Governing documents",
+  acc: "Exterior changes (ACC)",
+  pool: "Pool",
+  "rec-center": "Recreation Center",
+  "rv-lot": "RV lot",
+  parks: "Parks",
+  trash: "Trash and recycling",
+  newsletters: "Newsletters",
+  minutes: "Agendas and minutes",
+};
+
 export const NewsBody = z.object({
   title: text(160).min(1),
   summary: text(300).min(1),

@@ -5,8 +5,8 @@
     "publish_at": "2025-08-11T09:00:00-04:00",
     "body": {
       "title": "The RV lot is no longer free",
-      "summary": "From 1 October 2025 the lot costs $50 a month, or $150 a quarter paid with your assessment.",
-      "body": "The association now charges for the RV lot. The fee is **$50 per month per\nhousehold**, or **$150 per quarter** paid alongside your quarterly assessment.\n\nPay by Zelle, with **RV Lot Payment** in the memo line.\n\nA few rules came in at the same time: one vehicle per household, current\nregistration on every vehicle, and keep both the vehicle and the space around it\ntidy.\n\nThe fee is what will pay for repairing the fence, repainting the lines and space\nnumbers, and improving security. Full details are on the\n[RV lot page](/amenities/rv-lot/).",
+      "summary": "From October 1, 2025 the lot costs $50 a month, or $150 a quarter paid with your dues.",
+      "body": "The association now charges for the RV lot. The fee is **$50 per month per\nhousehold**, or **$150 per quarter** paid alongside your quarterly dues.\n\nPay by Zelle, with **RV Lot Payment** in the memo line.\n\nA few rules came in at the same time: one vehicle per household, current\nregistration on every vehicle, and keep both the vehicle and the space around it\ntidy.\n\nThe fee is what will pay for repairing the fence, repainting the lines and space\nnumbers, and improving security. Full details are on the\n[RV lot page](/amenities/rv-lot/).",
       "category": "general",
       "pinned": false
     }
@@ -29,8 +29,8 @@
     "publish_at": "2026-03-01T09:00:00-05:00",
     "body": {
       "title": "Pool passes for 2026 are on sale",
-      "summary": "Early-bird pricing runs until 15 April. After that the resident rate goes up by $10 a head.",
-      "body": "Registration for the 2026 pool season is open. Early-bird pricing — **$35 per\nperson** — runs until **15 April**. After that it is $45.\n\nChildren five and under swim free. You need to be current on your assessment to\nbuy a pool membership.\n\nSeason dates, hours, and the fee tables are on the [pool page](/amenities/pool/).",
+      "summary": "Early-bird pricing runs until April 15. After that the resident rate goes up by $10 a head.",
+      "body": "Registration for the 2026 pool season is open. Early-bird pricing — **$35 per\nperson** — runs until **April 15**. After that it is $45.\n\nChildren five and under swim free. You need to be current on your assessment to\nbuy a pool membership.\n\nSeason dates, hours, and the fee tables are on the [pool page](/amenities/pool/).",
       "category": "pool",
       "pinned": true
     }
@@ -136,7 +136,7 @@
     "file": "rv-lot-policy-update-2025.pdf",
     "body": {
       "title": "RV Lot Policy Update (August 2025)",
-      "summary": "The notice announcing that the RV lot is no longer free from 1 October 2025, with the fee, the payment options, and the updated rules.",
+      "summary": "The notice announcing that the RV lot is no longer free from October 1, 2025, with the fee, the payment options, and the updated rules.",
       "category": "rv-lot",
       "language": "en",
       "featured": false,
@@ -199,7 +199,7 @@
     "slug": "architectural-control",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Exterior Changes (ACC)",
+      "title": "Exterior changes (ACC)",
       "summary": "Anything you change on the outside of your home needs approval first. Here is what that covers and how to ask.",
       "body": "If you are changing anything on the outside of your home, send the Architectural\nControl Committee an application **before** the work starts.\n\nThat is the whole rule, and it is worth taking seriously in the order given.\nApproval after the fact is a much harder conversation than approval beforehand,\nand the committee would far rather review a drawing than send a non-compliance\nletter.\n\n## Why this exists\n\nThe ACC is six neighbors, not an office. What they are protecting is the thing\nthat made anyone buy here: a neighborhood that looks cared for and holds its\nvalue. A fence that sits three feet into a common area, or a roof color nobody\nelse has, costs somebody money eventually — sometimes the person who installed\nit, when they try to sell.\n\nMost applications are approved. The ones that are not usually turn out to be\nmisunderstandings about where a property line runs.\n\n## How to apply\n\nAsk the office for the current **Application for Exterior Change**, or email the\ncommittee directly at {{email:acc}}. Send it in with a sketch or a\nphotograph and the materials you plan to use. If you are not sure whether your\nproject needs approval, ask — it takes one email and saves a lot of bother.\n\n<aside class=\"callout callout--note\">\n\nIf you need help filling out the application, call the office at\n\n{{phone:office}} and the manager will put you in touch with someone who\ncan walk you through it.\n\n</aside>\n\n<section lang=\"es\">\n\nSi está pensando en realizar algún trabajo en el exterior de su casa — cercas,\npatios, terrazas, ventanas, puertas delanteras y mosquiteras, puertas\ncorredizas, paneles solares, revestimientos, techos, canaletas y puertas de\ngaraje — por favor complete una solicitud **antes** de comenzar el trabajo. No\nqueremos enviar cartas de incumplimiento.\n\nSi necesita ayuda llenando la solicitud, por favor contacte a la oficina y la\ngerente lo pondrá en contacto con una persona que le ayude. Gracias.\n\n</section>\n\n## If you get a letter\n\nA non-compliance letter is not a fine and it is not the end of the conversation.\nIt comes with a response form — fill it in and send it back. Most cases close\nthere.\n\n## Parking, trailers, and boats\n\nThis is the other thing the committee spends its time on, and it is governed by\nthe association's recorded documents rather than by committee preference. The\nrelevant passages are quoted below so you can read the actual language rather\nthan a summary of it."
     }
@@ -209,7 +209,7 @@
     "slug": "board",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Board & Governance",
+      "title": "The board",
       "summary": "Seven neighbors, elected by the membership, who run the association in their spare time.",
       "body": "The association is governed by a board of seven directors elected by the\nmembership. They are not employees and they are not a management company — they\nlive here, and they do this on evenings and weekends.\n\nThe board meets on the third Tuesday of every month at the Recreation Center,\nand **any homeowner or renter can attend**."
     }
@@ -229,7 +229,7 @@
     "slug": "community-links",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Community Links",
+      "title": "Community links",
       "summary": "Schools, utilities, county services, libraries, churches, and help when you need it — around Walkersville and Frederick County.",
       "body": "Things the association does not run, but that residents ask about constantly.\nNumbers and hours were current when this page was last checked; if you find one\nthat has changed, tell {{email:general}}."
     }
@@ -241,7 +241,7 @@
     "body": {
       "title": "Contact",
       "summary": "The office, the committees, and where to go for things the association does not handle.",
-      "body": "The office at 8740 Stauffer Road handles assessments, forms, rentals, and most\nquestions about the neighborhood. It is staffed part-time — the hours are on the\nright, and email is often the fastest route.\n\nIf your question is about a specific problem — a broken swing, a car in your\nspace, a street light out — [the reporting page](/rules/report-a-problem/) will\nget you to the right number faster than the office can."
+      "body": "The office at 8740 Stauffer Road handles assessments, forms, rentals, and most\nquestions about the neighborhood. It is staffed part-time — the hours are listed on this page, and email is\noften the fastest route.\n\nIf your question is about a specific problem — a broken swing, a car in your\nspace, a street light out — [the reporting page](/rules/report-a-problem/) will\nget you to the right number faster than the office can."
     }
   },
   {
@@ -249,8 +249,8 @@
     "slug": "documents",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Documents & Forms",
-      "summary": "Every association form and notice in one place.",
+      "title": "Documents & forms",
+      "summary": "Forms, notices, and contracts, with the governing documents to follow.",
       "body": "Forms, contracts, and notices published by the association. Each one links\nstraight to the PDF.\n\nThe association's **governing documents** (the By-Laws, the Declaration of\nCovenants, and the Articles of Incorporation) are being added to this library.\nUntil they are, ask the office for a copy at {{email:general}}."
     }
   },
@@ -259,9 +259,9 @@
     "slug": "dues",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Pay your assessment",
-      "summary": "What the assessment is, when it is due, and every way to pay it.",
-      "body": "The assessment pays for everything the association looks after on your behalf:\nthe pool, the Recreation Center, the RV lot, twenty parks, trash collection,\nlandscaping, and street lights.\n\nPayments are due on the first day of each quarter. Late payments are charged a\npenalty each month until they are paid.\n\nIf you are having trouble paying, call the office at {{phone:office}} before the\ndue date. It is a much easier conversation beforehand."
+      "title": "Pay your dues",
+      "summary": "What the dues pay for, when they are due, and every way to pay them.",
+      "body": "The dues — the association's governing documents call them the\nassessment — pay for everything the association looks after on your behalf:\nthe pool, the Recreation Center, the RV lot, twenty parks, trash collection,\nlandscaping, and street lights.\n\nPayments are due on the first day of each quarter. Late payments are charged a\npenalty each month until they are paid.\n\nIf you are having trouble paying, call the office at {{phone:office}} before the\ndue date. It is a much easier conversation beforehand."
     }
   },
   {
@@ -281,7 +281,7 @@
     "body": {
       "title": "Home",
       "summary": "Discovery Homeowners Association in Walkersville, Maryland — assessments, the pool, the Recreation Center, architectural approvals, and how to reach the office.",
-      "body": "## Welcome to Discovery\n\nDiscovery is a neighborhood of single-family homes and townhouses in\nWalkersville, Maryland. When ground was broken in 1972 it was the first planned\nunit development in Frederick County — a deliberate mix of housing, parks, and\nshared amenities on about 160 acres of former farmland.\n\nThe association exists to look after the things no single household owns: the\npool, the Recreation Center, the RV lot, and roughly twenty parks and open\nspaces. It is run by a volunteer board of directors elected by the people who\nlive here, and it is funded by the annual assessment.\n\n## New to the neighborhood?\n\nThree things are worth knowing in your first week.\n\n**Get approval before you change the outside of your home.** Fences, decks,\nsheds, windows, doors, siding, roofing, solar panels — anything visible from\noutside needs an Architectural Control Committee application first. It is a\nshort form, and it protects your investment as much as your neighbor's.\n[Start here](/rules/architectural-control/).\n\n**Set up your account in the resident portal.** You can pay your assessment,\npull up association documents, and send questions to the office without a stamp.\n\n**Come to a board meeting.** They are held monthly and every homeowner and\nrenter is welcome — you do not need a reason or an invitation to attend."
+      "body": "## Welcome to Discovery\n\nDiscovery is a neighborhood of single-family homes and townhouses in\nWalkersville, Maryland. When ground was broken in 1972 it was the first planned\nunit development in Frederick County — a deliberate mix of housing, parks, and\nshared amenities on about 160 acres of former farmland.\n\nThe association exists to look after the things no single household owns: the\npool, the Recreation Center, the RV lot, and roughly twenty parks and open\nspaces. It is run by a volunteer board of directors elected by the people who\nlive here, and it is funded by the dues.\n\n## New to the neighborhood?\n\nThree things are worth knowing in your first week.\n\n**Get approval before you change the outside of your home.** Fences, decks,\nsheds, windows, doors, siding, roofing, solar panels — anything visible from\noutside needs an Architectural Control Committee application first. It is a\nshort form, and it protects your investment as much as your neighbor's.\n[Start here](/rules/architectural-control/).\n\n**Set up your account in the resident portal.** You can pay your dues,\npull up association documents, and send questions to the office without a stamp.\n[How to set one up](/dues/).\n\n**Come to a board meeting.** They are held monthly and every homeowner and\nrenter is welcome — you do not need a reason or an invitation to attend.\n[When and where](/meetings/)."
     }
   },
   {
@@ -291,7 +291,7 @@
     "body": {
       "title": "Meetings",
       "summary": "The board meets monthly and every homeowner and renter is welcome. No invitation needed.",
-      "body": "The board of directors meets on the third Tuesday of every month at the\nRecreation Center.\n\n**Any homeowner or renter can attend.** You do not need to be on an agenda, ask\npermission, or have a complaint. People come to listen, and that is a perfectly\ngood reason to be there.\n\n## What gets discussed\n\nThe recurring business is money and maintenance: the budget, contracts for\nlandscaping and trash, the pool season, park repairs, and whatever project is\ncurrently in flight. Architectural Control matters are handled by that committee\nand come to the board when they need a decision.\n\n## Bringing something up\n\nIf you have a question or a proposal, two things make it go better. Email the\noffice beforehand so it can go on the agenda — {{email:general}} — and\nbring the specifics: the address, the date, the photo. Boards can act on\nspecifics and can only nod sympathetically at generalities."
+      "body": "You do not need to be on an agenda, ask permission, or have a complaint. People come\nto listen, and that is a perfectly good reason to be there.\n\n## What gets discussed\n\nThe recurring business is money and maintenance: the budget, contracts for\nlandscaping and trash, the pool season, park repairs, and whatever project is\ncurrently in flight. Architectural Control matters are handled by that committee\nand come to the board when they need a decision.\n\n## Bringing something up\n\nIf you have a question or a proposal, two things make it go better. Email the\noffice beforehand so it can go on the agenda — {{email:general}} — and\nbring the specifics: the address, the date, the photo. Boards can act on\nspecifics and can only nod sympathetically at generalities."
     }
   },
   {
@@ -299,9 +299,9 @@
     "slug": "parks",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Parks & Playgrounds",
+      "title": "Parks & playgrounds",
       "summary": "Twenty parks and open spaces, inspected once a year and maintained by the association.",
-      "body": "Twenty parks and open spaces are scattered through the neighborhood — the tot\nlots between the townhouse courts, the open greens, and the paths connecting\nthem. They are association property, which means they are paid for out of your\nassessment and maintained on your behalf.\n\n## Reporting something broken\n\nDo not wait for the annual inspection. If a swing is hanging by one chain or a\nslide has a crack in it, tell the office and it gets logged and scheduled."
+      "body": "Twenty parks and open spaces are scattered through the neighborhood — the tot\nlots between the townhouse courts, the open greens, and the paths connecting\nthem. They are association property, which means they are paid for out of your\nassessment and maintained on your behalf."
     }
   },
   {
@@ -309,7 +309,7 @@
     "slug": "pool",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Community Pool",
+      "title": "The pool",
       "summary": "Season dates, hours, membership fees, and the rules that keep it pleasant.",
       "body": "The pool is the reason a lot of people picked this neighborhood, and it is the\nassociation's busiest amenity by a wide margin.\n\nThe full rules are posted at the gate and included with the online application.\nThe four below are the ones the lifeguards spend their summer repeating."
     }
@@ -339,9 +339,9 @@
     "slug": "report-a-problem",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Report a Problem",
+      "title": "Report a problem",
       "summary": "Who to call, sorted by the kind of problem you have.",
-      "body": "Different problems go to different places, and calling the wrong one costs you a\nday. This is the whole list, most urgent first.\n\n<aside class=\"callout callout--warning\">\n\nFor anything immediate, urgent, or life-threatening, call **911**. Do not call\nthe office first.\n\n</aside>"
+      "body": "Different problems go to different places, and calling the wrong one costs you a\nday. This is the whole list, most urgent first."
     }
   },
   {
@@ -349,7 +349,7 @@
     "slug": "rules",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Rules & Requests",
+      "title": "Rules & requests",
       "summary": "Exterior changes, trash and recycling, and who to call when something is wrong.",
       "body": "Most of what the association asks of residents comes down to three things: get\napproval before you change the outside of your home, put the bins out at the\nright time, and tell someone when something is broken."
     }
@@ -359,9 +359,9 @@
     "slug": "rv-lot",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "RV Lot",
+      "title": "RV lot",
       "summary": "Storage for boats, trailers, and recreational vehicles. There is a monthly fee, and registration is enforced.",
-      "body": "The association keeps a lot where residents can store boats, trailers, and\nrecreational vehicles instead of leaving them on the street or in a driveway.\n\n## There is now a fee\n\nThe RV lot used to be free. It is not any more — the association began charging\nfor it on 1 October 2025, and the fee is what will eventually pay for repairing\nthe fence and marking out the spaces.\n\n## Registration is not optional\n\nIf you have anything in the RV lot, it has to be registered with the office.\n\n<aside class=\"callout callout--warning\">\n\nAnything in the lot that is not registered with the office is towed by Dorsey's\nTowing, at the owner's expense. There is no warning notice first.\n\n</aside>\n\nRegistration is straightforward — the form, a copy of the vehicle's\nregistration, and a photo. Ask the office for the current application, or call\n\n{{phone:office}}.\n\n<section lang=\"es\">\n\n**Solicitud de lote para vehículos recreativos**\n\nSi tiene un barco, un remolque o cualquier otro vehículo recreativo en el lote,\ndebe enviar el formulario junto con el certificado de registro y una foto. Por\nfavor, envíenos esta información antes de la fecha límite.\n\nDesde el 1 de octubre de 2025 el lote ya no es gratuito: la tarifa es de **$50\npor mes** o **$150 por trimestre**, pagadera junto con su cuota trimestral.\n\nTodos los vehículos en el lote que no estén registrados en la oficina serán\nremolcados por Dorsey's Towing a cargo del propietario.\n\n</section>"
+      "body": "The association keeps a lot where residents can store boats, trailers, and\nrecreational vehicles instead of leaving them on the street or in a driveway.\n\n## There is now a fee\n\nThe RV lot used to be free. It is not any more — the association began charging\nfor it on October 1, 2025, and the fee is what will eventually pay for repairing\nthe fence and marking out the spaces.\n\n## Registration is not optional\n\nIf you have anything in the RV lot, it has to be registered with the office.\n\n<aside class=\"callout callout--warning\">\n\nAnything in the lot that is not registered with the office is towed by Dorsey's\nTowing, at the owner's expense. There is no warning notice first.\n\n</aside>\n\nRegistration is straightforward — the form, a copy of the vehicle's\nregistration, and a photo. Ask the office for the current application, or call\n\n{{phone:office}}.\n\n<section lang=\"es\">\n\n**Solicitud de lote para vehículos recreativos**\n\nSi tiene un barco, un remolque o cualquier otro vehículo recreativo en el lote,\ndebe enviar el formulario junto con el certificado de registro y una foto. Por\nfavor, envíenos esta información antes de la fecha límite.\n\nDesde el 1 de octubre de 2025 el lote ya no es gratuito: la tarifa es de **{{setting:rv-lot.fees.monthly}} por mes** o **{{setting:rv-lot.fees.quarterly}} por trimestre**, pagadera junto con su cuota trimestral.\n\nTodos los vehículos en el lote que no estén registrados en la oficina serán\nremolcados por Dorsey's Towing a cargo del propietario.\n\n</section>"
     }
   },
   {
@@ -369,9 +369,9 @@
     "slug": "trash-recycling",
     "publish_at": "2026-09-01T09:00:00-04:00",
     "body": {
-      "title": "Trash & Recycling",
+      "title": "Trash & recycling",
       "summary": "Collection days, what belongs in yard waste, and why recycling keeps your assessment down.",
-      "body": "Trash goes out Tuesday and Friday mornings. Recycling alternates depending on\nwhich side of Stauffer Road you live on, and yard waste runs twice a month from\nApril to December.\n\nThe full schedule is below. If you are new, the county's lookup tool will tell\nyou your exact recycling week by address.\n\n## Containers\n\nAnimals are the reason this rule exists. A bag left at the curb overnight is an\ninvitation, and whoever finds the mess in the morning is usually not the person\nwho put the bag out."
+      "body": "Trash goes out Tuesday and Friday mornings. Recycling alternates depending on\nwhich side of Stauffer Road you live on, and yard waste runs twice a month from\nApril to December.\n\nThe full schedule is below.\n\n## Containers\n\nAnimals are the reason this rule exists. A bag left at the curb overnight is an\ninvitation, and whoever finds the mess in the morning is usually not the person\nwho put the bag out."
     }
   },
   {

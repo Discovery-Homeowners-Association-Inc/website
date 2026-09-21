@@ -7,6 +7,7 @@
  * escapes on either side of it were right and no meeting had ever had a
  * semicolon in its location.
  */
+import { MEETING_TIME } from "@dhoa/shared";
 
 /** Escapes a TEXT value: backslash, semicolon, comma and newline (RFC 5545 §3.3.11). */
 export const escapeText = (text: string) =>
@@ -39,4 +40,23 @@ export function foldLine(line: string): string {
   }
   out.push(current);
   return out.join("\r\n ");
+}
+
+/**
+ * The start of a meeting as iCalendar lines: a floating local time in New York
+ * with a two-hour duration, or -- when the stored time is not one the feed can
+ * read -- an all-day entry. The feed used to throw here, which failed the
+ * whole site build over one typed time.
+ */
+export function dtstart(date: string, time: string): string[] {
+  const m = time.trim().match(MEETING_TIME);
+  const day = date.replace(/-/g, "");
+  if (!m) return [`DTSTART;VALUE=DATE:${day}`];
+  let h = Number(m[1]) % 12;
+  if (m[3]!.toLowerCase() === "pm") h += 12;
+  const minutes = m[2]!;
+  return [
+    `DTSTART;TZID=America/New_York:${day}T${String(h).padStart(2, "0")}${minutes}00`,
+    "DURATION:PT2H",
+  ];
 }

@@ -1,33 +1,46 @@
 /**
  * Lets Markdown refer to organizational facts instead of repeating them:
- *   {{email:general}}  -> a mailto link to that role address
- *   {{phone:office}}   -> a tel link to the office phone
+ *   {{email:general}}    -> a mailto link to that role address
+ *   {{phone:office}}     -> a tel link to the office phone
+ *   {{setting:a.b.c}}    -> the value the board edits in Site settings
  * Unknown keys throw, so a typo fails the build.
  */
+import { email, officeTel, org } from "./data.ts";
 import { settings } from "./snapshot.ts";
-
-const organization = settings.organization;
 
 type Node = { type: string; value?: string; url?: string; children?: Node[] };
 
-const TOKEN = /\{\{(email|phone):([a-z_]+)\}\}/g;
+const TOKEN = /\{\{(email|phone|setting):([a-z_.\-]+)\}\}/g;
 
 function replacement(kind: string, key: string): Node {
   if (kind === "email") {
-    const address = organization.emails[key];
-    if (!address) throw new Error(`Unknown email key "${key}" in Markdown`);
+    const address = email(key);
     return {
       type: "link",
       url: `mailto:${address}`,
       children: [{ type: "text", value: address }],
     };
   }
+  if (kind === "setting") {
+    const value = key
+      .split(".")
+      .reduce<unknown>(
+        (o, k) =>
+          o && typeof o === "object"
+            ? (o as Record<string, unknown>)[k]
+            : undefined,
+        settings,
+      );
+    if (typeof value !== "string" && typeof value !== "number")
+      throw new Error(`Unknown or non-text setting "${key}" in Markdown`);
+    return { type: "text", value: String(value) };
+  }
   if (key !== "office")
     throw new Error(`Unknown phone key "${key}" in Markdown`);
-  const phone = organization.office.phone;
+  const phone = org.office.phone;
   return {
     type: "link",
-    url: `tel:${organization.office.phone_e164}`,
+    url: officeTel(),
     children: [{ type: "text", value: phone }],
   };
 }

@@ -1,5 +1,16 @@
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+
+const site = JSON.parse(readFileSync("content/site.json", "utf8"));
+const officePhone: string = site.settings.organization.office.phone;
+const countyRecyclingUrl: string =
+  site.settings.organization.external.county_recycling.url;
+
+const meetingDirs = existsSync("dist/meetings")
+  ? readdirSync("dist/meetings")
+  : [];
+const firstMeeting = meetingDirs.find((d) => /^\d{4}-/.test(d));
 
 const pages = [
   "/",
@@ -24,6 +35,12 @@ const pages = [
   "/about/",
   "/about/history/",
   "/about/welcome-committee/",
+  "/privacy/",
+  "/terms/",
+  "/404.html",
+  "/news/water-main-phase-1/",
+  "/events/pool-opening/",
+  ...(firstMeeting ? [`/meetings/${firstMeeting}/`] : []),
 ];
 
 for (const path of pages) {
@@ -58,16 +75,16 @@ for (const path of pages) {
   });
 }
 
-test("dark mode passes accessibility checks on the home page", async ({
-  page,
-}) => {
-  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-  await page.goto("/");
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa"])
-    .analyze();
-  expect(violations.map((v) => v.id)).toEqual([]);
-});
+for (const path of ["/", "/amenities/parks/", "/rules/report-a-problem/"]) {
+  test(`dark mode passes accessibility checks on ${path}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+    await page.goto(path);
+    const { violations } = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+    expect(violations.map((v) => v.id)).toEqual([]);
+  });
+}
 
 test("the menu button opens the navigation on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -84,6 +101,101 @@ test("the menu button opens the navigation on a phone", async ({ page }) => {
   ).toBeVisible();
   // The action moved into the panel, so it is reachable there too.
   await expect(page.getByRole("link", { name: "Pay dues" })).toBeVisible();
+});
+
+test("every document link says what it is, and a Spanish one says so", async ({
+  page,
+}) => {
+  await page.goto("/documents/");
+  const links = page.locator(".tasks a[href^='/documents/']");
+  expect(await links.count()).toBeGreaterThan(0);
+  for (const text of await links.allInnerTexts())
+    expect(text).toMatch(/\((PDF|image)(, Spanish)?\)$/);
+});
+
+test("a document's language is announced on its title, not the whole link", async ({
+  page,
+}) => {
+  await page.goto("/documents/");
+  await expect(page.locator(".tasks a[lang]")).toHaveCount(0);
+});
+
+test("the documents page shows one heading per category the snapshot has", async ({
+  page,
+}) => {
+  await page.goto("/documents/");
+  const categories = new Set(
+    (site.documents as { body: { category: string } }[]).map(
+      (d) => d.body.category,
+    ),
+  );
+  await expect(page.locator("main h2")).toHaveCount(categories.size);
+});
+
+test("a meeting is a link only once its agenda is posted", async ({ page }) => {
+  await page.goto("/meetings/");
+  const items = page.locator(".dated li");
+  expect(await items.count()).toBeGreaterThan(0);
+  for (let i = 0; i < (await items.count()); i++) {
+    const item = items.nth(i);
+    const linked = (await item.locator("h3 a").count()) > 0;
+    const posted = (await item.innerText()).includes("The agenda is posted.");
+    expect(linked, `item ${i}: linked=${linked} posted=${posted}`).toBe(posted);
+  }
+});
+
+if (firstMeeting) {
+  test("a meeting page's Attending panel states that meeting's own time, not the board's", async ({
+    page,
+  }) => {
+    await page.goto(`/meetings/${firstMeeting}/`);
+    const summary = await page.locator(".page-head p").innerText();
+    const firstDd = await page.locator("aside.panel dl dd").first().innerText();
+    const time = summary.match(/\d{1,2}:\d{2}\s*(am|pm)/i)?.[0];
+    expect(time).toBeTruthy();
+    expect(firstDd).toContain(time);
+  });
+}
+
+test("the office phone is always a dialable +1 link", async ({ page }) => {
+  for (const path of [
+    "/",
+    "/404.html",
+    "/contact/",
+    "/rules/report-a-problem/",
+  ]) {
+    await page.goto(path);
+    const officeLinks = page.locator("a[href^='tel:']", {
+      hasText: officePhone,
+    });
+    const count = await officeLinks.count();
+    expect(count, `no office-number link found on ${path}`).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      const text = (await officeLinks.nth(i).innerText()).trim();
+      if (text !== officePhone) continue;
+      await expect(officeLinks.nth(i)).toHaveAttribute("href", /^tel:\+1/);
+    }
+  }
+});
+
+test("the meetings page opens with why to come, not a bare list of dates", async ({
+  page,
+}) => {
+  await page.goto("/meetings/");
+  const intro = page.locator(".prose").first();
+  const upcoming = page.locator("#upcoming-title");
+  await expect(intro).toContainText("perfectly good reason");
+  const introBox = (await intro.boundingBox())!;
+  const upcomingBox = (await upcoming.boundingBox())!;
+  expect(introBox.y).toBeLessThan(upcomingBox.y);
+});
+
+test("the trash page names the county recycling schedule once", async ({
+  page,
+}) => {
+  await page.goto("/rules/trash-recycling/");
+  const links = page.locator(`a[href="${countyRecyclingUrl}"]`);
+  await expect(links).toHaveCount(1);
 });
 
 test("the calendar feed is valid iCalendar", async ({ request }) => {
@@ -113,6 +225,37 @@ test("every internal link resolves", async ({ page, request }) => {
     if (!res.ok()) broken.push(`${href} ${res.status()}`);
   }
   expect(broken).toEqual([]);
+});
+
+test("on a phone the glance band comes before the map; on a desktop the map sits beside the title", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const glance = (await page.locator(".glance").boundingBox())!;
+  const map = (await page.locator(".hero__map").boundingBox())!;
+  expect(
+    glance.y,
+    "the glance band comes before the map on a phone",
+  ).toBeLessThan(map.y);
+  expect(glance.y, "the glance band is below the fold").toBeLessThan(844);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  const title = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+  const wideMap = (await page.locator(".hero__map").boundingBox())!;
+  expect(Math.abs(wideMap.y - title.y)).toBeLessThan(200);
+});
+
+test("the home page uses one word for the money residents owe", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const text = await page.locator("main, .site-header").allInnerTexts();
+  expect(text.join(" ")).not.toMatch(/assessment/i);
+  await expect(
+    page.getByRole("link", { name: "Pay dues" }).first(),
+  ).toBeVisible();
 });
 
 test("the header is the same height whether the web font or the fallback font draws the page", async ({
