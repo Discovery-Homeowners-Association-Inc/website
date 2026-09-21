@@ -1,0 +1,9 @@
+# actionlint 1.7.12 rejects the `$/.github/...` self-repository form zizmor
+# prefers, so the composite setup action is referenced as `./.github/...`.
+# Drop this once actionlint accepts `$/`.
+rules:
+  self-repository:
+    ignore:
+      - ci.yml
+      - deploy-admin.yml
+      - site.yml

@@ -6,7 +6,7 @@ export const LADDER = [
   1100, 1135, 1136, 1152, 1200, 1280, 1366, 1440, 1600, 1920,
 ];
 
-/** The height a header may take at a given width. See docs/DESIGN.md. */
+/** The height a header may take at a given width. See packages/design/README.md. */
 export const heightBudget = (width: number) =>
   width >= 1136 ? 80 : width >= 704 ? 150 : 72;
 

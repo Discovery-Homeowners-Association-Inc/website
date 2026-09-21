@@ -9,29 +9,9 @@ allowBuilds:
 # Force the patched sharp everywhere, including Cloudflare's test tooling (GHSA-g89c-p67h-r497).
 overrides:
   sharp: 0.35.4
-# pnpm refuses package versions published in the last 24 hours, as a supply-chain safeguard.
-# These exact versions were adopted on 2026-09-17 while still inside that window. The list only
-# ever names exact versions, so newer releases are still held back until they are a day old.
-minimumReleaseAgeExclude:
-  - "@astrojs/language-server@2.17.0"
-  - "@rolldown/binding-android-arm-eabi@1.2.9"
-  - "@rolldown/binding-android-arm64@1.2.9"
-  - "@rolldown/binding-darwin-arm64@1.2.9"
-  - "@rolldown/binding-darwin-x64@1.2.9"
-  - "@rolldown/binding-freebsd-x64@1.2.9"
-  - "@rolldown/binding-linux-arm-gnueabihf@1.2.9"
-  - "@rolldown/binding-linux-arm64-gnu@1.2.9"
-  - "@rolldown/binding-linux-arm64-musl@1.2.9"
-  - "@rolldown/binding-linux-ppc64-gnu@1.2.9"
-  - "@rolldown/binding-linux-s390x-gnu@1.2.9"
-  - "@rolldown/binding-linux-x64-gnu@1.2.9"
-  - "@rolldown/binding-linux-x64-musl@1.2.9"
-  - "@rolldown/binding-openharmony-arm64@1.2.9"
-  - "@rolldown/binding-win32-arm64-msvc@1.2.9"
-  - "@rolldown/binding-win32-x64-msvc@1.2.9"
-  - astro@7.3.3
-  - miniflare@5.20260916.0-alpha
-  - prettier-plugin-astro@1.0.1
-  - prettier@3.9.7
-  - rolldown@1.2.9
-  - wrangler@4.133.0
+# A package published less than a day ago is refused: hijacked releases are
+# usually caught within hours. The exclude list below names the exact versions
+# adopted inside that window on purpose.
+minimumReleaseAge: 1440
+# Exact versions adopted inside the 24-hour window, on purpose. Remove an entry once it is a day old.
+minimumReleaseAgeExclude: []

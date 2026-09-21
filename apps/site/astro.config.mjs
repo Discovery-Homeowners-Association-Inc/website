@@ -6,10 +6,10 @@ const siteUrl = process.env.SITE_URL || "https://discoveryhomeowners.com";
 
 /**
  * A workers.dev address is the temporary one. The board has not reviewed the
- * content yet (docs/CONTENT-REVIEW.md), so it stays out of search results until
- * the domain moves. Deleting the SITE_URL variable at the cutover removes this
- * with the same switch that restores the real canonical host -- there is no
- * second thing to remember at launch.
+ * content yet (the board's content review, tracked as a GitHub issue), so it
+ * stays out of search results until the domain moves. Deleting the SITE_URL
+ * variable at the cutover removes this with the same switch that restores the
+ * real canonical host -- there is no second thing to remember at launch.
  */
 const isTemporaryAddress = new URL(siteUrl).hostname.endsWith(".workers.dev");
 
@@ -41,7 +41,7 @@ export default defineConfig({
   // Canonical URLs and the feeds point at wherever the site is really served.
   // Until the domain moves to Cloudflare that is the workers.dev address, set as
   // the SITE_URL repository variable; delete the variable at the cutover and the
-  // real domain takes over. See docs/DECISIONS.md #5.
+  // real domain takes over.
   site: siteUrl,
   integrations: [noindexHeader],
   output: "static",

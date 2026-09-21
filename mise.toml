@@ -8,3 +8,5 @@ gitleaks = "8.30.1"
 zizmor = "1.30.1"
 osv-scanner = "2.6.0"
 actionlint = "1.7.12"
+# `just lint` uses jq to compare the two apps' Playwright versions.
+jq = "1.8.1"

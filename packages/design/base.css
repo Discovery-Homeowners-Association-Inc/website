@@ -1,4 +1,4 @@
-/* Shared design system for the public site and the admin app. See docs/DESIGN.md. */
+/* Shared design system for the public site and the admin app. See packages/design/README.md. */
 /*
  * Fonts are self-hosted (SIL Open Font License; see fonts/). Both layouts
  * preload them.
@@ -80,7 +80,7 @@
     format("woff2-variations");
 }
 
-/* ── Tokens (see docs/DESIGN.md) ─────────────────────────────────────────── */
+/* ── Tokens (see packages/design/README.md) ──────────────────────────────── */
 :root {
   color-scheme: light dark;
 
@@ -171,8 +171,8 @@
  * Both apps' print blocks set the body's own background and color, which is
  * not enough: everything else reads the tokens, so printing from dark mode put
  * a dark fill behind every panel and printed the signature rule on approved
- * minutes -- 2px of --ink -- as white on white. DESIGN.md says every page
- * prints cleanly; this is what makes that true.
+ * minutes -- 2px of --ink -- as white on white. packages/design/README.md says
+ * every page prints cleanly; this is what makes that true.
  */
 @media print {
   :root {
@@ -389,7 +389,7 @@ main {
  * and the fallback is wider — so the fallback is what the layout has to
  * survive. At these sizes one row needs 1090px in the web font and 1120px in
  * the fallback, hence 71rem (1136px) with 16px of headroom. See
- * docs/DESIGN.md.
+ * packages/design/README.md.
  *
  *   >= 71rem       brand · links · action   one row
  *   44rem–71rem    brand · action / links   links on one further row

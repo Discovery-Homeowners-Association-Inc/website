@@ -8,8 +8,8 @@ Inquiry, Eureka, Imagination. The site borrows from that plan rather than from a
 "community" template.
 
 - **The street map is the one bold element.** It is drawn from OpenStreetMap data, and
-  Discovery's own streets are picked out in plan blue. It appears on the home page and nowhere
-  else.
+  Discovery's own streets are picked out in plan blue. It appears on the home page and the
+  parks page.
 - **Everything else is quiet.** Text is left-aligned, layouts sit on a clear grid, and there is
   no decoration that isn't carrying information.
 - **The site is for residents, not visitors.** The first screen answers the questions people
@@ -17,14 +17,20 @@ Inquiry, Eureka, Imagination. The site borrows from that plan rather than from a
 
 ## Tokens
 
-| Token        | Light     | Dark      | Role                                                                         |
-| ------------ | --------- | --------- | ---------------------------------------------------------------------------- |
-| `--paper`    | `#F4F6F5` | `#101A22` | Page ground: a cool gray-white, not cream                                    |
-| `--ink`      | `#1A2530` | `#E4EAEE` | Text                                                                         |
-| `--plan`     | `#1F4FA8` | `#8DB2F7` | Links, primary actions, Discovery's streets on the map                       |
-| `--marigold` | `#F2B43A` | `#F2B43A` | The sun from the association mark. Used for highlight fills only, never text |
-| `--pool`     | `#D6EEEA` | `#17343A` | Quiet surfaces: callouts, the "at a glance" band                             |
-| `--rule`     | `#C9D2D8` | `#2A3A46` | Borders and dividers                                                         |
+| Token              | Light     | Dark      | Role                                                                         |
+| ------------------ | --------- | --------- | ---------------------------------------------------------------------------- |
+| `--paper`          | `#F4F6F5` | `#101A22` | Page ground: a cool gray-white, not cream                                    |
+| `--ink`            | `#1A2530` | `#E4EAEE` | Text                                                                         |
+| `--plan`           | `#1F4FA8` | `#8DB2F7` | Links, primary actions, Discovery's streets on the map                       |
+| `--marigold`       | `#F2B43A` | `#F2B43A` | The sun from the association mark. Used for highlight fills only, never text |
+| `--pool`           | `#D6EEEA` | `#17343A` | Quiet surfaces: callouts, the "at a glance" band                             |
+| `--rule`           | `#C9D2D8` | `#2A3A46` | Borders and dividers, at 1.5:1                                               |
+| `--control-border` | `#6F7E8A` | `#7F8F9C` | A control's boundary: `--rule` is only 1.5:1, and WCAG 1.4.11 needs 3:1      |
+
+There is also `--header-height`, not a color: 78px, the taller of the two apps' one-row
+headers, used for the sticky header's own scroll offset (so an anchored heading or a sticky
+aside clears it) rather than for the header's own layout, which sets it per breakpoint — see
+The header, below.
 
 ## Type
 
@@ -34,6 +40,9 @@ Inquiry, Eureka, Imagination. The site borrows from that plan rather than from a
   low-vision readers, and many residents are older. The base size is 18px with 1.6 line
   height and a line length of at most 68ch.
 - The scale is a major third (1.25). Labels are sentence case, never all caps.
+- The site's page title is up to 112px on the home page, the one page with a hero, and up to
+  68px elsewhere. The admin app's page title is up to 35px: a tool people work in all day, not
+  a front page.
 
 ## The header
 
@@ -146,13 +155,13 @@ judging by eye, and add a line here before introducing a new difference.
 | ---------- | ---------- | ---------- | -------------------------------------------------------------------------------------------------- |
 | Page title | up to 68px | up to 35px | The site's front page carries the one bold element; the admin app is a tool people work in all day |
 
-There used to be a second row here claiming section headings were 28px on the
-site and 22.5px in the admin app. That difference does not exist and never did:
-`admin.css` sets only a top margin on `h2` and never a size, so a bare heading
-is `--step-2` in both apps, and `.panel h2` is `--step-1` in both — the rule is
-in the shared base. The audit had sampled a panel heading in one app and a bare
-heading in the other, and the selector rather than the design decided the
-answer. Which is the argument for re-running it _and_ reading what it matched.
+(The audit compares interior pages only; the site's 112px home-page hero is deliberately out
+of scope — see Type, above.)
+
+A supposed second row here once claimed section headings were 28px on the site and 22.5px in
+the admin app; re-running the audit and reading what it matched showed that difference was an
+artifact of comparing a panel heading in one app to a bare heading in the other, not a real
+one — the lesson being to read what the audit matched, not just its numbers.
 
 Everything else the audit found was a difference nobody chose, and was fixed:
 page titles carried a stray top margin in the admin app, sections had no space

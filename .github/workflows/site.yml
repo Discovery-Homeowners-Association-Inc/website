@@ -36,12 +36,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
-      - name: Cache the pnpm store
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.local/share/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - uses: ./.github/actions/setup
       # This build reads its content from the deployed admin Worker, and both
       # workflows start on the same push. Racing it meant fetching the content
       # from the version being replaced: a deploy that had already written the
@@ -55,23 +50,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # On a push, only a deploy of this same commit matters; on a schedule
+          # or a dispatch, any deploy in flight does. A run can take a few
+          # seconds to be listed after the push, so a push waits before it looks.
+          if [ "${{ github.event_name }}" = "push" ]; then sleep 20; fi
           for _ in $(seq 1 60); do
-            # Anything not finished: queued, in_progress, waiting. Repeating
-            # --status does not combine them, it overrides, so this filters
-            # instead of asking twice and getting only the second answer.
-            busy=$(gh run list --workflow=deploy-admin.yml --limit 20 \
-              --json status \
-              --jq '[.[] | select(.status != "completed")] | length')
-            if [ "$busy" = "0" ]; then
-              echo "admin deploy is idle"
-              exit 0
+            if [ "${{ github.event_name }}" = "push" ]; then
+              busy=$(gh run list --workflow=deploy-admin.yml --limit 20 \
+                --json status,headSha \
+                --jq '[.[] | select(.status != "completed" and .headSha == "${{ github.sha }}")] | length') || busy=1
+            else
+              busy=$(gh run list --workflow=deploy-admin.yml --limit 20 \
+                --json status \
+                --jq '[.[] | select(.status != "completed")] | length') || busy=1
             fi
+            if [ "$busy" = "0" ]; then echo "admin deploy is idle"; exit 0; fi
             echo "admin deploy is busy; waiting"
             sleep 10
           done
           echo "admin deploy still running after ten minutes" >&2
           exit 1
-      - run: pnpm install --frozen-lockfile
       - name: Fetch the latest published content
         if: vars.SITE_CONTENT_URL != ''
         env:

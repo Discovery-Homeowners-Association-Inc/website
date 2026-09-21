@@ -8,6 +8,8 @@ default:
 setup:
     mise install
     pnpm install --frozen-lockfile
+    # Browsers are installed once, through the site package; both apps pin the
+    # same @playwright/test version, which `lint` checks.
     pnpm --filter @dhoa/site exec playwright install chromium firefox
 
 # Format code in place
@@ -18,6 +20,8 @@ fmt:
 lint:
     pnpm exec prettier --check .
     pnpm -r --if-present run lint
+    # Both apps must run the same Playwright, or one of them tests with browsers the other installed.
+    pw="$(jq -r '.devDependencies["@playwright/test"]' apps/site/package.json)"; test "$pw" != "null" && test "$pw" = "$(jq -r '.devDependencies["@playwright/test"]' apps/admin-ui/package.json)"
 
 # American English everywhere; see the script for what it does not flag
 check-english:
@@ -59,10 +63,11 @@ run:
     pnpm --filter @dhoa/site run dev --host 0.0.0.0
 
 # Serve the built public site (no dev-server flashes), reachable over the LAN and Tailscale
-preview: build
+preview:
+    pnpm --filter @dhoa/site run build
     pnpm --filter @dhoa/site exec astro preview --host 0.0.0.0 --port 4323
 
-# Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see docs/RUNBOOK-admin.md)
+# Run the admin app locally on port 8787 (needs apps/admin/.dev.vars; see apps/admin/README.md)
 # The UI is built into its own folder, so `just build` or `just ci` cannot pull it out from under the server.
 run-admin:
     pnpm --filter @dhoa/admin-ui exec astro build --outDir .dev-dist

@@ -3,8 +3,9 @@ import { expect, test } from "@playwright/test";
 /**
  * Printing, from a dark screen.
  *
- * DESIGN.md says every page prints cleanly, and nothing checked it. Both apps'
- * print blocks set the body's own background and color, which is not enough:
+ * packages/design/README.md says every page prints cleanly, and nothing
+ * checked it. Both apps' print blocks set the body's own background and
+ * color, which is not enough:
  * every panel, rule and callout reads the palette tokens, and in dark mode
  * those were still dark when the page reached paper.
  */

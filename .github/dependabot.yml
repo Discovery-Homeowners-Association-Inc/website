@@ -11,7 +11,9 @@ updates:
     groups:
       astro:
         patterns: ["astro", "@astrojs/*"]
-    # Major versions held back on purpose; see docs/DECISIONS.md #10.
+    # These ignores apply to the whole workspace, so packages that could take the
+    # newer major (packages/shared and apps/site on Vitest 5; the Worker and shared
+    # on TypeScript 7) are held back too. Bump them by hand when the blocker lifts.
     # Remove an entry when its blocker ships support.
     ignore:
       # @astrojs/check (astro check) refuses TypeScript 7 in the Astro apps.
