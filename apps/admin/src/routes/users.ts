@@ -4,19 +4,17 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { requireRole } from "../access.ts";
 import { auditStatement, grantsFor, nowIso } from "../db.ts";
+import { Note, readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
+// The `scope` column stays for compatibility and is always empty: no check
+// ever honored a non-empty scope, so a scoped-only grant could sign in and
+// read lists and nothing else.
 const Grants = z
   .array(
     z.object({
       role: z.enum(ROLES),
-      scope: z
-        .string()
-        .trim()
-        .max(40)
-        .regex(/^[a-z-]*$/)
-        .default(""),
     }),
   )
   .min(1)
@@ -59,7 +57,7 @@ export function userRoutes(deps: AppDeps) {
 
   /** Invite someone: creates their account so their first Google sign-in with this address is accepted. */
   app.post("/", async (c) => {
-    const input = Invite.parse(await c.req.json());
+    const input = Invite.parse(await readJson(c));
     const ctx = await deps.getAuth(c.env).$context;
     const existing = await ctx.internalAdapter.findUserByEmail(input.email);
     if (existing) {
@@ -83,7 +81,7 @@ export function userRoutes(deps: AppDeps) {
       ...input.grants.map((g) =>
         c.env.DB.prepare(
           "insert into user_roles (user_id, role, scope, granted_by, granted_at) values (?, ?, ?, ?, ?)",
-        ).bind(user.id, g.role, g.scope, actor, nowIso()),
+        ).bind(user.id, g.role, "", actor, nowIso()),
       ),
       auditStatement(c.env.DB, actor, "invite", "user", user.id, {
         email: input.email,
@@ -103,23 +101,28 @@ export function userRoutes(deps: AppDeps) {
 
   app.put("/:id/grants", async (c) => {
     const id = c.req.param("id");
-    const grants = Grants.parse((await c.req.json()).grants);
+    const grants = Grants.parse(
+      ((await readJson(c)) as Record<string, unknown>).grants,
+    );
     const actor = c.get("user").id;
-    if (
-      id === actor &&
-      !grants.some((g) => g.role === "admin" && g.scope === "")
-    ) {
+    if (id === actor && !grants.some((g) => g.role === "admin")) {
       throw new HTTPException(422, {
         message: "You cannot remove your own administrator role.",
       });
     }
+    if (
+      !(await c.env.DB.prepare('select 1 from "user" where id = ?')
+        .bind(id)
+        .first())
+    )
+      throw new HTTPException(404, { message: "That person does not exist." });
     await c.env.DB.batch([
       c.env.DB.prepare("delete from former_members where user_id = ?").bind(id),
       c.env.DB.prepare("delete from user_roles where user_id = ?").bind(id),
       ...grants.map((g) =>
         c.env.DB.prepare(
           "insert into user_roles (user_id, role, scope, granted_by, granted_at) values (?, ?, ?, ?, ?)",
-        ).bind(id, g.role, g.scope, actor, nowIso()),
+        ).bind(id, g.role, "", actor, nowIso()),
       ),
       auditStatement(c.env.DB, actor, "set_grants", "user", id, { grants }),
     ]);
@@ -137,9 +140,7 @@ export function userRoutes(deps: AppDeps) {
       throw new HTTPException(422, {
         message: "You cannot remove your own access.",
       });
-    const note = z
-      .object({ note: z.string().trim().max(500).default("") })
-      .parse(await c.req.json().catch(() => ({})));
+    const note = Note.parse(await c.req.json().catch(() => ({})));
     const user = await c.env.DB.prepare('select id from "user" where id = ?')
       .bind(id)
       .first();

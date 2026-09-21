@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import type { AppDeps } from "../app.ts";
 import { auditStatement, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 
 /** Constant-time comparison, so the token cannot be guessed one character at a time. */
@@ -42,7 +43,7 @@ export function bootstrapRoutes(deps: AppDeps) {
         email: z.email().transform((e) => e.toLowerCase()),
         name: z.string().trim().min(1).max(120),
       })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const ctx = await deps.getAuth(c.env).$context;
     const existing = await ctx.internalAdapter.findUserByEmail(input.email);
     const user =

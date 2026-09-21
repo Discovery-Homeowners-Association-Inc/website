@@ -294,9 +294,13 @@ export const SETTINGS = {
  * Settings the board edits but the public site never reads. They are left out
  * of the snapshot entirely rather than published and ignored: the agenda
  * templates are the board's working notes, not something residents need, and
- * every key in the snapshot is a key the site has to keep parsing.
+ * every key in the snapshot is a key the site has to keep parsing. Approvals
+ * are a workflow switch the site never reads either; leaving them in the
+ * snapshot meant an edit to them (which skips the site version bump, since it
+ * changes nothing public) still left a stale value sitting in a snapshot that
+ * claimed to be current.
  */
-export const ADMIN_ONLY_SETTINGS = ["agenda-templates"] as const;
+export const ADMIN_ONLY_SETTINGS = ["agenda-templates", "approvals"] as const;
 
 export const PUBLIC_SETTINGS = Object.fromEntries(
   Object.entries(SETTINGS).filter(

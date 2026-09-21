@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { auditStatement, nowIso } from "../db.ts";
+import { readJson } from "../inputs.ts";
 import type { AppEnv } from "../types.ts";
 import type { AppDeps } from "../app.ts";
 
@@ -24,13 +25,14 @@ export function profileRoutes(deps: AppDeps) {
       ...user,
       provider: account?.provider ?? null,
       sessions: sessions.results,
+      site_url: c.env.SITE_URL,
     });
   });
 
   app.patch("/", async (c) => {
     const { name } = z
       .object({ name: z.string().trim().min(1).max(120) })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const user = c.get("user");
     await c.env.DB.batch([
       c.env.DB.prepare(
@@ -45,11 +47,12 @@ export function profileRoutes(deps: AppDeps) {
   app.post("/sign-out-others", async (c) => {
     const user = c.get("user");
     const current = await deps.currentSessionId(c.req.raw, c.env);
-    await c.env.DB.prepare(
-      'delete from "session" where "userId" = ? and id != ?',
-    )
-      .bind(user.id, current ?? "")
-      .run();
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        'delete from "session" where "userId" = ? and id != ?',
+      ).bind(user.id, current ?? ""),
+      auditStatement(c.env.DB, user.id, "sign_out_others", "user", user.id),
+    ]);
     return c.body(null, 204);
   });
 

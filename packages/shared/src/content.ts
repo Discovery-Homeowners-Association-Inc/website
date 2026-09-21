@@ -6,7 +6,15 @@ import { z } from "zod";
 import type { Role } from "./minutes.ts";
 
 const text = (max: number) => z.string().trim().max(max);
-const isoDateTime = z.iso.datetime({ offset: true });
+/**
+ * An instant, stored as UTC whatever offset it arrived with. The database
+ * compares these as text: "2026-09-19T23:00:00-05:00" sorts before
+ * "2026-09-19T23:30:00Z" although it is four and a half hours later, and the
+ * nightly expiry job deleted an item on that basis.
+ */
+const isoDateTime = z.iso
+  .datetime({ offset: true })
+  .transform((v) => new Date(v).toISOString());
 
 /* ── Items: many of a kind, each with a lifecycle ─────────────────────────── */
 

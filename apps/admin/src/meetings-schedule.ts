@@ -1,5 +1,6 @@
 import { occurrences, todayInNewYork } from "@dhoa/shared";
-import { readSettings } from "./routes/settings.ts";
+import { auditStatement } from "./db.ts";
+import { readSetting } from "./routes/settings.ts";
 
 /** How far ahead meetings are kept as records. */
 export const HORIZON_MONTHS = 12;
@@ -22,8 +23,7 @@ export async function materializeMeetings(
   now = new Date(),
   months = HORIZON_MONTHS,
 ): Promise<{ created: number }> {
-  const settings = await readSettings(db);
-  const board = settings.organization.meetings.board;
+  const board = (await readSetting(db, "organization")).meetings.board;
   const wanted = occurrences(
     { ordinal: board.ordinal, weekday: board.weekday },
     todayInNewYork(now),
@@ -32,15 +32,15 @@ export async function materializeMeetings(
   if (wanted.length === 0) return { created: 0 };
 
   const results = await db.batch(
-    wanted.map((o) =>
+    wanted.map((date) =>
       db
         .prepare(
           `insert or ignore into meetings (id, type, date, time, location, created_by, created_at)
            values (?, 'board', ?, ?, ?, null, ?)`,
         )
         .bind(
-          `${o.date}-board`,
-          o.date,
+          `${date}-board`,
+          date,
           board.time,
           board.location,
           now.toISOString(),
@@ -50,4 +50,38 @@ export async function materializeMeetings(
   return {
     created: results.reduce((n, r) => n + (r.meta?.changes ?? 0), 0),
   };
+}
+
+/**
+ * After the rule changes. Future meetings the rule made -- created by nobody,
+ * still on the date their id records, with no agenda and no minutes -- are
+ * dropped and the rule fills the year again. A meeting someone moved, or one
+ * with work attached, is the board's and is left exactly where it is.
+ */
+export async function reconcileMeetings(
+  db: D1Database,
+  actorId: string,
+  now = new Date(),
+): Promise<{ created: number; removed: number }> {
+  const removedResult = await db
+    .prepare(
+      `delete from meetings
+        where type = 'board' and created_by is null and status = 'scheduled'
+          and date >= ? and date = substr(id, 1, 10)
+          and id not in (select meeting_id from agendas)
+          and id not in (select meeting_id from minutes)`,
+    )
+    .bind(todayInNewYork(now))
+    .run();
+  const removed = removedResult.meta.changes ?? 0;
+  const { created } = await materializeMeetings(db, now);
+  // Two statements rather than one batch: `created` is only known after
+  // `materializeMeetings` runs, and the audit row is the fix here -- a
+  // partial failure between the delete and the audit insert is recoverable
+  // by the next cron, which reconciles again.
+  await auditStatement(db, actorId, "reschedule", "meeting", "board", {
+    removed,
+    created,
+  }).run();
+  return { created, removed };
 }

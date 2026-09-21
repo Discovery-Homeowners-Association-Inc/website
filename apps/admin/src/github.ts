@@ -6,7 +6,7 @@
  * The App needs only "Contents: read and write" on this one repository
  * (repository_dispatch requires it). Secrets: GITHUB_APP_ID,
  * GITHUB_APP_INSTALLATION_ID, GITHUB_APP_PRIVATE_KEY (PKCS#8 PEM), and the
- * variable GITHUB_REPO ("owner/name").
+ * `wrangler.jsonc` var GITHUB_REPO ("owner/name").
  */
 type GithubEnv = Partial<
   Record<

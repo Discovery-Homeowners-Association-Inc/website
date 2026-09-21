@@ -2,8 +2,9 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
 import { ZodError } from "zod";
-import { requireUser } from "./access.ts";
+import { requireRole, requireUser } from "./access.ts";
 import type { Auth } from "./auth.ts";
+import { bumpSiteVersion } from "./db.ts";
 import { bootstrapRoutes } from "./routes/bootstrap.ts";
 import { fileRoutes, serveFile } from "./routes/files.ts";
 import { itemRoutes } from "./routes/items.ts";
@@ -12,7 +13,6 @@ import { minutesRoutes } from "./routes/minutes.ts";
 import { profileRoutes } from "./routes/profile.ts";
 import {
   edgeCache,
-  invalidateSnapshot,
   publicRoutes,
   type SnapshotCache,
 } from "./routes/public.ts";
@@ -32,23 +32,21 @@ export type AppDeps = {
   snapshotCache?: SnapshotCache;
 };
 
-export function createApp(deps: AppDeps) {
-  /*
-   * The cached public snapshot is dropped on every content change, before the
-   * site rebuild is asked for. The site build fetches the snapshot moments
-   * later, so a stale entry here would rebuild the site from its previous
-   * state. Wrapping the dependency rather than the entry point keeps this on
-   * the path the tests exercise.
-   */
-  const cache = deps.snapshotCache ?? edgeCache;
-  // Captured before deps is replaced below: reading deps.siteChanged at call
-  // time would find this wrapper and call itself for ever.
-  const notify = deps.siteChanged;
-  const siteChanged: AppDeps["siteChanged"] = async (env, reason) => {
-    await invalidateSnapshot(env, cache);
+/**
+ * What every route calls after a change the public site can see. The version
+ * bump is what makes the cached snapshot miss; the notification asks GitHub
+ * for a rebuild. In that order, so the build never reads the old entry.
+ */
+export const siteChangeNotifier =
+  (notify: AppDeps["siteChanged"]): AppDeps["siteChanged"] =>
+  async (env, reason) => {
+    await bumpSiteVersion(env.DB).run();
     await notify(env, reason);
   };
-  deps = { ...deps, siteChanged };
+
+export function createApp(deps: AppDeps) {
+  const cache = deps.snapshotCache ?? edgeCache;
+  deps = { ...deps, siteChanged: siteChangeNotifier(deps.siteChanged) };
 
   const app = new Hono<AppEnv>();
   app.use("*", secureHeaders());
@@ -70,7 +68,11 @@ export function createApp(deps: AppDeps) {
   api.route("/roster", rosterRoutes(deps));
   api.route("/files", fileRoutes());
   api.route("/audit", auditRoutes());
-  api.get("/files/:id/content", (c) => serveFile(c.env, c.req.param("id")));
+  api.get(
+    "/files/:id/content",
+    requireRole("admin", "secretary", "editor"),
+    (c) => serveFile(c.env, c.req.param("id"), "private"),
+  );
   app.route("/api", api);
 
   app.onError((err, c) => {

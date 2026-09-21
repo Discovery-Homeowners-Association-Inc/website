@@ -12,14 +12,13 @@ export const rebuilds: string[] = [];
 
 /**
  * An in-memory stand-in for the edge cache. The real one cannot be used here:
- * `caches.default.delete()` never settles when it is called from inside a
- * request handler under the Workers test harness, which hangs any test that
- * changes content. Same contract, so the caching logic is still exercised.
+ * a stored `Response` holds an unread stream, and cloning those across tests
+ * crashes the worker. Same contract, so the caching logic is still
+ * exercised.
  */
 const store = new Map<string, string>();
 export const snapshotCache = {
-  // The body is kept as text, not as a Response: a stored Response holds an
-  // unread stream, and cloning those across tests crashes the worker.
+  // The body is kept as text, not as a Response, for the same reason.
   match: async (key: Request) => {
     const body = store.get(key.url);
     return body === undefined
@@ -31,7 +30,6 @@ export const snapshotCache = {
   },
   put: async (key: Request, res: Response) =>
     void store.set(key.url, await res.text()),
-  delete: async (key: Request) => void store.delete(key.url),
 };
 
 export const app = createApp({

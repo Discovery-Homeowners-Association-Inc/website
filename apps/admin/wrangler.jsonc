@@ -5,10 +5,6 @@
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
-  // The deployed version's id, so the public snapshot's cache key changes on
-  // every deploy. The deploy writes settings straight to D1 with wrangler,
-  // which never passes through the Worker and so never clears that cache.
-  "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // The admin UI is static files. Only /api/* runs Worker code, so page views
   // do not count against the Workers Free CPU or request limits.
   "assets": {
@@ -24,7 +20,7 @@
     },
   ],
   // Uploaded files (PDFs) live in KV: free on the Workers Free plan, values up
-  // to 25 MiB. D1 rows cap at 2 MB and R2 needs a card. See DECISIONS.md #11.
+  // to 25 MiB. D1 rows cap at 2 MB and R2 needs a card.
   "kv_namespaces": [
     {
       "binding": "FILES",
@@ -37,6 +33,14 @@
   "triggers": { "crons": ["0 10 * * *"] },
   "vars": {
     "BETTER_AUTH_URL": "https://dhoa-admin.discoveryhomeownersassociation.workers.dev",
+    // Where the public site is served. The admin app links "View on the site"
+    // here; the custom domain replaces it at the cutover.
+    "SITE_URL": "https://dhoa-site.discoveryhomeownersassociation.workers.dev",
+    // The repository the Worker asks to rebuild the site. Not secret, and set
+    // here rather than in the dashboard: `wrangler deploy` replaces every plain
+    // variable on each deploy, so a dashboard value silently disappears and
+    // rebuild-on-publish stops without an error.
+    "GITHUB_REPO": "Discovery-Homeowners-Association-Inc/website",
   },
   // Secrets, set with `wrangler secret put` (or .dev.vars locally):
   //   BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BOOTSTRAP_TOKEN,

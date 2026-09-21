@@ -146,6 +146,55 @@ describe("content items", () => {
       (await call(admin, "DELETE", `/api/items/${theirs.json.id}`)).status,
     ).toBe(204);
   });
+
+  it("refuses an action against a status that has moved, and logs nothing for it", async () => {
+    const created = await call(secretary, "POST", "/api/items", news("Moving"));
+    const id = created.json.id;
+    await call(secretary, "POST", `/api/items/${id}/action`, {
+      action: "submit",
+    });
+    // Two approvers read the pending item; the first approves it.
+    expect(
+      (
+        await call(admin, "POST", `/api/items/${id}/action`, {
+          action: "approve",
+        })
+      ).json.status,
+    ).toBe("published");
+    // The second still has a pending item on screen and approves it too.
+    const again = await call(director, "POST", `/api/items/${id}/action`, {
+      action: "approve",
+    });
+    expect(again.status).toBe(409);
+    const { results } = await env.DB.prepare(
+      "select 1 from audit_log where action = 'approve' and entity_id = ?",
+    )
+      .bind(id)
+      .all();
+    expect(results).toHaveLength(1);
+  });
+
+  it("refuses to approve a body the approver has not read", async () => {
+    const created = await call(editor, "POST", "/api/items", news("Read me"));
+    const id = created.json.id;
+    await call(editor, "POST", `/api/items/${id}/action`, { action: "submit" });
+    const seen = (await call(director, "GET", `/api/items/${id}`)).json;
+    // The editor changes the pending text after the director read it.
+    await call(editor, "PUT", `/api/items/${id}`, {
+      body: { ...news("Read me").body, body: "Something else entirely." },
+    });
+    const stale = await call(director, "POST", `/api/items/${id}/action`, {
+      action: "approve",
+      seen_updated_at: seen.updated_at,
+    });
+    expect(stale.status).toBe(409);
+    const fresh = (await call(director, "GET", `/api/items/${id}`)).json;
+    const ok = await call(director, "POST", `/api/items/${id}/action`, {
+      action: "approve",
+      seen_updated_at: fresh.updated_at,
+    });
+    expect(ok.json.status).toBe("published");
+  });
 });
 
 describe("publish dates and expiry", () => {
@@ -195,6 +244,37 @@ describe("publish dates and expiry", () => {
       (await call(secretary, "GET", `/api/items/${gone.json.id}`)).status,
     ).toBe(200);
   });
+
+  it("does not delete an item before its expiry when the offset is not UTC", async () => {
+    // 11 pm Central on the 19th is 4 am UTC on the 20th. Compared as text
+    // against a UTC "now", "-05:00" sorted before "Z" and the item was deleted
+    // four and a half hours early.
+    const item = await call(secretary, "POST", "/api/items", {
+      ...news("Evening deadline"),
+      meta: {
+        publish_at: "2026-09-01T09:00:00-04:00",
+        expires_at: "2026-09-19T23:00:00-05:00",
+        expiry_action: "delete",
+      },
+    });
+    await publishNow(item.json.id);
+    await runScheduled(
+      env,
+      { siteChanged: async () => {} },
+      new Date("2026-09-19T23:30:00Z"),
+    );
+    expect(
+      (await call(secretary, "GET", `/api/items/${item.json.id}`)).status,
+    ).toBe(200);
+    await runScheduled(
+      env,
+      { siteChanged: async () => {} },
+      new Date("2026-09-20T05:00:00Z"),
+    );
+    expect(
+      (await call(secretary, "GET", `/api/items/${item.json.id}`)).status,
+    ).toBe(404);
+  });
 });
 
 describe("the public snapshot", () => {
@@ -226,6 +306,11 @@ describe("the public snapshot", () => {
       "Pat President",
     );
     expect(draft.json.status).toBe("draft");
+  });
+
+  it("never includes approvals, a workflow switch the site never reads", async () => {
+    const site = await call(null, "GET", "/api/public/site.json");
+    expect(site.json.settings.approvals).toBeUndefined();
   });
 });
 
