@@ -8,5 +8,6 @@ export * from "./pages.ts";
 export * from "./csv.ts";
 export * from "./exports.ts";
 export * from "./settings.ts";
+export * from "./form-fields.ts";
 export * from "./text.ts";
 export * from "./snapshot.ts";

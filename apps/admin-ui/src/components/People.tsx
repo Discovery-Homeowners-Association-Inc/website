@@ -26,7 +26,7 @@ const roleHelp: Record<Role, string> = {
   admin: "Invites people and sets roles",
   secretary:
     "Writes agendas and minutes, runs the vote, files minutes in PayHOA",
-  board: "Reviews and votes on minutes",
+  board: "Reviews and votes on minutes; approves site content",
   editor: "Edits public site content",
   reviewer: "Reads and comments on draft minutes, no vote",
 };
@@ -44,7 +44,7 @@ function RolePicker({
     <fieldset>
       <legend>Roles</legend>
       {ROLES.map((r) => (
-        <div class="choice">
+        <div class="choice" key={r}>
           <input
             id={`${idPrefix}-${r}`}
             type="checkbox"
@@ -67,7 +67,7 @@ function RolePicker({
   );
 }
 
-export default function People() {
+export function People() {
   const { me } = useMe();
   const [people, setPeople] = useState<Person[] | null>(null);
   const [invite, setInvite] = useState({
@@ -90,7 +90,7 @@ export default function People() {
   const run = runAndReport(setError, setSaved, load);
 
   if (me && !can(me, "admin"))
-    return <p class="notice">Only administrators can manage people.</p>;
+    return <p class="callout">Only administrators can manage people.</p>;
   if (!people) return error ? <ErrorNotice message={error} /> : <Loading />;
 
   function renderPerson(p: Person) {

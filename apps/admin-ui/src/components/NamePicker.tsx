@@ -21,7 +21,14 @@ export function NamePicker({
   required?: boolean;
 }) {
   const known = names.includes(value);
-  const [other, setOther] = useState(!!value && !known);
+  const [chosenOther, setChosenOther] = useState(false);
+  /*
+   * "Someone else" is shown when the person chose it, or when the saved value
+   * is nobody on the roster -- judged only once the roster is known. Deciding
+   * on first render decided before the roster had loaded, so every saved
+   * director came back as a stranger with a text box.
+   */
+  const other = chosenOther || (!!value && !known && names.length > 0);
   return (
     <div class="field">
       <label for={id}>{label}</label>
@@ -32,17 +39,19 @@ export function NamePicker({
         onChange={(e) => {
           const v = e.currentTarget.value;
           if (v === "__other") {
-            setOther(true);
+            setChosenOther(true);
             onChange("");
           } else {
-            setOther(false);
+            setChosenOther(false);
             onChange(v);
           }
         }}
       >
         <option value="">Choose…</option>
         {names.map((n) => (
-          <option value={n}>{n}</option>
+          <option value={n} key={n}>
+            {n}
+          </option>
         ))}
         <option value="__other">Someone else…</option>
       </select>

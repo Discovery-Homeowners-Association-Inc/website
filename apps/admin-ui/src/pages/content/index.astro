@@ -1,5 +1,6 @@
 ---
 import Admin from "../../layouts/Admin.astro";
+import { KINDS } from "../../lib/content.ts";
 ---
 
 <Admin title="Content">
@@ -9,29 +10,13 @@ import Admin from "../../layouts/Admin.astro";
     hours and fees are under Site settings.
   </p>
   <ul class="tasks">
-    <li>
-      <a href="/content/news/">
-        <strong>News</strong>
-        <span>Announcements from the board.</span>
-      </a>
-    </li>
-    <li>
-      <a href="/content/events/">
-        <strong>Events</strong>
-        <span>Things residents can come to, on the calendar.</span>
-      </a>
-    </li>
-    <li>
-      <a href="/content/documents/">
-        <strong>Documents</strong>
-        <span>Forms, notices and files in the document library.</span>
-      </a>
-    </li>
-    <li>
-      <a href="/content/pages/">
-        <strong>Pages</strong>
-        <span>The written text of each page on the site.</span>
-      </a>
-    </li>
+    {Object.values(KINDS).map((k) => (
+      <li>
+        <a href={k.path}>
+          <strong>{k.many}</strong>
+          <span>{k.intro}</span>
+        </a>
+      </li>
+    ))}
   </ul>
 </Admin>

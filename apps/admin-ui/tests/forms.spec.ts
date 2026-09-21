@@ -1,4 +1,5 @@
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { ADMIN, bootstrap, signIn } from "./helpers.ts";
 
 /**
  * The admin screens are the same design system as the public site, so a select,
@@ -8,17 +9,6 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
  * under the 24px WCAG 2.2 target minimum.
  */
 test.describe.configure({ mode: "serial" });
-
-const ADMIN = "secretary@example.com";
-
-async function signIn(browser: Browser, email: string) {
-  const page = await (await browser.newContext()).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
 
 /** Heights of the controls that are meant to look alike, keyed by what they are. */
 async function controlHeights(page: Page) {
@@ -35,13 +25,7 @@ async function controlHeights(page: Page) {
 }
 
 test.beforeAll(async ({ request }) => {
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
 });
 
 test("text, date and select controls are all the same height", async ({
@@ -93,4 +77,52 @@ test("checkboxes meet the 24px target minimum", async ({ browser }) => {
   ).toBeGreaterThan(0);
   const tooSmall = boxes.filter((b) => b.w < 24 || b.h < 24);
   expect(tooSmall, "checkboxes under the 24px WCAG target size").toEqual([]);
+});
+
+test("a list field's open rows keep their own state through remove and move", async ({
+  browser,
+}) => {
+  const page = await signIn(browser, ADMIN);
+  await page.goto("/settings/?group=pool");
+  await page.waitForLoadState("networkidle");
+  // The pool's hours: four rows, so none start open (only three or fewer do).
+  const fieldset = page.locator(
+    'fieldset.list-field:has(legend:text-is("Hours"))',
+  );
+  const rows = fieldset.locator(":scope > details.list-item");
+  await expect(rows).toHaveCount(4);
+
+  // Open the first two rows; the third and fourth stay collapsed. A row's
+  // own Remove/Move buttons live inside its <details>, which the browser
+  // hides while collapsed, so a row must be open to act on itself.
+  await rows.nth(0).locator("summary").click();
+  await rows.nth(1).locator("summary").click();
+  await expect(rows.nth(0)).toHaveJSProperty("open", true);
+  await expect(rows.nth(1)).toHaveJSProperty("open", true);
+
+  // Remove the (open) first row. The row that is now first (the old second
+  // row) must keep the open state it had, not whatever the old first row's
+  // state was; the row that is now last (the old fourth, never touched)
+  // must still be collapsed, not inherit an old neighbor's open state.
+  page.once("dialog", (d) => void d.accept());
+  await rows.nth(0).getByRole("button", { name: "Remove" }).click();
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(0)).toHaveJSProperty("open", true);
+  await expect(rows.nth(2)).toHaveJSProperty("open", false);
+
+  // Move the still-collapsed middle row (the old third) up past the open
+  // row above it. A collapsed row's own action buttons sit inside its
+  // <details>, which the browser removes from layout and the accessibility
+  // tree while closed -- opening the row first to reach its button would
+  // flip the very state under test, and a forced pointer click would hit
+  // whatever real element sits at the (collapsed) button's coordinates
+  // instead -- so this dispatches the click event on the button node
+  // directly. It must arrive at the top still collapsed, not take on the
+  // open state of the row it displaced.
+  await rows
+    .nth(1)
+    .locator(".actions button.button--quiet")
+    .first()
+    .dispatchEvent("click");
+  await expect(rows.nth(0)).toHaveJSProperty("open", false);
 });

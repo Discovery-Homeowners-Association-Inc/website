@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
-import { type Browser, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { ADMIN, bootstrap, signIn } from "./helpers.ts";
 
 /**
  * Taking the association's data out.
@@ -10,29 +11,10 @@ import { type Browser, expect, test } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
-// The same administrator the other specs bootstrap: /api/bootstrap is a
-// one-time door, so a spec that invents its own admin has no way in when it
-// is not the first to run.
-const ADMIN = "secretary@example.com";
 const EDITOR = "export-writer@example.com";
 
-async function signIn(browser: Browser, email: string) {
-  const page = await (await browser.newContext()).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
-
 test.beforeAll(async ({ request, browser }) => {
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
 
   // Through the API rather than the invite form: this is setup, and it has to
   // be safe whether or not another spec has already run against this database.

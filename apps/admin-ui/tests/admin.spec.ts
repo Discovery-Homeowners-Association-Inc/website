@@ -1,5 +1,5 @@
-import AxeBuilder from "@axe-core/playwright";
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { ADMIN, bootstrap, expectAccessible, signIn } from "./helpers.ts";
 
 /**
  * One board meeting, followed from creation to minutes filed in PayHOA, by the
@@ -9,44 +9,17 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
 test.describe.configure({ mode: "serial" });
 
 /*
- * Invited identities are this project's own. Every browser project runs
- * against the same database, and a person is unique by email, so a second
- * project inviting the same address is refused and the whole spec unravels.
- * The bootstrapped administrator stays shared, because bootstrap is a
- * one-time door and tolerates having already been opened.
- */
-/*
  * The invited identities are this project's own, set before the first test
  * runs. Every browser project works against the same database and a person is
  * unique by email, so a second project inviting the same address is refused
  * and the spec unravels from there. The bootstrapped administrator stays
  * shared: bootstrap is a one-time door and tolerates being already open.
  */
-const ADMIN = "secretary@example.com";
 let DIRECTOR = "";
 let EDITOR = "";
-/** A meeting date of this project's own: a meeting is unique by date and type. */
-let MEETING_DATE = "";
-
-async function signIn(browser: Browser, email: string) {
-  const page = await (await browser.newContext()).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
-
-async function expectAccessible(page: Page) {
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-    .analyze();
-  expect(
-    violations.map(
-      (v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
-    ),
-  ).toEqual([]);
-}
+// Firefox only ever runs header.spec.ts and forms.spec.ts (see the `firefox`
+// project's testMatch in playwright.config.ts), so this spec needs only one date.
+const MEETING_DATE = "2026-10-20";
 
 let admin: Page;
 let director: Page;
@@ -55,17 +28,7 @@ let minutesUrl = "";
 test.beforeAll(async ({ request }, testInfo) => {
   DIRECTOR = `director-${testInfo.project.name}@example.com`;
   EDITOR = `editor-${testInfo.project.name}@example.com`;
-  MEETING_DATE =
-    testInfo.project.name === "firefox" ? "2036-10-20" : "2026-10-20";
-
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  // 409 when another browser project has already run against this database.
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
 });
 
 test("anonymous visitors are sent to sign in", async ({ page }) => {
@@ -122,8 +85,24 @@ test("the administrator also acts as secretary: add a meeting and publish its ag
   await admin.getByLabel("Item title").nth(1).fill("Treasurer's report");
   await admin.getByRole("button", { name: "Save agenda" }).click();
   await expect(admin.getByRole("status")).toContainText("Saved as version 1");
+  await admin
+    .getByRole("button", { name: 'Move "Treasurer\'s report" up' })
+    .click();
+  await expect(admin.getByLabel("Item title").first()).toHaveValue(
+    "Treasurer's report",
+  );
+  await admin
+    .getByRole("button", { name: 'Move "Treasurer\'s report" down' })
+    .click();
+  await expect(admin.getByLabel("Item title").first()).toHaveValue(
+    "Call to order",
+  );
+  // The two moves above both call update(), which sets dirty, so "Publish
+  // this version" is always disabled here -- save again before publishing.
+  await admin.getByRole("button", { name: "Save agenda" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved as version");
   await admin.getByRole("button", { name: "Publish this version" }).click();
-  await expect(admin.getByText("Version 1 is published.")).toBeVisible();
+  await expect(admin.getByText(/Version \d+ is published\./)).toBeVisible();
   await expectAccessible(admin);
 });
 
@@ -136,6 +115,7 @@ test("the secretary drafts minutes and sends them for review", async () => {
   minutesUrl = admin.url();
 
   await admin.getByLabel("Called to order at").fill("7:02 pm");
+  await admin.getByLabel("Presiding").selectOption("Valentina Duk");
   const present = admin.getByRole("group", { name: "Directors present" });
   await present.getByLabel("Valentina Duk").check();
   await present.getByLabel("Doug Shoemaker").check();
@@ -158,7 +138,7 @@ test("the secretary drafts minutes and sends them for review", async () => {
 
 test("an editor cannot see minutes or the People page", async ({ browser }) => {
   const editor = await signIn(browser, EDITOR);
-  await expect(editor.getByRole("link", { name: "People" })).toBeHidden();
+  await expect(editor.getByRole("link", { name: "Accounts" })).toBeHidden();
   await expect(editor.getByText("Minutes waiting on the board")).toBeHidden();
   await editor.goto(minutesUrl);
   await expect(editor.getByRole("alert")).toContainText(
@@ -170,7 +150,7 @@ test("a director comments and marks the version reviewed", async ({
   browser,
 }) => {
   director = await signIn(browser, DIRECTOR);
-  await expect(director.getByRole("link", { name: "People" })).toBeHidden();
+  await expect(director.getByRole("link", { name: "Accounts" })).toBeHidden();
   await director
     .getByRole("link", { name: /Board meeting, Tuesday, October 20, 2026/ })
     .first()
@@ -187,6 +167,22 @@ test("a director comments and marks the version reviewed", async ({
   await director
     .getByLabel("Comment", { exact: true })
     .fill("Please include the balance amount.");
+  // The first attempt fails at the server; what was typed must still be there.
+  await director.route(
+    "**/api/meetings/*/minutes/comments",
+    (route) =>
+      route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Try again." }),
+      }),
+    { times: 1 },
+  );
+  await director.getByRole("button", { name: "Add comment" }).click();
+  await expect(director.getByRole("alert")).toContainText("Try again.");
+  await expect(director.getByLabel("Comment", { exact: true })).toHaveValue(
+    "Please include the balance amount.",
+  );
   await director.getByRole("button", { name: "Add comment" }).click();
   await expect(director.getByRole("status")).toContainText("Comment added.");
   await director
@@ -203,6 +199,12 @@ test("the secretary revises, and the board approves the exact version at the mee
   await expect(
     admin.getByText("Please include the balance amount."),
   ).toBeVisible();
+  // The roster arrives after the minutes. A picker that decided "someone else"
+  // before it arrived showed every saved director as a stranger.
+  await expect(admin.getByLabel("Presiding", { exact: true })).toHaveValue(
+    "Valentina Duk",
+  );
+  await expect(admin.getByLabel("Presiding, name")).toHaveCount(0);
   await admin
     .getByLabel("Discussion")
     .nth(1)
@@ -213,7 +215,16 @@ test("the secretary revises, and the board approves the exact version at the mee
   await admin.getByRole("button", { name: "Resolve" }).click();
   await admin.getByRole("button", { name: "Ready for a vote" }).click();
 
+  // 11:30 pm on a December evening in Maryland is already tomorrow in UTC. The
+  // vote date is what goes into the approved minutes, so it has to be today.
+  await director.clock.setFixedTime(new Date("2026-12-15T23:30:00-05:00"));
+
   await director.reload();
+  await expect(director.getByLabel("Date of the vote")).toHaveValue(
+    "2026-12-15",
+  );
+  // The fixed time was only for the vote date; give the page its clock back.
+  await director.clock.setSystemTime(new Date());
   await director
     .getByLabel("Motion to approve moved by")
     .selectOption("Valentina Duk");
@@ -247,6 +258,16 @@ test("the secretary revises, and the board approves the exact version at the mee
   await expect(director.getByRole("status")).toContainText(
     "Approved. The minutes are now locked.",
   );
+});
+
+test("the printed minutes carry the association's legal name", async () => {
+  await admin.goto(minutesUrl.replace("/minutes/", "/minutes/print/"));
+  await expect(admin.locator(".print-org")).toHaveText(
+    "Discovery Homeowners Association, Inc.",
+  );
+  // The next test assumes the shared admin page is still on the minutes
+  // screen, as it was before this one navigated away to print it.
+  await admin.goto(minutesUrl);
 });
 
 test("approved minutes export for PayHOA and are marked filed", async () => {
@@ -304,6 +325,7 @@ test("removing someone keeps them on record as a former member, and access can b
   await expect(
     admin.getByText("Dana Director (former member)").first(),
   ).toBeVisible();
+  await expectAccessible(admin);
 
   // Their session ended, and signing in again does not give them access.
   await director.goto("/");
@@ -435,7 +457,7 @@ test("a remembered administrator's header never changes height while a page load
         .getByRole("navigation", { name: "Main" })
         .getByRole("link", { name: "Settings", exact: true }),
     ).toBeVisible();
-    await admin.waitForTimeout(500);
+    await admin.waitForLoadState("networkidle");
     const heights = await admin.evaluate(
       () => (window as unknown as { __heights: number[] }).__heights,
     );

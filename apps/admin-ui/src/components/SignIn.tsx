@@ -2,11 +2,12 @@ import { useState } from "preact/hooks";
 import { param } from "../lib/api.ts";
 import { ErrorNotice } from "./Notice.tsx";
 
-export default function SignIn() {
+export function SignIn() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
-  const next = param("next").startsWith("/") ? param("next") : "/";
+  const raw = param("next");
+  const next = /^\/(?![\/\\])/.test(raw) ? raw : "/";
   const local =
     typeof location !== "undefined" && location.protocol === "http:";
   const failed = param("error");
@@ -54,7 +55,7 @@ export default function SignIn() {
         with.
       </p>
       {failed && (
-        <p class="notice notice--error" role="alert">
+        <p class="callout callout--warning" role="alert">
           {failed === "signup_disabled"
             ? "That Google account has not been invited. Ask an administrator to invite the email address you signed in with."
             : "Sign-in did not complete. Try again."}

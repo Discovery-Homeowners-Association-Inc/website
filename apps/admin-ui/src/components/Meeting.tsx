@@ -11,6 +11,7 @@ import {
   typeLabel,
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
@@ -26,7 +27,7 @@ type Suggestions = {
   }[];
 };
 
-export default function Meeting() {
+export function Meeting() {
   const id = param("id");
   const { me } = useMe();
   const [data, setData] = useState<AgendaResponse | null>(null);
@@ -56,12 +57,7 @@ export default function Meeting() {
     [],
   );
 
-  // Warn before leaving with unsaved changes.
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedWarning(dirty);
 
   if (!data) return error ? <ErrorNotice message={error} /> : <Loading />;
   const editable = can(me, "admin", "secretary");
@@ -82,7 +78,8 @@ export default function Meeting() {
   const move = (i: number, by: number) => {
     const items = [...body.items];
     const [it] = items.splice(i, 1);
-    items.splice(i + by, 0, it!);
+    if (it === undefined) return;
+    items.splice(i + by, 0, it);
     update({ ...body, items });
   };
 
@@ -125,9 +122,9 @@ export default function Meeting() {
    * What to put on the agenda, offered rather than applied. Each open item says
    * which meeting it came from, so it can be checked rather than trusted.
    */
-  function Suggested() {
-    const template = suggestions!.template.filter((t) => !onAgenda(t.title));
-    const open = suggestions!.open.filter((o) => !onAgenda(o.title));
+  function Suggested({ s }: { s: Suggestions }) {
+    const template = s.template.filter((t) => !onAgenda(t.title));
+    const open = s.open.filter((o) => !onAgenda(o.title));
     if (template.length === 0 && open.length === 0) return null;
     return (
       <details class="help-details" open={open.length > 0}>
@@ -207,7 +204,7 @@ export default function Meeting() {
       )}
 
       <h2>Agenda</h2>
-      {editable && suggestions && <Suggested />}
+      {editable && suggestions && <Suggested s={suggestions} />}
       <p class="meta">
         {version === 0 ? "Not saved yet." : `Version ${version}.`}{" "}
         {published === null

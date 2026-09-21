@@ -4,6 +4,7 @@ import {
   type ItemKind,
   itemActions,
 } from "@dhoa/shared";
+import { Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import {
   api,
@@ -13,9 +14,16 @@ import {
   runAndReport,
   when,
 } from "../lib/api.ts";
-import { KINDS, stateLabel } from "../lib/content.ts";
-import { blank, fromLocalInput, toLocalInput } from "../lib/fields.ts";
+import { emailOptions, KINDS, stateLabel } from "../lib/content.ts";
+import {
+  blank,
+  fromLocalInput,
+  toLocalInput,
+  type Field,
+} from "../lib/fields.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { Fields } from "./Form.tsx";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
@@ -28,6 +36,16 @@ type Full = Item & {
 };
 type Approvals = Record<ItemKind, boolean>;
 
+const shown = (f: Field, v: unknown) =>
+  f.kind === "boolean"
+    ? v
+      ? "Yes"
+      : "No"
+    : f.kind === "select"
+      ? (f.options.find((o) => o.value === String(v ?? ""))?.label ??
+        String(v ?? ""))
+      : String(v ?? "");
+
 const actionLabel: Record<ItemAction, string> = {
   submit: "Submit for approval",
   approve: "Approve and publish",
@@ -36,10 +54,10 @@ const actionLabel: Record<ItemAction, string> = {
   unpublish: "Take off the site",
 };
 
-export default function ItemEditor({ kind }: { kind: ItemKind }) {
+export function ItemEditor({ kind }: { kind: ItemKind }) {
   const cfg = KINDS[kind];
   const id = param("id");
-  const { me } = useMe();
+  const { me, error: meError } = useMe();
   const [item, setItem] = useState<Full | null>(null);
   const [body, setBody] = useState<Record<string, unknown>>(() =>
     Object.fromEntries(cfg.fields.map((f) => [f.key, blank(f)])),
@@ -50,11 +68,16 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     expiry_action: "hide" as "hide" | "delete",
   });
   const [approvals, setApprovals] = useState<Approvals | null>(null);
+  const { organization, error: orgError } = useOrganization();
+  const emailKeys = organization ? Object.keys(organization.emails) : [];
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [note, setNote] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [firstSaved] = useState(
+    () => new URLSearchParams(location.search).get("saved") === "1",
+  );
 
   const load = async () => {
     if (!id) return;
@@ -73,12 +96,21 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     api<Approvals>("GET", "/settings/approvals").then(setApprovals, () => {});
   }, [id]);
   useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+    // An editor may legitimately be refused this read; the saved key still
+    // shows in the options below, so this is worth knowing but not alarming.
+    if (orgError) console.warn(orgError);
+  }, [orgError]);
+  useUnsavedWarning(dirty);
+  useEffect(() => {
+    document.title = `${item ? item.body.title : `New ${cfg.one}`} | Board administration`;
+  }, [item, cfg.one]);
+  useEffect(() => {
+    if (firstSaved)
+      history.replaceState(null, "", `${location.pathname}?id=${id}`);
+  }, [firstSaved, id]);
 
   if (error && !item && id) return <ErrorNotice message={error} />;
+  if (meError) return <ErrorNotice message={meError} />;
   if (!me || (id && !item)) return <Loading />;
 
   const staff = can(me, "admin", "secretary");
@@ -148,7 +180,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     }
   }
 
-  const doAction = (action: ItemAction) => {
+  const doAction = (action: ItemAction, item: Full) => {
     if (dirty) return setError("Save your changes first.");
     if (action === "reject" && !note.trim())
       return setError("Write a note saying what needs to change.");
@@ -160,7 +192,12 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
     )
       return;
     void act(
-      () => api("POST", `/items/${item!.id}/action`, { action, note }),
+      () =>
+        api("POST", `/items/${item.id}/action`, {
+          action,
+          note,
+          seen_updated_at: item.updated_at,
+        }),
       {
         submit: "Submitted. An approver will be able to publish it.",
         approve: "Approved and published. The site will update shortly.",
@@ -168,10 +205,24 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
         publish: "Published. The site will update shortly.",
         unpublish: "Taken off the site.",
       }[action],
-    ).then(() => setNote(""));
+    ).then((ok) => ok && setNote(""));
   };
 
-  const firstSaved = new URLSearchParams(location.search).get("saved") === "1";
+  // The saved key stays an option even if it dropped out of Organization ›
+  // Email addresses by role, or the read failed, so this screen never claims
+  // a published item points nowhere when it does not.
+  const emailKeyOptions = () => {
+    const current = String(body.contact_email_key ?? "");
+    const keys = (
+      emailKeys.includes(current) ? emailKeys : [current, ...emailKeys]
+    ).filter(Boolean);
+    return emailOptions(keys);
+  };
+  const fields = cfg.fields.map((f) =>
+    f.key === "contact_email_key" && f.kind === "select"
+      ? { ...f, options: [...f.options, ...emailKeyOptions()] }
+      : f,
+  );
 
   return (
     <>
@@ -202,7 +253,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
               </p>
             )}
             {item?.status === "draft" && item.review_note && (
-              <p class="notice notice--error">
+              <p class="callout callout--warning">
                 <strong>Sent back:</strong> {item.review_note}
               </p>
             )}
@@ -226,16 +277,14 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 {cfg.publicUrl(item.slug) && (
                   <>
                     {" "}
-                    <a
-                      href={`https://discoveryhomeowners.com${cfg.publicUrl(item.slug)}`}
-                    >
+                    <a href={`${me.site_url}${cfg.publicUrl(item.slug)}`}>
                       View on the site
                     </a>
                   </>
                 )}
               </p>
             )}
-            {actions.length > 0 && (
+            {item && actions.length > 0 && (
               <div class="actions actions--stack">
                 {actions
                   .filter((a) => a !== "reject")
@@ -247,7 +296,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                       }
                       type="button"
                       disabled={dirty}
-                      onClick={() => doAction(a)}
+                      onClick={() => doAction(a, item)}
                     >
                       {actionLabel[a]}
                     </button>
@@ -266,7 +315,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                       class="button button--quiet"
                       type="button"
                       disabled={dirty}
-                      onClick={() => doAction("reject")}
+                      onClick={() => doAction("reject", item)}
                     >
                       {actionLabel.reject}
                     </button>
@@ -425,7 +474,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 </div>
               )}
               <Fields
-                fields={cfg.fields}
+                fields={fields}
                 value={body}
                 onChange={(next) => (
                   setBody(next),
@@ -447,7 +496,7 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
             </form>
           ) : (
             <>
-              <p class="notice">
+              <p class="callout">
                 You can read this {cfg.one} but not change it.{" "}
                 {item?.status === "published"
                   ? "Published items are changed by the secretary or an administrator."
@@ -461,11 +510,17 @@ export default function ItemEditor({ kind }: { kind: ItemKind }) {
                 </p>
               </Why>
               <dl class="minutes-facts">
-                {cfg.fields.map((f) => (
-                  <>
+                {fields.map((f) => (
+                  <Fragment key={f.key}>
                     <dt>{f.label}</dt>
-                    <dd>{String(body[f.key] ?? "")}</dd>
-                  </>
+                    <dd
+                      class={
+                        f.kind === "markdown" ? "prose prewrap" : undefined
+                      }
+                    >
+                      {shown(f, body[f.key])}
+                    </dd>
+                  </Fragment>
                 ))}
               </dl>
             </>

@@ -1,8 +1,15 @@
-import { BOARD_OFFICES, type Committee, type Person } from "@dhoa/shared";
-import { useState } from "preact/hooks";
-import { api, can, messageFrom } from "../lib/api.ts";
+import {
+  BOARD_OFFICES,
+  todayInNewYork,
+  type Committee,
+  type Person,
+} from "@dhoa/shared";
+import { useEffect, useState } from "preact/hooks";
+import { api, can, runAndReport } from "../lib/api.ts";
+import { emailOptions } from "../lib/content.ts";
 import { type RosterPerson, useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 import { Why } from "./Why.tsx";
@@ -21,8 +28,8 @@ const blankPerson = (): Person => ({
   order: 100,
 });
 
-export default function Roster() {
-  const { me } = useMe();
+export function Roster() {
+  const { me, error: meError } = useMe();
   const { people, committees, serving, error: loadError, reload } = useRoster();
   const [editing, setEditing] = useState<{
     id: string | null;
@@ -34,27 +41,27 @@ export default function Roster() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [showPast, setShowPast] = useState(false);
+  const { organization, error: orgError } = useOrganization();
+  const emailKeys = organization ? Object.keys(organization.emails) : [];
+  useEffect(() => {
+    if (editing) document.getElementById("p-name")?.focus();
+  }, [editing?.id]);
 
   if (loadError) return <ErrorNotice message={loadError} />;
+  if (meError) return <ErrorNotice message={meError} />;
   if (!people || !committees || !me) return <Loading />;
   const canEdit = can(me, "admin", "secretary");
   const past = people.filter((p) => !serving.includes(p));
+  // Who has a row on screen right now, so an edit in progress on a row that
+  // is about to disappear (hiding past members mid-edit) can move to the top
+  // instead of vanishing with it.
+  const visible = new Set(
+    [...serving, ...(showPast ? past : [])].map((p) => p.id),
+  );
   const cname = (slug: string) =>
     committees.find((c) => c.slug === slug)?.name ?? slug;
 
-  const run = async (fn: () => Promise<unknown>, done: string) => {
-    setError("");
-    setSaved("");
-    try {
-      await fn();
-      await reload();
-      setSaved(done);
-      setEditing(null);
-      setEditingCommittee(null);
-    } catch (e) {
-      setError(messageFrom(e));
-    }
-  };
+  const run = runAndReport(setError, setSaved, reload);
 
   const personForm = (p: { id: string | null; data: Person }) => {
     const d = p.data;
@@ -71,7 +78,7 @@ export default function Roster() {
                 ? api("PUT", `/roster/people/${p.id}`, d)
                 : api("POST", "/roster/people", d),
             p.id ? `Saved ${d.name}.` : `Added ${d.name} to the roster.`,
-          );
+          ).then((ok) => ok && (setEditing(null), setEditingCommittee(null)));
         }}
       >
         <h2>{p.id ? d.name || "Edit person" : "Add a person"}</h2>
@@ -97,7 +104,9 @@ export default function Roster() {
             >
               <option value="">Not on the board</option>
               {BOARD_OFFICES.map((o) => (
-                <option value={o}>{o}</option>
+                <option value={o} key={o}>
+                  {o}
+                </option>
               ))}
             </select>
             <span class="hint">
@@ -254,64 +263,70 @@ export default function Roster() {
     );
   };
 
-  const row = (p: RosterPerson) => (
-    <li key={p.id}>
-      <strong>{p.name}</strong>
-      <span>
-        {[
-          p.office,
-          ...p.committees.map((c) =>
-            p.chairs.includes(c) ? `${cname(c)} (chair)` : cname(c),
-          ),
-        ]
-          .filter(Boolean)
-          .join(", ") || "No current role"}
-      </span>
-      <div class="meta">
-        {p.term_start && `Since ${p.term_start}. `}
-        {p.term_end &&
-          `${p.term_end > new Date().toISOString().slice(0, 10) ? "Leaves" : "Left"} ${p.term_end}. `}
-        {p.note}
-      </div>
-      {canEdit && (
-        <div class="actions">
-          <button
-            class="button button--quiet button--small"
-            type="button"
-            onClick={() =>
-              setEditing({ id: p.id, data: { ...blankPerson(), ...p } })
-            }
-          >
-            Edit
-          </button>
-          {!p.term_end && (
-            <button
-              class="button button--danger button--small"
-              type="button"
-              onClick={() => {
-                const today = new Date().toISOString().slice(0, 10);
-                if (
-                  confirm(
-                    `End ${p.name}'s term today? They stay in the records but no longer appear as serving.`,
-                  )
-                )
-                  void run(
-                    () =>
-                      api("PUT", `/roster/people/${p.id}`, {
-                        ...p,
-                        term_end: today,
-                      }),
-                    `${p.name}'s term is recorded as ended.`,
-                  );
-              }}
-            >
-              End term
-            </button>
-          )}
+  const row = (p: RosterPerson) =>
+    editing?.id === p.id ? (
+      <li key={p.id}>{personForm(editing)}</li>
+    ) : (
+      <li key={p.id}>
+        <strong>{p.name}</strong>
+        <span>
+          {[
+            p.office,
+            ...p.committees.map((c) =>
+              p.chairs.includes(c) ? `${cname(c)} (chair)` : cname(c),
+            ),
+          ]
+            .filter(Boolean)
+            .join(", ") || "No current role"}
+        </span>
+        <div class="meta">
+          {p.term_start && `Since ${p.term_start}. `}
+          {p.term_end &&
+            `${p.term_end > todayInNewYork() ? "Leaves" : "Left"} ${p.term_end}. `}
+          {p.note}
         </div>
-      )}
-    </li>
-  );
+        {canEdit && (
+          <div class="actions">
+            <button
+              class="button button--quiet button--small"
+              type="button"
+              onClick={() =>
+                setEditing({ id: p.id, data: { ...blankPerson(), ...p } })
+              }
+            >
+              Edit
+            </button>
+            {!p.term_end && (
+              <button
+                class="button button--danger button--small"
+                type="button"
+                onClick={() => {
+                  const today = todayInNewYork();
+                  if (
+                    confirm(
+                      `End ${p.name}'s term today? They stay in the records but no longer appear as serving.`,
+                    )
+                  )
+                    void run(
+                      () =>
+                        api("PUT", `/roster/people/${p.id}`, {
+                          ...p,
+                          term_end: today,
+                        }),
+                      `${p.name}'s term is recorded as ended.`,
+                    ).then(
+                      (ok) =>
+                        ok && (setEditing(null), setEditingCommittee(null)),
+                    );
+                }}
+              >
+                End term
+              </button>
+            )}
+          </div>
+        )}
+      </li>
+    );
 
   return (
     <>
@@ -327,10 +342,11 @@ export default function Roster() {
           need not be on the roster.
         </p>
       </Why>
-      <ErrorNotice message={error} />
+      <ErrorNotice message={error || orgError} />
       <Saved message={saved} />
       {editing
-        ? personForm(editing)
+        ? (editing.id === null || !visible.has(editing.id)) &&
+          personForm(editing)
         : canEdit && (
             <p>
               <button
@@ -402,7 +418,7 @@ export default function Roster() {
                   editingCommittee,
                 ),
               `Saved ${editingCommittee.name}.`,
-            );
+            ).then((ok) => ok && (setEditing(null), setEditingCommittee(null)));
           }}
         >
           <h2>{editingCommittee.name}</h2>
@@ -454,8 +470,15 @@ export default function Roster() {
                 })
               }
             >
-              {["general", "acc", "pool_rec"].map((k) => (
-                <option value={k}>{k}</option>
+              {emailOptions(
+                emailKeys.includes(editingCommittee.email_key) ||
+                  !editingCommittee.email_key
+                  ? emailKeys
+                  : [editingCommittee.email_key, ...emailKeys],
+              ).map((o) => (
+                <option value={o.value} key={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>

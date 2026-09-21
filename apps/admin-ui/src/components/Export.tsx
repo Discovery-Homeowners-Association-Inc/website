@@ -18,7 +18,7 @@ import { PageHead } from "./PageHead.tsx";
  * their own roles, so this screen offering a checkbox is a convenience, not
  * the control: ticking one you may not read gets a refusal from the server.
  */
-export default function Export() {
+export function Export() {
   const { me } = useMe();
   const [chosen, setChosen] = useState<ExportDataset[]>(["roster"]);
   const [format, setFormat] = useState<ExportFormat>("json");

@@ -11,17 +11,18 @@ import {
   typeLabel,
 } from "../lib/api.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useOrganization } from "../lib/use-settings.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
 const blank = {
   type: "board" as MeetingType,
   date: "",
-  time: "7:00 pm",
-  location: "Discovery Recreation Center",
+  time: "",
+  location: "",
 };
 
-export default function Meetings() {
+export function Meetings() {
   const { me } = useMe();
   const [meetings, setMeetings] = useState<MeetingListItem[] | null>(null);
   const [form, setForm] = useState(blank);
@@ -32,6 +33,17 @@ export default function Meetings() {
       setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
+  const { organization, error: orgError } = useOrganization();
+  useEffect(() => {
+    if (!organization) return;
+    // Only fill what is still blank: a secretary who already typed a time or
+    // location before this answered must not have it silently replaced.
+    setForm((f) => ({
+      ...f,
+      time: f.time || organization.meetings.board.time,
+      location: f.location || organization.meetings.board.location,
+    }));
+  }, [organization]);
 
   async function create(event: Event) {
     event.preventDefault();
@@ -50,7 +62,7 @@ export default function Meetings() {
   return (
     <>
       <PageHead title="Meetings" />
-      <ErrorNotice message={error} />
+      <ErrorNotice message={error || orgError} />
       {can(me, "admin", "secretary") && (
         <form class="panel" onSubmit={create}>
           <h2>Add a meeting</h2>
@@ -68,7 +80,9 @@ export default function Meetings() {
                 }
               >
                 {Object.entries(typeLabel).map(([k, v]) => (
-                  <option value={k}>{v}</option>
+                  <option value={k} key={k}>
+                    {v}
+                  </option>
                 ))}
               </select>
             </div>

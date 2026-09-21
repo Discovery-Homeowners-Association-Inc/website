@@ -1,7 +1,19 @@
-import type { AgendaBody, MinutesBody, MinutesState, Role } from "@dhoa/shared";
+import type {
+  AgendaBody,
+  MeetingType,
+  MinutesBody,
+  MinutesState,
+  Role,
+} from "@dhoa/shared";
 
 export type Grant = { role: Role; scope: string };
-export type Me = { id: string; email: string; name: string; grants: Grant[] };
+export type Me = {
+  id: string;
+  email: string;
+  name: string;
+  grants: Grant[];
+  site_url: string;
+};
 
 export class ApiError extends Error {
   constructor(
@@ -43,8 +55,6 @@ export async function api<T>(
 export const can = (me: Me | null, ...roles: Role[]) =>
   !!me?.grants.some((g) => g.scope === "" && roles.includes(g.role));
 
-// The kinds of meeting, defined once with their labels.
-import type { MeetingType } from "@dhoa/shared";
 export type { MeetingType };
 export type Meeting = {
   id: string;
@@ -189,8 +199,10 @@ export const runAndReport =
       await fn();
       await reload();
       setSaved(done);
+      return true;
     } catch (e) {
       setError(messageFrom(e));
+      return false;
     }
   };
 

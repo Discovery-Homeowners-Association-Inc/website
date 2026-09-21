@@ -1,4 +1,4 @@
-import { MINUTES_STATES, type MinutesBody } from "@dhoa/shared";
+import { MINUTES_STATES, todayInNewYork, type MinutesBody } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
   api,
@@ -14,8 +14,10 @@ import {
   type AgendaResponse,
   type MinutesResponse,
 } from "../lib/api.ts";
+import { blankItem, tally, TALLY_LABELS } from "../lib/minutes-ui.ts";
 import { useRoster } from "../lib/roster.ts";
 import { useMe } from "../lib/use-me.ts";
+import { useUnsavedWarning } from "../lib/use-unsaved.ts";
 import { NamePicker } from "./NamePicker.tsx";
 import { MinutesEditor } from "./MinutesEditor.tsx";
 import { MinutesView } from "./MinutesView.tsx";
@@ -24,7 +26,7 @@ import { PageHead } from "./PageHead.tsx";
 
 type Loaded = Extract<MinutesResponse, { minutes: object }>;
 
-export default function Minutes() {
+export function Minutes() {
   const id = param("id");
   const { me } = useMe();
   const roster = useRoster();
@@ -47,11 +49,7 @@ export default function Minutes() {
     () => void load().catch((e: unknown) => setError(messageFrom(e))),
     [],
   );
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
-    addEventListener("beforeunload", warn);
-    return () => removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedWarning(dirty);
 
   const act = runAndReport(setError, setSaved, load);
 
@@ -59,15 +57,13 @@ export default function Minutes() {
   const m = data.meeting;
   const secretary = can(me, "admin", "secretary");
   const heading = (
-    <>
-      <PageHead
-        crumbs={[
-          { href: "/meetings/", label: "Meetings" },
-          { href: `/meeting/?id=${m.id}`, label: longDate(m.date) },
-        ]}
-        title={`Minutes: ${typeLabel[m.type]}, ${longDate(m.date)}`}
-      />
-    </>
+    <PageHead
+      crumbs={[
+        { href: "/meetings/", label: "Meetings" },
+        { href: `/meeting/?id=${m.id}`, label: longDate(m.date) },
+      ]}
+      title={`Minutes: ${typeLabel[m.type]}, ${longDate(m.date)}`}
+    />
   );
 
   if (!data.minutes) {
@@ -75,15 +71,9 @@ export default function Minutes() {
       const agenda = await api<AgendaResponse>("GET", `/meetings/${id}/agenda`);
       // The id comes from the agenda item, so a follow-up can be traced back
       // to where it was first raised.
-      const items = (agenda.current?.body.items ?? []).map((it) => ({
-        id: it.id,
-        title: it.title,
-        discussion: "",
-        motions: [],
-        outcome: "closed" as const,
-        follow_up_owner: "",
-        follow_up_note: "",
-      }));
+      const items = (agenda.current?.body.items ?? []).map((it) =>
+        blankItem(it.id, it.title),
+      );
       const body: MinutesBody = {
         called_to_order: "",
         presiding: "",
@@ -137,6 +127,7 @@ export default function Minutes() {
       <ol class="steps" aria-label="Progress">
         {MINUTES_STATES.map((s, i) => (
           <li
+            key={s}
             class={i < stepIndex ? "done" : undefined}
             aria-current={i === stepIndex ? "step" : undefined}
           >
@@ -268,7 +259,7 @@ export default function Minutes() {
               ) : (
                 <ul>
                   {d.reviewed_by.map((r) => (
-                    <li>{personName(r.name, r.former)}</li>
+                    <li key={r.user_id}>{personName(r.name, r.former)}</li>
                   ))}
                 </ul>
               )}
@@ -412,7 +403,7 @@ export default function Minutes() {
             <h2>Versions</h2>
             <ol reversed>
               {d.versions.map((v) => (
-                <li>
+                <li key={v.version}>
                   Version {v.version}, {when(v.created_at)}
                   {v.author && ` by ${personName(v.author, v.author_former)}`}
                   {v.change_note && <div class="meta">{v.change_note}</div>}
@@ -438,14 +429,13 @@ function VoteForm({
   onVote: (v: object) => void;
 }) {
   const [v, setV] = useState({
-    voted_on: new Date().toISOString().slice(0, 10),
+    voted_on: todayInNewYork(),
     motion_by: "",
     seconded_by: "",
     yes: 0,
     no: 0,
     abstain: 0,
   });
-  const num = (s: string) => Math.max(0, Number.parseInt(s, 10) || 0);
   return (
     <form
       class="panel"
@@ -487,17 +477,15 @@ function VoteForm({
       />
       <div class="row row--counts">
         {(["yes", "no", "abstain"] as const).map((f) => (
-          <div class="field">
-            <label for={`v-${f}`}>
-              {f === "yes" ? "In favor" : f === "no" ? "Against" : "Abstaining"}
-            </label>
+          <div class="field" key={f}>
+            <label for={`v-${f}`}>{TALLY_LABELS[f]}</label>
             <input
               id={`v-${f}`}
               type="number"
               min={0}
               required
               value={v[f]}
-              onInput={(e) => setV({ ...v, [f]: num(e.currentTarget.value) })}
+              onInput={(e) => setV({ ...v, [f]: tally(e.currentTarget.value) })}
             />
           </div>
         ))}
@@ -546,7 +534,7 @@ function Comments({
   canComment: boolean;
   meId: string | undefined;
   secretary: boolean;
-  act: (fn: () => Promise<unknown>, done: string) => Promise<void>;
+  act: (fn: () => Promise<unknown>, done: string) => Promise<boolean>;
 }) {
   const [anchor, setAnchor] = useState("");
   const [text, setText] = useState("");
@@ -560,7 +548,10 @@ function Comments({
     <section class="panel">
       <h2>Comments ({d.comments.filter((c) => !c.resolved_at).length} open)</h2>
       {visible.map((c) => (
-        <div class={c.resolved_at ? "comment comment--resolved" : "comment"}>
+        <div
+          key={c.id}
+          class={c.resolved_at ? "comment comment--resolved" : "comment"}
+        >
           <p>{c.body}</p>
           <p class="meta">
             {personName(c.author, c.author_former)}, on version {c.version}
@@ -612,7 +603,7 @@ function Comments({
                   body: text,
                 }),
               "Comment added.",
-            ).then(() => setText(""));
+            ).then((ok) => ok && setText(""));
           }}
         >
           <div class="field">
@@ -624,7 +615,7 @@ function Comments({
             >
               <option value="">The minutes in general</option>
               {d.current.body.items.map((it, i) => (
-                <option value={it.id}>
+                <option value={it.id} key={it.id}>
                   Item {i + 1}: {it.title}
                 </option>
               ))}

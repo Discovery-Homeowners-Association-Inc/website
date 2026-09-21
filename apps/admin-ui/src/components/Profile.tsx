@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { api, messageFrom, type Me, when } from "../lib/api.ts";
+import { api, messageFrom, runAndReport, type Me, when } from "../lib/api.ts";
 import { ErrorNotice, Loading, Saved } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
@@ -38,7 +38,7 @@ const device = (ua: string | null) => {
   return `${browser} on ${os}`;
 };
 
-export default function ProfilePage() {
+export function ProfilePage() {
   const [p, setP] = useState<Profile | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -49,6 +49,7 @@ export default function ProfilePage() {
       (e: unknown) => setError(messageFrom(e)),
     );
   useEffect(() => void load(), []);
+  const run = runAndReport(setError, setSaved, load);
   if (!p) return error ? <ErrorNotice message={error} /> : <Loading />;
   return (
     <>
@@ -59,10 +60,7 @@ export default function ProfilePage() {
         class="panel"
         onSubmit={(e) => {
           e.preventDefault();
-          void api("PATCH", "/me", { name }).then(
-            () => (load(), setSaved("Name saved.")),
-            (err: unknown) => setError(messageFrom(err)),
-          );
+          void run(() => api("PATCH", "/me", { name }), "Name saved.");
         }}
       >
         <h2>Your name</h2>
@@ -116,9 +114,9 @@ export default function ProfilePage() {
             class="button button--quiet"
             type="button"
             onClick={() =>
-              void api("POST", "/me/sign-out-others").then(
-                () => (load(), setSaved("Signed out everywhere else.")),
-                (e: unknown) => setError(messageFrom(e)),
+              void run(
+                () => api("POST", "/me/sign-out-others"),
+                "Signed out everywhere else.",
               )
             }
           >

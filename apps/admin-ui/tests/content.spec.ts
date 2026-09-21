@@ -1,5 +1,11 @@
-import AxeBuilder from "@axe-core/playwright";
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import {
+  ADMIN,
+  bootstrap,
+  expectAccessible,
+  noSidewaysScroll,
+  signIn,
+} from "./helpers.ts";
 
 /**
  * Site content: an editor writes, a director approves, scheduling and expiry
@@ -9,63 +15,16 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
 test.describe.configure({ mode: "serial" });
 
 /*
- * Invited identities are this project's own. Every browser project runs
- * against the same database, and a person is unique by email, so a second
- * project inviting the same address is refused and the whole spec unravels.
- * The bootstrapped administrator stays shared, because bootstrap is a
- * one-time door and tolerates having already been opened.
- */
-/*
  * The invited identities are this project's own, set before the first test
  * runs. Every browser project works against the same database and a person is
  * unique by email, so a second project inviting the same address is refused
  * and the spec unravels from there. The bootstrapped administrator stays
  * shared: bootstrap is a one-time door and tolerates being already open.
  */
-const ADMIN = "secretary@example.com";
 let EDITOR = "";
 let DIRECTOR = "";
 /** A post title of this project's own, so the second run is not reading the first's. */
 let SCHEDULED = "";
-
-async function signIn(browser: Browser, email: string, phone = false) {
-  const page = await (
-    await browser.newContext(
-      phone
-        ? {
-            viewport: { width: 390, height: 844 },
-            hasTouch: true,
-            isMobile: true,
-          }
-        : {},
-    )
-  ).newPage();
-  await page.goto("/sign-in/");
-  await page.getByLabel("Invited email").fill(email);
-  await page.getByRole("button", { name: "Sign in without Google" }).click();
-  await expect(page.getByRole("heading", { name: /^Hello/ })).toBeVisible();
-  return page;
-}
-
-async function expectAccessible(page: Page) {
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-    .analyze();
-  expect(
-    violations.map(
-      (v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
-    ),
-  ).toEqual([]);
-}
-
-const noSidewaysScroll = async (page: Page) =>
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
-    ),
-  ).toBeLessThanOrEqual(0);
 
 let admin: Page;
 let editor: Page;
@@ -77,13 +36,7 @@ test.beforeAll(async ({ request, browser }, testInfo) => {
   DIRECTOR = `approver-${testInfo.project.name}@example.com`;
   SCHEDULED = `Holiday lights walk (${testInfo.project.name})`;
 
-  const res = await request.post("/api/bootstrap", {
-    headers: {
-      authorization: "Bearer e2e-bootstrap-token-for-tests-only-0123456789",
-    },
-    data: { email: ADMIN, name: "Sam Secretary" },
-  });
-  expect([201, 409]).toContain(res.status());
+  await bootstrap(request);
   admin = await signIn(browser, ADMIN);
   await admin.goto("/people/");
   for (const [name, email, role] of [
@@ -167,11 +120,81 @@ test("a director sees it on the home page, sends it back, then approves the fix"
   await expect(
     director.getByRole("heading", { name: "Status: Published" }),
   ).toBeVisible();
+  await expect(
+    director.getByRole("link", { name: "View on the site" }),
+  ).toHaveAttribute(
+    "href",
+    /^https:\/\/dhoa-site\.discoveryhomeownersassociation\.workers\.dev\/news\//,
+  );
   const site = await director.request.get("/api/public/site.json");
   const json = await site.json();
   expect(
     json.news.map((n: { body: { title: string } }) => n.body.title),
   ).toContain("Leaf collection starts Monday");
+});
+
+test("an approver who read an older version is told to read again", async () => {
+  await editor.goto("/content/news/edit/");
+  await editor.getByLabel("Title").fill("Pool closes early Friday");
+  await editor.getByLabel("Summary").fill("Thunderstorms expected.");
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  const url = editor.url().replace(/&saved=1$/, "");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+  await director.goto(url);
+  await expect(
+    director.getByRole("button", { name: "Approve and publish" }),
+  ).toBeVisible();
+  // The editor changes the pending text under the director's feet.
+  await editor
+    .getByLabel("Summary")
+    .fill("Thunderstorms expected; the pool closes at 4 pm.");
+  await editor.getByRole("button", { name: "Save changes" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved.");
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(director.getByRole("alert")).toContainText(
+    "changed after you read it",
+  );
+  await director.reload();
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Published" }),
+  ).toBeVisible();
+});
+
+test("a published post can be taken down and then deleted", async () => {
+  await admin.goto(newsUrl);
+  admin.once("dialog", (d) => void d.accept());
+  await admin.getByRole("button", { name: "Take off the site" }).click();
+  await expect(
+    admin.getByRole("heading", { name: "Status: Draft" }),
+  ).toBeVisible();
+  let json = await (await admin.request.get("/api/public/site.json")).json();
+  expect(
+    json.news.map((n: { body: { title: string } }) => n.body.title),
+  ).not.toContain("Leaf collection starts Monday");
+  admin.once("dialog", (d) => void d.accept());
+  await admin.getByRole("button", { name: /^Delete this/ }).click();
+  await admin.waitForURL(/\/content\/news\/$/);
+  await expect(
+    admin.getByRole("link", { name: "Leaf collection starts Monday" }),
+  ).toHaveCount(0);
+});
+
+test("sending something back needs a note", async () => {
+  await editor.goto("/content/news/edit/");
+  await editor.getByLabel("Title").fill("Needs a note");
+  await editor.getByLabel("Summary").fill("Summary.");
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  const url = editor.url().replace(/&saved=1$/, "");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+  await director.goto(url);
+  await director.getByRole("button", { name: "Send back with a note" }).click();
+  await expect(director.getByRole("alert")).toContainText("Write a note");
+  await expect(
+    director.getByRole("heading", { name: "Status: Waiting for approval" }),
+  ).toBeVisible();
 });
 
 test("a scheduled post stays off the site until its date; an expired one disappears", async () => {
@@ -253,6 +276,35 @@ test("a document is uploaded and described", async () => {
   expect(await file.text()).toBe("%PDF-1.4 rules");
 });
 
+test("an editor can only change their own drafts", async () => {
+  await editor.goto("/content/events/edit/");
+  await editor.getByLabel("Title").fill("Pool committee open house");
+  await editor.getByLabel("Summary").fill("Meet the volunteers.");
+  await editor.getByLabel("Starts").fill("2099-06-01T18:00");
+  await editor.getByLabel("Ends").fill("2099-06-01T20:00");
+  await editor
+    .getByLabel("Questions go to")
+    .selectOption({ label: "Pool & Recreation Committee" });
+  await editor.getByRole("button", { name: "Save as draft" }).click();
+  await expect(editor.getByRole("status")).toContainText("Saved as a draft");
+  const eventUrl = editor.url().replace(/&saved=1$/, "");
+  await editor.getByRole("button", { name: "Submit for approval" }).click();
+
+  await director.goto(eventUrl);
+  await director.getByRole("button", { name: "Approve and publish" }).click();
+  await expect(
+    director.getByRole("heading", { name: "Status: Published" }),
+  ).toBeVisible();
+
+  // Published, so the author who wrote it can only read it now -- and the
+  // read-only view names the committee, not the raw key it is stored as.
+  await editor.goto(eventUrl);
+  await expect(
+    editor.getByText("You can read this event but not change it."),
+  ).toBeVisible();
+  await expect(editor.getByText("Pool & Recreation Committee")).toBeVisible();
+});
+
 test("an administrator changes a fact once in site settings", async () => {
   await admin.goto("/settings/");
   await admin.getByRole("link", { name: /^Organization/ }).click();
@@ -261,19 +313,54 @@ test("an administrator changes a fact once in site settings", async () => {
   await phone.fill("301-845-2051");
   await admin.getByRole("button", { name: "Save changes" }).click();
   await expect(admin.getByRole("status")).toContainText("Saved");
+  // Two new email addresses at once. Rows were keyed by their (empty) key, so
+  // the second "Add" replaced the first and typing a key ate its neighbor.
+  await admin.getByRole("button", { name: "Add email address" }).click();
+  await admin.getByRole("button", { name: "Add email address" }).click();
+  const keys = admin.getByLabel("Role key");
+  const values = admin.getByLabel("Email address", { exact: true });
+  const n = await keys.count();
+  expect(n).toBeGreaterThanOrEqual(5);
+  await keys.nth(n - 2).fill("treasurer");
+  await values.nth(n - 2).fill("treasurer@example.com");
+  await keys.nth(n - 1).fill("events");
+  await values.nth(n - 1).fill("events@example.com");
+  await admin.getByRole("button", { name: "Save changes" }).click();
+  await expect(admin.getByRole("status")).toContainText("Saved");
+  await admin.reload();
+  await expect(admin.getByLabel("Role key")).toHaveCount(n);
+  const saved = await (
+    await admin.request.get("/api/settings/organization")
+  ).json();
+  expect(saved.emails.treasurer).toBe("treasurer@example.com");
+  expect(saved.emails.events).toBe("events@example.com");
   const json = await (await admin.request.get("/api/public/site.json")).json();
   expect(json.settings.organization.office.phone).toBe("301-845-2051");
   await expectAccessible(admin);
-  await expect(
-    editor
-      .goto("/settings/?group=parks")
-      .then(() => editor.getByText("Only administrators")),
-  ).resolves.toBeVisible();
+  await editor.goto("/settings/?group=parks");
+  await expect(editor.getByText("Only administrators")).toBeVisible();
+});
+
+test("editing a committee still shows its saved email key when settings cannot be read", async () => {
+  await admin.route("**/api/settings/organization", (route) => route.abort(), {
+    times: 1,
+  });
+  await admin.goto("/roster/");
+  // Scoped to the Committees list: a serving director's row can also mention
+  // "Pool & Recreation Committee" among their roles.
+  await admin
+    .locator("h2:has-text('Committees') + ul")
+    .getByRole("listitem")
+    .filter({ hasText: "Pool & Recreation" })
+    .getByRole("button", { name: "Edit" })
+    .click();
+  await expect(admin.getByLabel("Email role key")).toHaveValue("pool_rec");
 });
 
 test("the roster drives attendance in minutes, and ending a term keeps the record", async () => {
   await admin.goto("/roster/");
   await admin.getByRole("button", { name: "Add a person" }).click();
+  await expect(admin.getByLabel("Name", { exact: true })).toBeFocused();
   await admin.getByLabel("Name", { exact: true }).fill("Nova Newcomer");
   await admin.getByLabel("Board office").selectOption("Director");
   await admin.getByRole("button", { name: "Add to the roster" }).click();
@@ -307,6 +394,16 @@ test("the roster drives attendance in minutes, and ending a term keeps the recor
   await expect(
     admin.getByRole("listitem").filter({ hasText: "Nova Newcomer" }),
   ).toBeVisible();
+
+  // Editing a past member, then hiding past members again, must not strand
+  // the open edit: it moves to the top instead of disappearing.
+  await admin
+    .getByRole("listitem")
+    .filter({ hasText: "Nova Newcomer" })
+    .getByRole("button", { name: "Edit" })
+    .click();
+  await admin.getByRole("button", { name: /Hide past members/ }).click();
+  await expect(admin.getByRole("button", { name: "Cancel" })).toBeVisible();
 });
 
 test("profile and help pages work, and every new screen fits a phone", async ({
@@ -324,7 +421,7 @@ test("profile and help pages work, and every new screen fits a phone", async ({
   for (const path of [
     "/content/",
     "/content/news/",
-    newsUrl.replace(/^https?:\/\/[^/]+/, ""),
+    "/content/news/edit/",
     "/content/documents/edit/",
     "/roster/",
     "/settings/?group=organization",
@@ -335,5 +432,33 @@ test("profile and help pages work, and every new screen fits a phone", async ({
     await expect(phone.locator("h1")).toBeVisible();
     await noSidewaysScroll(phone);
     await expectAccessible(phone);
+  }
+});
+
+test("every settings group renders its form", async () => {
+  await admin.goto("/settings/");
+  // The settings index is a client:only component; wait for it to hydrate
+  // before reading its links, since evaluateAll does not auto-wait.
+  await expect(admin.locator(".tasks a").first()).toBeVisible();
+  const links = await admin
+    .locator(".tasks a")
+    .evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+  expect(links.length).toBeGreaterThanOrEqual(11);
+  for (const href of links) {
+    await admin.goto(href);
+    await expect(
+      admin.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await expect(admin.getByRole("alert")).toHaveCount(0);
+    expect(
+      await admin.locator("input, select, textarea").count(),
+    ).toBeGreaterThan(0);
+    // A schema-derived field can still ask for a phone input: the office
+    // phone number is plain text in the schema, but its label says "phone".
+    if (href.includes("group=organization"))
+      await expect(admin.getByLabel("Phone", { exact: true })).toHaveAttribute(
+        "type",
+        "tel",
+      );
   }
 });

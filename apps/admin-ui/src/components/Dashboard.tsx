@@ -1,4 +1,4 @@
-import { capitalize } from "@dhoa/shared";
+import { capitalize, todayInNewYork } from "@dhoa/shared";
 import type { Item } from "@dhoa/shared";
 import { useEffect, useState } from "preact/hooks";
 import {
@@ -15,7 +15,7 @@ import { useMe } from "../lib/use-me.ts";
 import { ErrorNotice, Loading } from "./Notice.tsx";
 import { PageHead } from "./PageHead.tsx";
 
-export default function Dashboard() {
+export function Dashboard() {
   const { me, error: meError } = useMe();
   const [meetings, setMeetings] = useState<MeetingListItem[] | null>(null);
   const [pendingItems, setPendingItems] = useState<
@@ -40,10 +40,10 @@ export default function Dashboard() {
   if (meError || error) return <ErrorNotice message={meError || error} />;
   if (!me || !meetings) return <Loading />;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInNewYork();
   const upcoming = meetings
     .filter((m) => m.date >= today && m.status !== "canceled")
-    .reverse();
+    .toSorted((a, b) => a.date.localeCompare(b.date));
   const inReview = meetings.filter(
     (m) =>
       m.minutes_status === "in_review" || m.minutes_status === "ready_for_vote",
@@ -89,14 +89,14 @@ export default function Dashboard() {
           ) : (
             <ul class="tasks">
               {inReview.map((m) => (
-                <li>
+                <li key={m.id}>
                   <a href={`/minutes/?id=${m.id}`}>
                     <strong>
                       {typeLabel[m.type]}, {longDate(m.date)}
                     </strong>
                     <span>
-                      {statusLabel[m.minutes_status!]}. Read, comment, and mark
-                      as reviewed.
+                      {m.minutes_status ? statusLabel[m.minutes_status] : ""}.
+                      Read, comment, and mark as reviewed.
                     </span>
                   </a>
                 </li>
@@ -111,7 +111,7 @@ export default function Dashboard() {
           <h2>Approved, not yet uploaded to PayHOA</h2>
           <ul class="tasks">
             {toFile.map((m) => (
-              <li>
+              <li key={m.id}>
                 <a href={`/minutes/?id=${m.id}`}>
                   <strong>
                     {typeLabel[m.type]}, {longDate(m.date)}
@@ -136,7 +136,7 @@ export default function Dashboard() {
         ) : (
           <ul class="tasks">
             {upcoming.slice(0, 4).map((m) => (
-              <li>
+              <li key={m.id}>
                 <a href={`/meeting/?id=${m.id}`}>
                   <strong>
                     {typeLabel[m.type]}, {longDate(m.date)}
