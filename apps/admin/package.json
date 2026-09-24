@@ -20,6 +20,6 @@
     "@vitest/snapshot": "4.1.11",
     "typescript": "7.0.2",
     "vitest": "4.1.11",
-    "wrangler": "4.133.0"
+    "wrangler": "4.136.0"
   }
 }
